@@ -245,8 +245,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         coinbaseTx.vout[0].nValue = nFees + nBlockSubsidy;
     }
 
-    FillFoundersReward(coinbaseTx);
-
     if (fDIP0003Active_context) {
         coinbaseTx.vin[0].scriptSig = CScript() << OP_RETURN;
 
@@ -284,15 +282,16 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         bool Dip3Active = nHeight >= params.DIP0003EnforcementHeight && !fProofOfStake;
         bool fPayIDXNode = nHeight >= chainparams.GetConsensus().nZnodePaymentsStartBlock && !fProofOfStake;
         CAmount indexnodePayment = 0;
-    if (fPayIDXNode) {
+    if (Dip3Active) {
+        std::vector<CTxOut> sbPayments;
+        FillBlockPayments(coinbaseTx, nHeight, nBlockSubsidy, pblocktemplate->voutMasternodePayments, fProofOfStake);
+    }
+    else if (fPayIDXNode) {
         const Consensus::Params &params = chainparams.GetConsensus();
         indexnodePayment = GetZnodePayment(chainparams.GetConsensus(),nHeight);
         FillZnodeBlockPayments(coinbaseTx, nHeight, indexnodePayment, pblock->txoutZnode, pblock->voutSuperblock);
     }
-    else if (Dip3Active) {
-        std::vector<CTxOut> sbPayments;
-        FillBlockPayments(coinbaseTx, nHeight, nBlockSubsidy, pblocktemplate->voutMasternodePayments, fProofOfStake);
-    }
+
     //Only take out idx payment if a indexnode is actually filled in txoutindexnode and indexnodepayment is not 0
     if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0)
         coinbaseTx.vout[0].nValue -= indexnodePayment;
@@ -779,89 +778,6 @@ void BlockAssembler::addPriorityTxs()
     fNeedSizeAccounting = fSizeAccounting;
 }
 
-void BlockAssembler::FillFoundersReward(CMutableTransaction &coinbaseTx) {
-    auto &params = chainparams.GetConsensus();
-    CAmount coin = COIN;
-/*
-    if (nHeight >= params.nSubsidyHalvingFirst && nHeight < params.nSubsidyHalvingFirst + params.nSubsidyHalvingInterval) {
-        // Stage 2
-        CScript devPayoutScript = GetScriptForDestination(CBitcoinAddress(params.stage2DevelopmentFundAddress).Get());
-        CAmount devPayoutValue = (GetBlockSubsidy(nHeight, params) * params.stage2DevelopmentFundShare) / 100;
-
-        coinbaseTx.vout[0].nValue -= devPayoutValue;
-        coinbaseTx.vout.push_back(CTxOut(devPayoutValue, devPayoutScript));
-    }
-    else if ((nHeight > 0) && (nHeight < params.nSubsidyHalvingFirst)) {
-        // Stage 1: To founders and investors
-        CScript FOUNDER_1_SCRIPT;
-        CScript FOUNDER_2_SCRIPT;
-        CScript FOUNDER_3_SCRIPT;
-        CScript FOUNDER_4_SCRIPT;
-        CScript FOUNDER_5_SCRIPT;
-        if (nHeight < params.nZnodePaymentsStartBlock) {
-            // Take some reward away from us
-            coinbaseTx.vout[0].nValue -= 10 * coin;
-
-            if (params.IsMain() && (GetAdjustedTime() > nStartRewardTime)) {
-                FOUNDER_1_SCRIPT = GetScriptForDestination(CBitcoinAddress("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr").Get());
-                if (nHeight + 1 < 14000) {
-                    FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("aLrg41sXbXZc5MyEj7dts8upZKSAtJmRDR").Get());
-                } else {
-                    FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("aHu897ivzmeFuLNB6956X6gyGeVNHUBRgD").Get());
-                }
-                FOUNDER_3_SCRIPT = GetScriptForDestination(CBitcoinAddress("aQ18FBVFtnueucZKeVg4srhmzbpAeb1KoN").Get());
-                FOUNDER_4_SCRIPT = GetScriptForDestination(CBitcoinAddress("a1HwTdCmQV3NspP2QqCGpehoFpi8NY4Zg3").Get());
-                FOUNDER_5_SCRIPT = GetScriptForDestination(CBitcoinAddress("a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U").Get());
-            } else if (params.IsMain() && (GetAdjustedTime() <= nStartRewardTime)) {
-                throw std::runtime_error("CreateNewBlock() : Create new block too early");
-            } else if (!params.IsMain()) {
-                FOUNDER_1_SCRIPT = GetScriptForDestination(CBitcoinAddress("TDk19wPKYq91i18qmY6U9FeTdTxwPeSveo").Get());
-                FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("TWZZcDGkNixTAMtRBqzZkkMHbq1G6vUTk5").Get());
-                FOUNDER_3_SCRIPT = GetScriptForDestination(CBitcoinAddress("TRZTFdNCKCKbLMQV8cZDkQN9Vwuuq4gDzT").Get());
-                FOUNDER_4_SCRIPT = GetScriptForDestination(CBitcoinAddress("TG2ruj59E5b1u9G3F7HQVs6pCcVDBxrQve").Get());
-                FOUNDER_5_SCRIPT = GetScriptForDestination(CBitcoinAddress("TCsTzQZKVn4fao8jDmB9zQBk9YQNEZ3XfS").Get());
-            }
-
-            // And give it to the founders
-            coinbaseTx.vout.push_back(CTxOut(2 * coin, CScript(FOUNDER_1_SCRIPT.begin(), FOUNDER_1_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(2 * coin, CScript(FOUNDER_2_SCRIPT.begin(), FOUNDER_2_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(2 * coin, CScript(FOUNDER_3_SCRIPT.begin(), FOUNDER_3_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(2 * coin, CScript(FOUNDER_4_SCRIPT.begin(), FOUNDER_4_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(2 * coin, CScript(FOUNDER_5_SCRIPT.begin(), FOUNDER_5_SCRIPT.end())));
-        } else if (nHeight >= Params().GetConsensus().nZnodePaymentsStartBlock) {
-            // Take some reward away from us
-            coinbaseTx.vout[0].nValue -= 7 * coin;
-
-            if (params.IsMain() && (GetAdjustedTime() > nStartRewardTime)) {
-                FOUNDER_1_SCRIPT = GetScriptForDestination(CBitcoinAddress("aCAgTPgtYcA4EysU4UKC86EQd5cTtHtCcr").Get());
-                if (nHeight + 1 < 14000) {
-                    FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("aLrg41sXbXZc5MyEj7dts8upZKSAtJmRDR").Get());
-                } else {
-                    FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("aHu897ivzmeFuLNB6956X6gyGeVNHUBRgD").Get());
-                }
-                FOUNDER_3_SCRIPT = GetScriptForDestination(CBitcoinAddress("aQ18FBVFtnueucZKeVg4srhmzbpAeb1KoN").Get());
-                FOUNDER_4_SCRIPT = GetScriptForDestination(CBitcoinAddress("a1HwTdCmQV3NspP2QqCGpehoFpi8NY4Zg3").Get());
-                FOUNDER_5_SCRIPT = GetScriptForDestination(CBitcoinAddress("a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U").Get());
-            } else if (params.IsMain() && (GetAdjustedTime() <= nStartRewardTime)) {
-                throw std::runtime_error("CreateNewBlock() : Create new block too early");
-            } else if (!params.IsMain()) {
-                FOUNDER_1_SCRIPT = GetScriptForDestination(CBitcoinAddress("TDk19wPKYq91i18qmY6U9FeTdTxwPeSveo").Get());
-                FOUNDER_2_SCRIPT = GetScriptForDestination(CBitcoinAddress("TWZZcDGkNixTAMtRBqzZkkMHbq1G6vUTk5").Get());
-                FOUNDER_3_SCRIPT = GetScriptForDestination(CBitcoinAddress("TRZTFdNCKCKbLMQV8cZDkQN9Vwuuq4gDzT").Get());
-                FOUNDER_4_SCRIPT = GetScriptForDestination(CBitcoinAddress("TG2ruj59E5b1u9G3F7HQVs6pCcVDBxrQve").Get());
-                FOUNDER_5_SCRIPT = GetScriptForDestination(CBitcoinAddress("TCsTzQZKVn4fao8jDmB9zQBk9YQNEZ3XfS").Get());
-            }
-
-            // And give it to the founders
-            coinbaseTx.vout.push_back(CTxOut(1 * coin, CScript(FOUNDER_1_SCRIPT.begin(), FOUNDER_1_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(1 * coin, CScript(FOUNDER_2_SCRIPT.begin(), FOUNDER_2_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(1 * coin, CScript(FOUNDER_3_SCRIPT.begin(), FOUNDER_3_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(3 * coin, CScript(FOUNDER_4_SCRIPT.begin(), FOUNDER_4_SCRIPT.end())));
-            coinbaseTx.vout.push_back(CTxOut(1 * coin, CScript(FOUNDER_5_SCRIPT.begin(), FOUNDER_5_SCRIPT.end())));
-        }
-    }*/
-}
-
 void BlockAssembler::FillBlackListForBlockTemplate() {
     for (CTxMemPool::indexed_transaction_set::iterator mi = mempool.mapTx.begin();
             mi != mempool.mapTx.end(); ++mi)
@@ -1106,9 +1022,11 @@ bool SignBlock(CBlock& block, CWallet& wallet, int64_t& nFees, CBlockTemplate *p
     }
 
     static int64_t nLastCoinStakeSearchTime = GetAdjustedTime(); // startup timestamp
+    bool fDIP0003Active_context = pindexBestHeader->nHeight >= Params().GetConsensus().DIP0003Height;
 
     CKey key;
     CTransactionRef txCoinBase(block.vtx[0]);
+    CTransactionRef txQc(block.vtx[1]);
     CMutableTransaction txCoinStake;
 
     int64_t nStakeTime = GetAdjustedTime();
@@ -1126,9 +1044,11 @@ bool SignBlock(CBlock& block, CWallet& wallet, int64_t& nFees, CBlockTemplate *p
                 block.vtx[0] = txCoinBase;
                 block.vtx.resize(2);
                 block.vtx[1] = MakeTransactionRef(std::move(txCoinStake));
-
-                // block.vtx.insert(block.vtx.begin() + 1, txCoinStake);
-
+                //Add Quorum commitment after dip3
+                if(fDIP0003Active_context){
+                    block.vtx.resize(3);
+                    block.vtx[2] = txQc;
+                }
                 block.hashMerkleRoot = BlockMerkleRoot(block);
                 // append a signature to our block
                 key.SignCompact(block.GetHash(), block.vchBlockSig);

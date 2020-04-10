@@ -219,9 +219,6 @@ private:
       * of updated descendants. */
     int UpdatePackagesForAdded(const CTxMemPool::setEntries& alreadyAdded, indexed_modified_transaction_set &mapModifiedTx);
 
-    /** Zcoin: fill in founders' reward and znode payout outputs */
-    void FillFoundersReward(CMutableTransaction &coinbaseTx);
-
     /** Fill txBlackList set */
     void FillBlackListForBlockTemplate();
 };

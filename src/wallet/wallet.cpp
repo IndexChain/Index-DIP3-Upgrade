@@ -1053,7 +1053,10 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         bool fPayIDXNode = nHeight >= Params().GetConsensus().nZnodePaymentsStartBlock;
         bool IDXNodePaid = false;
         CAmount indexnodePayment = 0;
-    if (fPayIDXNode) {
+    if (Dip3Active) {
+        FillBlockPayments(txNew, nHeight, nReward, pblocktemplate->voutMasternodePayments, true);
+    }
+    else if (fPayIDXNode) {
         const Consensus::Params &params = Params().GetConsensus();
         indexnodePayment = GetZnodePayment(Params().GetConsensus(),nHeight);
         FillZnodeBlockPayments(txNew, nHeight, indexnodePayment, pblock->txoutZnode, pblock->voutSuperblock);
@@ -1061,10 +1064,6 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             nReward -= indexnodePayment;
             IDXNodePaid = true;
         }
-    }
-    else if (Dip3Active) {
-        std::vector<CTxOut> sbPayments;
-        FillBlockPayments(txNew, nHeight, nReward, pblocktemplate->voutMasternodePayments, true);
     }
         /*
         CAmount indexnodePayment = 0;
