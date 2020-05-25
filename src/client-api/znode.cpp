@@ -10,6 +10,7 @@
 #include "znodeconfig.h"
 #include "client-api/server.h"
 #include "client-api/protocol.h"
+#include "evo/deterministicmns.h"
 #include <client-api/wallet.h>
 #include <unordered_map>
 
@@ -212,25 +213,91 @@ UniValue znodelist(Type type, const UniValue& data, const UniValue& auth, bool f
              * if it is, process all Znodes, and return along with wallet Znodes.
              * (if the wallet Znode has started, it will be replaced in the synced list).
              */
-            if(!znodeSync.IsSynced()){
+            /*if(!znodeSync.IsSynced()){
                 data.push_back(Pair("nodes", nodes));
                 data.push_back(Pair("total", mnodeman.CountZnodes()));
                 return data;
-            }
+            }*/
 
-            std::vector <CZnode> vZnodes = mnodeman.GetFullZnodeVector();
-            BOOST_FOREACH(CZnode & mn, vZnodes) {
-                std::string txHash = mn.vin.prevout.hash.ToString().substr(0,64);
-                std::string outputIndex = to_string(mn.vin.prevout.n);
+            auto mnList = deterministicMNManager->GetListAtChainTip();
+            auto dmnToStatus = [&](const CDeterministicMNCPtr& dmn) {
+                if (mnList.IsMNValid(dmn)) {
+                    return "ENABLED";
+                }
+                if (mnList.IsMNPoSeBanned(dmn)) {
+                    return "POSE_BANNED";
+                }
+                return "UNKNOWN";
+            };
+            auto dmnToLastPaidTime = [&](const CDeterministicMNCPtr& dmn) {
+                if (dmn->pdmnState->nLastPaidHeight == 0) {
+                    return (int)0;
+                }
+
+                LOCK(cs_main);
+                const CBlockIndex* pindex = chainActive[dmn->pdmnState->nLastPaidHeight];
+                return (int)pindex->nTime;
+            };
+            LogPrintf("%s: mncount = %d\n", __func__, mnList.GetAllMNsCount());
+            mnList.ForEachMN(false, [&](const CDeterministicMNCPtr& dmn) {
+                std::string strOutpoint = dmn->collateralOutpoint.ToStringShort();
+
+                std::string txHash = dmn->collateralOutpoint.hash.ToString().substr(0,64);
+                std::string outputIndex = to_string(dmn->collateralOutpoint.n);
                 std::string key = txHash + outputIndex;
 
-                // only process wallet Znodes - they are already in "nodes", so if we find it, replace with update
-                if(!find_value(nodes, key).isNull())
-                    nodes.replace(key, mn.ToJSON());
-            }
+                Coin coin;
+                std::string collateralAddressStr = "UNKNOWN";
+                if (GetUTXOCoin(dmn->collateralOutpoint, coin)) {
+                    CTxDestination collateralDest;
+                    if (ExtractDestination(coin.out.scriptPubKey, collateralDest)) {
+                        collateralAddressStr = CBitcoinAddress(collateralDest).ToString();
+                    }
+                }
+
+                CScript payeeScript = dmn->pdmnState->scriptPayout;
+                CTxDestination payeeDest;
+                std::string payeeStr = "UNKNOWN";
+                if (ExtractDestination(payeeScript, payeeDest)) {
+                    payeeStr = CBitcoinAddress(payeeDest).ToString();
+                }
+
+                {
+                    UniValue objMN(UniValue::VOBJ);
+                    bool isMine = false;
+                    if (pwalletMain) {
+                        isMine = pwalletMain->IsMine(CTxIn(dmn->collateralOutpoint));
+                    }
+                    objMN.push_back(Pair("ismine", isMine));
+                    objMN.push_back(Pair("proTxHash", dmn->proTxHash.ToString()));
+                    objMN.push_back(Pair("address", dmn->pdmnState->addr.ToString()));
+                    objMN.push_back(Pair("payee", payeeStr));
+                    objMN.push_back(Pair("status", dmnToStatus(dmn)));
+                    objMN.push_back(Pair("lastpaidtime", dmnToLastPaidTime(dmn)));
+                    objMN.push_back(Pair("lastpaidblock", dmn->pdmnState->nLastPaidHeight));
+                    objMN.push_back(Pair("posescore", dmn->pdmnState->nPoSePenalty));
+                    objMN.push_back(Pair("registeredblock", dmn->pdmnState->nRegisteredHeight));
+                    objMN.push_back(Pair("owneraddress", CBitcoinAddress(dmn->pdmnState->keyIDOwner).ToString()));
+                    objMN.push_back(Pair("votingaddress", CBitcoinAddress(dmn->pdmnState->keyIDVoting).ToString()));
+                    objMN.push_back(Pair("collateraladdress", collateralAddressStr));
+                    objMN.push_back(Pair("pubkeyoperator", dmn->pdmnState->pubKeyOperator.Get().ToString()));
+                    nodes.replace(key, objMN);
+                }
+            });
+
+            // std::vector <CZnode> vZnodes = mnodeman.GetFullZnodeVector();
+            // BOOST_FOREACH(CZnode & mn, vZnodes) {
+            //     std::string txHash = mn.vin.prevout.hash.ToString().substr(0,64);
+            //     std::string outputIndex = to_string(mn.vin.prevout.n);
+            //     std::string key = txHash + outputIndex;
+
+            //     // only process wallet Znodes - they are already in "nodes", so if we find it, replace with update
+            //     //if(!find_value(nodes, key).isNull())
+            //         nodes.replace(key, mn.ToJSON());
+            // }
 
             data.push_back(Pair("nodes", nodes));
-            data.push_back(Pair("total", mnodeman.CountZnodes()));
+            data.push_back(Pair("total", (uint64_t)mnList.GetAllMNsCount()));
             return data;
             break;
         }
