@@ -57,7 +57,7 @@ bool CZMQAbstract::NotifyZnodeUpdate(CZnode &znode)
     return true;
 }
 
-bool CZMQAbstract::NotifyMintStatusUpdate(std::string update)
+bool CZMQAbstract::NotifyMasternodeUpdate(CDeterministicMNPtr masternode)
 {
     return true;
 }

@@ -5,7 +5,7 @@
 #include "util.h"
 #include "core_io.h"
 #include "chain.h"
-#include "znode-sync.h"
+#include "znodesync-interface.h"
 
 #include "zmqabstract.h"
 #include "zmqpublisher.h"
@@ -236,7 +236,7 @@ bool CZMQTransactionEvent::NotifyTransaction(const CTransaction& transaction)
 
     if(topic=="balance"){
         // If synced, always publish, if not, every 1000 blocks (for better sync speed).
-        if(znodeSync.GetBlockchainSynced() || chainActive.Tip()->nHeight%1000==0)
+        if(znodeSyncInterface.GetBlockchainSynced() || chainActive.Tip()->nHeight%1000==0)
             Execute();
         else
             return true;
@@ -278,7 +278,7 @@ bool CZMQBlockEvent::NotifyBlock(const CBlockIndex *pindex){
     }
 
     // If synced, always publish, if not, every 100 blocks (for better sync speed).
-    if(znodeSync.GetBlockchainSynced() || pindex->nHeight%100==0){
+    if(znodeSyncInterface.GetBlockchainSynced() || pindex->nHeight%100==0){
         request.replace("data", pindex->ToJSON());
         Execute();
     }
@@ -293,15 +293,10 @@ bool CZMQZnodeEvent::NotifyZnodeUpdate(CZnode &znode){
     return true;
 }
 
-bool CZMQMintStatusEvent::NotifyMintStatusUpdate(std::string update){
-    LogPrintf("update in NotifyMintStatusUpdate: %s\n", update);
-    UniValue updateObj(UniValue::VOBJ);
-    try{
-        updateObj.read(update);
-    }catch(const std::exception& e){
-       throw JSONAPIError(API_PARSE_ERROR, "Could not read mint update"); 
-    }
-    request.replace("data", updateObj);
+bool CZMQMasternodeEvent::NotifyMasternodeUpdate(CDeterministicMNPtr masternode){
+    UniValue data;
+    masternode->ToJson(data);
+    request.replace("data", data);
     Execute();
 
     return true;

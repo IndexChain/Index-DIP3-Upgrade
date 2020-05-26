@@ -80,6 +80,15 @@ void CDeterministicMN::ToJson(UniValue& obj) const
     UniValue stateObj;
     pdmnState->ToJson(stateObj);
 
+#ifdef ENABLE_CLIENTAPI
+    if(fApi){
+        if(deterministicMNManager->GetNextPayments().count(proTxHash)){
+            int nextPaymentHeight = deterministicMNManager->GetNextPayments()[proTxHash];
+            stateObj.push_back(Pair("nextPaymentHeight", nextPaymentHeight));
+        }
+    }
+#endif
+
     obj.push_back(Pair("proTxHash", proTxHash.ToString()));
     obj.push_back(Pair("collateralHash", collateralOutpoint.hash.ToString()));
     obj.push_back(Pair("collateralIndex", (int)collateralOutpoint.n));
@@ -464,6 +473,8 @@ void CDeterministicMNList::UpdateMN(const CDeterministicMNCPtr& oldDmn, const CD
     UpdateUniqueProperty(dmn, oldState->addr, pdmnState->addr);
     UpdateUniqueProperty(dmn, oldState->keyIDOwner, pdmnState->keyIDOwner);
     UpdateUniqueProperty(dmn, oldState->pubKeyOperator, pdmnState->pubKeyOperator);
+
+    GetMainSignals().UpdatedMasternode(dmn);
 }
 
 void CDeterministicMNList::UpdateMN(const uint256& proTxHash, const CDeterministicMNStateCPtr& pdmnState)
@@ -502,6 +513,16 @@ CDeterministicMNManager::CDeterministicMNManager(CEvoDB& _evoDb) :
     evoDb(_evoDb)
 {
 }
+
+void CDeterministicMNManager::UpdateNextPayments() {
+    CDeterministicMNList mnList = deterministicMNManager->GetListAtChainTip();
+    auto projectedPayees = mnList.GetProjectedMNPayees(mnList.GetValidMNsCount());
+    for (size_t i = 0; i < projectedPayees.size(); i++) {
+        const auto& dmn = projectedPayees[i];
+        nextPayments.emplace(dmn->proTxHash, mnList.GetHeight() + (int)i + 1);
+    }
+}
+
 
 bool CDeterministicMNManager::ProcessBlock(const CBlock& block, const CBlockIndex* pindex, CValidationState& _state, bool fJustCheck)
 {
@@ -552,6 +573,9 @@ bool CDeterministicMNManager::ProcessBlock(const CBlock& block, const CBlockInde
         uiInterface.NotifyMasternodeListChanged(newList);
     }
 
+    // Update list of next payments
+    UpdateNextPayments();
+
     // TODO: uncomment when DIP3 enforcement block hash is known
     /*if (nHeight == consensusParams.DIP0003EnforcementHeight) {
         if (!consensusParams.DIP0003EnforcementHash.IsNull() && consensusParams.DIP0003EnforcementHash != pindex->GetBlockHash()) {
@@ -598,6 +622,8 @@ bool CDeterministicMNManager::UndoBlock(const CBlock& block, const CBlockIndex* 
         uiInterface.NotifyMasternodeListChanged(prevList);
     }
 
+    UpdateNextPayments();
+
     const auto& consensusParams = Params().GetConsensus();
     if (nHeight == consensusParams.DIP0003EnforcementHeight) {
         LogPrintf("CDeterministicMNManager::%s -- DIP3 is not enforced anymore. nHeight=%d\n", __func__, nHeight);
@@ -637,7 +663,7 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
         // this works on the previous block, so confirmation will happen one block after nMasternodeMinimumConfirmations
         // has been reached, but the block hash will then point to the block at nMasternodeMinimumConfirmations
         int nConfirmations = pindexPrev->nHeight - dmn->pdmnState->nRegisteredHeight;
-        if (nConfirmations >= Params().GetConsensus().nZnodeMinimumConfirmations) {
+        if (nConfirmations >= Params().GetConsensus().nEvoZnodeMinimumConfirmations) {
             CDeterministicMNState newState = *dmn->pdmnState;
             newState.UpdateConfirmedHash(dmn->proTxHash, pindexPrev->GetBlockHash());
             newList.UpdateMN(dmn->proTxHash, std::make_shared<CDeterministicMNState>(newState));
@@ -685,6 +711,12 @@ bool CDeterministicMNManager::BuildNewListFromBlock(const CBlock& block, const C
                 // This might only happen with a ProRegTx that refers an external collateral
                 // In that case the new ProRegTx will replace the old one. This means the old one is removed
                 // and the new one is added like a completely fresh one, which is also at the bottom of the payment list
+                
+                // ProRegTx can't replace masternode declared in the same block
+                if (replacedDmn->pdmnState->nRegisteredHeight == nHeight) {
+                    return _state.DoS(100, false, REJECT_CONFLICT, "protx-dup");
+                }
+
                 newList.RemoveMN(replacedDmn->proTxHash);
                 if (debugLogs) {
                     LogPrintf("CDeterministicMNManager::%s -- MN %s removed from list because collateral was used for a new ProRegTx. collateralOutpoint=%s, nHeight=%d, mapCurMNs.allMNsCount=%d\n",
@@ -1105,8 +1137,11 @@ void CDeterministicMNManager::UpgradeDBIfNeeded()
     evoDb.GetRawDB().CompactFull();
 }
 
-bool CDeterministicMNManager::IsDIP3Active(int height)
+bool CDeterministicMNManager::IsDIP3Active(int nHeight)
 {
     const Consensus::Params& params = ::Params().GetConsensus();
-    return height >= params.DIP0003Height;
+    if (nHeight == -1) {
+        nHeight = tipIndex->nHeight;
+    }
+    return nHeight >= params.DIP0003Height;
 }

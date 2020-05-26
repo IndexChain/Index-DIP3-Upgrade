@@ -54,7 +54,6 @@ Q_SIGNALS:
     void transactionClicked(const QModelIndex &index);
     void enabledTorChanged();
     void outOfSyncWarningClicked();
-
 #ifdef ENABLE_ELYSIUM
     void elysiumTransactionClicked(const uint256& txid);
 #endif
