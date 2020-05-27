@@ -65,6 +65,10 @@ void CDeterministicMNState::ToJson(UniValue& obj) const
         CBitcoinAddress operatorPayoutAddress(dest);
         obj.push_back(Pair("operatorPayoutAddress", operatorPayoutAddress.ToString()));
     }
+
+    bool isValidMN = this->nPoSeBanHeight != -1;
+    std::string status = isValidMN? "ENABLED": "POSE_BANNED";
+    obj.push_back(Pair("status", status));
 }
 
 std::string CDeterministicMN::ToString() const
@@ -81,12 +85,12 @@ void CDeterministicMN::ToJson(UniValue& obj) const
     pdmnState->ToJson(stateObj);
 
 #ifdef ENABLE_CLIENTAPI
-    if(fApi){
+    //if(fApi){
         if(deterministicMNManager->GetNextPayments().count(proTxHash)){
             int nextPaymentHeight = deterministicMNManager->GetNextPayments()[proTxHash];
             stateObj.push_back(Pair("nextPaymentHeight", nextPaymentHeight));
         }
-    }
+    //}
 #endif
 
     obj.push_back(Pair("proTxHash", proTxHash.ToString()));
