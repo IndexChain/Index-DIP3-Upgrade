@@ -41,8 +41,9 @@ bool NotifyZnodeWarning::shouldShow()
 #ifdef ENABLE_WALLET
     if(nConsidered || // already fully considered warning
        znodeConfig.getCount() == 0 || // no legacy znodes detected
-       !CZnode::IsLegacyWindow(chainActive.Tip()->nHeight) // outside of legacy window
-       || !pwalletMain) // wallet not yet loaded
+       !CZnode::IsLegacyWindow(chainActive.Tip()->nHeight) || // outside of legacy window
+       !pwalletMain || // wallet not yet loaded
+       !znodeSyncInterface.IsSynced()) // znode state not yet synced
         return false;
 
     // get Znode entries.

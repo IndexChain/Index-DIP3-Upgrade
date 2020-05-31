@@ -413,7 +413,7 @@ public:
         consensus.nPowTargetTimespan = 60 * 60; // 60 minutes between retargets
         consensus.nPowTargetSpacing = 5 * 60; // 5 minute blocks
         consensus.fPowAllowMinDifficultyBlocks = true;
-        consensus.fPowNoRetargeting = false;
+        consensus.fPowNoRetargeting = true;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
@@ -436,7 +436,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_MTP].nTimeout = 1539172800 + consensus.nMinerConfirmationWindow*2 * 5*60;
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000000708f98bf623f02e");
+        consensus.nMinimumChainWork = uint256S("0x00");
 
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("3825896ac39b8b27220e7bfaed81c5f979ca11dc874e564c5e70756ad06077b0 "); // 50000
@@ -457,7 +457,7 @@ public:
         consensus.nDontAllowDupTxsStartBlock = 1;
 
         // Znode params testnet
-        consensus.nZnodePaymentsStartBlock = 2200;
+        consensus.nZnodePaymentsStartBlock = 500;
         //consensus.nZnodePaymentsIncreaseBlock = 360; // not used for now, probably later
         //consensus.nZnodePaymentsIncreasePeriod = 650; // not used for now, probably later
         //consensus.nSuperblockStartBlock = 61000;
@@ -467,8 +467,8 @@ public:
         nMaxTipAge = 0x7fffffff; // allow mining on top of old blocks for testnet
 
         // evo znodes
-        consensus.DIP0003Height = 3340;
-        consensus.DIP0003EnforcementHeight = 3800;
+        consensus.DIP0003Height = 1000;
+        consensus.DIP0003EnforcementHeight = 1050;
         consensus.DIP0008Height = INT_MAX;
         consensus.nEvoZnodeMinimumConfirmations = 0;
 
@@ -479,10 +479,10 @@ public:
         consensus.llmqs[Consensus::LLMQ_400_85] = llmq400_85;
         consensus.nLLMQPowTargetSpacing = 20;
 
-        consensus.nMTPSwitchTime = 1539172800;
+        consensus.nMTPSwitchTime = INT_MAX;
         consensus.nMTPStartBlock = 1;
         consensus.nMTPFiveMinutesStartBlock = 0;
-        consensus.nDifficultyAdjustStartBlock = 100;
+        consensus.nDifficultyAdjustStartBlock = INT_MAX;
         consensus.nFixedDifficulty = 0x2000ffff;
         consensus.nPowTargetSpacingMTP = 5*60;
         consensus.nInitialMTPDifficulty = 0x2000ffff;  // !!!! change it to the real value
@@ -532,7 +532,7 @@ public:
         base58Prefixes[EXT_SECRET_KEY] = boost::assign::list_of(0x04)(0x35)(0x83)(0x94).convert_to_container < std::vector < unsigned char > > ();
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_test, pnSeed6_test + ARRAYLEN(pnSeed6_test));
 
-        fMiningRequiresPeers = true;
+        fMiningRequiresPeers = false;
         fDefaultConsistencyChecks = false;
         fRequireStandard = false;
         fMineBlocksOnDemand = false;
