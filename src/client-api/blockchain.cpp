@@ -10,6 +10,7 @@
 #include "core_io.h"
 #include "net.h"
 #include "init.h"
+#include "util.h"
 #include "wallet/wallet.h"
 #include "client-api/wallet.h"
 #include "univalue.h"

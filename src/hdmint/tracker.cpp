@@ -713,6 +713,8 @@ list<CSigmaEntry> CHDMintTracker::MintsAsSigmaEntries(bool fUnusedOnly, bool fMa
  */
 std::vector<CMintMeta> CHDMintTracker::ListMints(bool fUnusedOnly, bool fMatureOnly, bool fUpdateStatus, bool fLoad, bool fWrongSeed)
 {
+
+    debug(__FILE__, __func__, __LINE__);
     std::vector<CMintMeta> setMints;
     LOCK2(cs_main, pwalletMain->cs_wallet);
     CWalletDB walletdb(strWalletFile);
@@ -733,6 +735,7 @@ std::vector<CMintMeta> CHDMintTracker::ListMints(bool fUnusedOnly, bool fMatureO
 
     std::vector<CMintMeta> vOverWrite;
     std::set<uint256> setMempool = GetMempoolTxids();
+    debug(__FILE__, __func__, __LINE__);
     for (auto& it : mapSerialHashes) {
         CMintMeta mint = it.second;
 
@@ -765,11 +768,13 @@ std::vector<CMintMeta> CHDMintTracker::ListMints(bool fUnusedOnly, bool fMatureO
 
         setMints.push_back(mint);
     }
+    debug(__FILE__, __func__, __LINE__);
 
     //overwrite any updates
     for (CMintMeta& meta : vOverWrite)
         UpdateState(meta);
 
+    debug(__FILE__, __func__, __LINE__);
     return setMints;
 }
 

@@ -31,6 +31,7 @@ bool createSigmaMintAPITransaction(const UniValue& data,
                                    vector<CRecipient>& vecSend,
                                    vector<sigma::PrivateCoin>& privCoins,
                                    vector<CHDMint>& vHdMints){
+    debug(__FILE__, __func__, __LINE__);
     // Ensure Sigma mints is already accepted by network so users will not lost their coins
     // due to other nodes will treat it as garbage data.
     CWalletDB walletdb(pwalletMain->strWalletFile);
@@ -126,6 +127,7 @@ bool createSigmaMintAPITransaction(const UniValue& data,
         vecSend = CWallet::CreateSigmaMintRecipients(privCoins, vHdMints);
     }
 
+    debug(__FILE__, __func__, __LINE__);
     return true;
 }
 
@@ -135,6 +137,7 @@ bool createSigmaSpendAPITransaction(CWalletTx& wtx,
                                     std::vector<CSigmaEntry>& coins,
                                     std::vector<CHDMint> changes,
                                     bool fDummy){
+    debug(__FILE__, __func__, __LINE__);
     // Ensure Sigma is already accepted by network so users will not lost their coins
     // due to other nodes will treat it as garbage data.
     if (!sigma::IsSigmaAllowed()) {
@@ -156,6 +159,7 @@ bool createSigmaSpendAPITransaction(CWalletTx& wtx,
         throw JSONAPIError(API_INVALID_PARAMETER, "Required at least an address to send");
     }
     UniValue output(UniValue::VOBJ);
+    debug(__FILE__, __func__, __LINE__);
     for(size_t index=0; index<outputs.size(); index++){
         output = outputs[index];
         std::string strAddr = find_value(output, "address").get_str();
@@ -176,6 +180,7 @@ bool createSigmaSpendAPITransaction(CWalletTx& wtx,
         totalAmount += nAmount;
 
         vecSend.push_back({scriptPubKey, nAmount, fSubtractFeeFromAmount});
+        debug(__FILE__, __func__, __LINE__);
     }
 
     if(!fDummy)
@@ -193,10 +198,12 @@ bool createSigmaSpendAPITransaction(CWalletTx& wtx,
         throw JSONAPIError(API_WALLET_ERROR, e.what());
     }
     wtx.mapValue["label"] = label;
+    debug(__FILE__, __func__, __LINE__);
     return true;
 }
 
 UniValue GetDenominations(){
+    debug(__FILE__, __func__, __LINE__);
     std::vector<CMintMeta> listMints = pwalletMain->zwallet->GetTracker().ListMints(true, false, false);
 
     UniValue denominations(UniValue::VOBJ);
@@ -230,7 +237,7 @@ UniValue GetDenominations(){
         denominations.push_back(Pair(it->first, confirmations));
 
     }
-
+    debug(__FILE__, __func__, __LINE__);
     return denominations;
 }
 
@@ -273,6 +280,7 @@ UniValue mint(Type type, const UniValue& data, const UniValue& auth, bool fHelp)
 }
 
 UniValue privatetxfee(Type type, const UniValue& data, const UniValue& auth, bool fHelp) {
+    debug(__FILE__, __func__, __LINE__);
     UniValue result(UniValue::VOBJ);
 
     CWalletTx wtx;
@@ -285,10 +293,12 @@ UniValue privatetxfee(Type type, const UniValue& data, const UniValue& auth, boo
     result.push_back(Pair("fee", nFeeRequired));
     result.push_back(Pair("inputs", int64_t(coins.size())));
 
+    debug(__FILE__, __func__, __LINE__);
     return result;
 }
 
 UniValue sendprivate(Type type, const UniValue& data, const UniValue& auth, bool fHelp) {
+    debug(__FILE__, __func__, __LINE__);
 
     switch(type){
         case Create: {
@@ -312,7 +322,7 @@ UniValue sendprivate(Type type, const UniValue& data, const UniValue& auth, bool
             catch (const std::exception& e) {
                 throw JSONAPIError(API_WALLET_ERROR, e.what());
             }
-
+            debug(__FILE__, __func__, __LINE__);
             return txidStr;
         }
 
@@ -324,6 +334,7 @@ UniValue sendprivate(Type type, const UniValue& data, const UniValue& auth, bool
 
 UniValue listmints(Type type, const UniValue& data, const UniValue& auth, bool fHelp) {
 
+    debug(__FILE__, __func__, __LINE__);
     EnsureWalletIsUnlocked(pwalletMain);
 
     list <CSigmaEntry> listPubcoin = pwalletMain->zwallet->GetTracker().MintsAsSigmaEntries(true, false);
@@ -343,6 +354,7 @@ UniValue listmints(Type type, const UniValue& data, const UniValue& auth, bool f
         results.push_back(Pair(serialNumberHash.ToString(), entry));
     }
 
+    debug(__FILE__, __func__, __LINE__);
     return results;
 }
 

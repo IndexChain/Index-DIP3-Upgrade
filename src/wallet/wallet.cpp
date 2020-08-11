@@ -2693,11 +2693,13 @@ CAmount CWallet::SelectSpendCoinsForAmount(
 std::list<CSigmaEntry> CWallet::GetAvailableCoins(const CCoinControl *coinControl, bool includeUnsafe, bool fDummy) const {
     EnsureMintWalletAvailable();
 
+    debug(__FILE__, __func__, __LINE__);
     LOCK2(cs_main, cs_wallet);
     CWalletDB walletdb(strWalletFile);
     std::list<CSigmaEntry> coins;
     std::vector<CMintMeta> vecMints = zwallet->GetTracker().ListMints(true, true, false);
     list<CMintMeta> listMints(vecMints.begin(), vecMints.end());
+    debug(__FILE__, __func__, __LINE__);
     for (const CMintMeta& mint : listMints) {
         CSigmaEntry entry;
         const auto& sigmaParams = sigma::Params::get_default();
@@ -2721,6 +2723,7 @@ std::list<CSigmaEntry> CWallet::GetAvailableCoins(const CCoinControl *coinContro
         }
         coins.push_back(entry);
     }
+    debug(__FILE__, __func__, __LINE__);
 
     std::set<COutPoint> lockedCoins = setLockedCoins;
 
@@ -2728,6 +2731,7 @@ std::list<CSigmaEntry> CWallet::GetAvailableCoins(const CCoinControl *coinContro
     // above them, after they were minted.
     // Also filter out used coins.
     // Finally filter out coins that have not been selected from CoinControl should that be used
+    debug(__FILE__, __func__, __LINE__);
     coins.remove_if([lockedCoins, coinControl, includeUnsafe](const CSigmaEntry& coin) {
         sigma::CSigmaState* sigmaState = sigma::CSigmaState::GetState();
         if (coin.IsUsed)
@@ -2779,10 +2783,12 @@ std::list<CSigmaEntry> CWallet::GetAvailableCoins(const CCoinControl *coinContro
                 }
             }
         }
+        debug(__FILE__, __func__, __LINE__);
 
         return false;
     });
 
+    debug(__FILE__, __func__, __LINE__);
     return coins;
 }
 
@@ -2804,6 +2810,7 @@ bool CWallet::GetCoinsToSpend(
         const CCoinControl *coinControl,
         bool fDummy) const
 {
+    debug(__FILE__, __func__, __LINE__);
     // Sanity check to make sure this function is never called with a too large
     // amount to spend, resulting to a possible crash due to out of memory condition.
     if (!MoneyRange(required)) {
@@ -5789,6 +5796,7 @@ CWalletTx CWallet::CreateSigmaSpendTransaction(
     const CCoinControl *coinControl,
     bool fDummy)
 {
+    debug(__FILE__, __func__, __LINE__);
     int nHeight = chainActive.Height();
     if(nHeight >= ::Params().GetConsensus().nDisableUnpaddedSigmaBlock && nHeight < ::Params().GetConsensus().nSigmaPaddingBlock)
         throw std::runtime_error(_("Sigma is disabled at this period."));
@@ -5806,6 +5814,7 @@ CWalletTx CWallet::CreateSigmaSpendTransaction(
     selected = builder.selected;
     changes = builder.changes;
 
+    debug(__FILE__, __func__, __LINE__);
     return tx;
 }
 

@@ -138,6 +138,7 @@ SigmaSpendBuilder::~SigmaSpendBuilder()
 
 CAmount SigmaSpendBuilder::GetInputs(std::vector<std::unique_ptr<InputSigner>>& signers, CAmount required, bool fDummy)
 {
+    debug(__FILE__, __func__, __LINE__);
     // get coins to spend
 
     selected.clear();
@@ -150,6 +151,7 @@ CAmount SigmaSpendBuilder::GetInputs(std::vector<std::unique_ptr<InputSigner>>& 
         throw InsufficientFunds();
     }
 
+    debug(__FILE__, __func__, __LINE__);
     // construct signers
     CAmount total = 0;
     for (auto& coin : selected) {
@@ -157,11 +159,13 @@ CAmount SigmaSpendBuilder::GetInputs(std::vector<std::unique_ptr<InputSigner>>& 
         signers.push_back(CreateSigner(coin));
     }
 
+    debug(__FILE__, __func__, __LINE__);
     return total;
 }
 
 CAmount SigmaSpendBuilder::GetChanges(std::vector<CTxOut>& outputs, CAmount amount, CWalletDB& walletdb, bool fDummy)
 {
+    debug(__FILE__, __func__, __LINE__);
     outputs.clear();
     changes.clear();
 
@@ -198,6 +202,6 @@ CAmount SigmaSpendBuilder::GetChanges(std::vector<CTxOut>& outputs, CAmount amou
 
         amount -= denominationValue;
     }
-
+    debug(__FILE__, __func__, __LINE__);
     return amount;
 }

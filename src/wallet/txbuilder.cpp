@@ -41,6 +41,7 @@ TxBuilder::~TxBuilder()
 
 CWalletTx TxBuilder::Build(const std::vector<CRecipient>& recipients, CAmount& fee,  bool& fChangeAddedToFee, CWalletDB& walletdb, bool fDummy)
 {
+    debug(__FILE__, __func__, __LINE__);
     if (recipients.empty()) {
         throw std::invalid_argument(_("No recipients"));
     }
@@ -108,6 +109,7 @@ CWalletTx TxBuilder::Build(const std::vector<CRecipient>& recipients, CAmount& f
         nCountNextUse = pwalletMain->zwallet->GetCount();
     }
     for (fee = payTxFee.GetFeePerK();;) {
+        debug(__FILE__, __func__, __LINE__);
         // In case of not enough fee, reset mint seed counter
         if (pwalletMain->zwallet) {
             pwalletMain->zwallet->SetCount(nCountNextUse);

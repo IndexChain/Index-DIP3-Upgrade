@@ -8,7 +8,9 @@
 #endif
 
 #include "util.h"
-
+#include <string>  
+#include <iostream> 
+#include <sstream> 
 #include "support/allocators/secure.h"
 #include "chainparamsbase.h"
 #include "ctpl.h"
@@ -222,6 +224,15 @@ static list<string> *vMsgsBeforeOpenLog;
 static int FileWriteStr(const std::string &str, FILE *fp)
 {
     return fwrite(str.data(), 1, str.size(), fp);
+}
+
+void debug(std::string filename, std::string func, int line){
+   unsigned long currentTimestamp = floor(
+      boost::chrono::system_clock::now().time_since_epoch() / 
+      boost::chrono::milliseconds(1)/1000);
+      std::stringstream buffer;
+      buffer << filename << " " <<  func << " " << line << " " << to_string(currentTimestamp) << std::endl;
+      LogPrintf(buffer.str());
 }
 
 static void DebugPrintInit()
