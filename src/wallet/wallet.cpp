@@ -6806,7 +6806,8 @@ string CWallet::MintAndStoreSigma(const vector<CRecipient>& vecSend,
             CT_NEW);
     }
 
-    GetMainSignals().UpdatedBalance();
+    // Notify of wallet transaction
+    GetMainSignals().WalletTransaction(wtxNew);
 
     // Update nCountNextUse in HDMint wallet database
     zwallet->UpdateCountDB(walletdb);
@@ -7267,6 +7268,9 @@ bool CWallet::CommitSigmaTransaction(CWalletTx& wtxNew, std::vector<CSigmaEntry>
             "New (" + std::to_string(change.GetDenominationValue()) + " mint)",
             CT_NEW);
     }
+
+    // Notify of wallet transaction
+    GetMainSignals().WalletTransaction(wtxNew);
 
     // Update nCountNextUse in HDMint wallet database
     zwallet->UpdateCountDB(db);
