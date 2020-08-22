@@ -13,8 +13,6 @@
 #include "crypto/common.h"
 #include "chainparams.h"
 #include "crypto/scrypt.h"
-#include "crypto/Lyra2Z/Lyra2Z.h"
-#include "crypto/Lyra2Z/Lyra2.h"
 #include "util.h"
 #include <iostream>
 #include <chrono>
@@ -60,11 +58,7 @@ uint256 CBlockHeader::GetPoWHash(int nHeight) const {
         scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(powHash), GetNfactor(nTime));
     }
     else if (Params().GetConsensus().IsMain()) {
-        if (nHeight >= 20500) {
-            // Lyra2Z
-            lyra2z_hash(BEGIN(nVersion), BEGIN(powHash));
-        }
-        else if (nHeight > 0) {
+         if (nHeight > 0) {
             // we take values from precomputed table because calculations of these are horribly slow
             powHash = GetPrecomputedBlockPoWHash(nHeight);
 
