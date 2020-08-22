@@ -1582,7 +1582,7 @@ bool ReadBlockHeaderFromDisk(CBlock &block, const CDiskBlockPos &pos) {
     return true;
 }
 
-CAmount GetBlockSubsidyWithMTPFlag(int nHeight, const Consensus::Params &consensusParams) {
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
     // Genesis block is 0 coin
     if (nHeight == 0)
         return 0;
@@ -1600,10 +1600,6 @@ CAmount GetBlockSubsidyWithMTPFlag(int nHeight, const Consensus::Params &consens
     nSubsidy >>= halvings;
 
     return nSubsidy;
-}
-
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
-    return GetBlockSubsidyWithMTPFlag(nHeight, consensusParams);
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
