@@ -48,7 +48,6 @@
 #include "versionbits.h"
 #include "definition.h"
 #include "utiltime.h"
-#include "mtpstate.h"
 
 #include "instantx.h"
 #include "znode-payments.h"
@@ -1583,7 +1582,7 @@ bool ReadBlockHeaderFromDisk(CBlock &block, const CDiskBlockPos &pos) {
     return true;
 }
 
-CAmount GetBlockSubsidyWithMTPFlag(int nHeight, const Consensus::Params &consensusParams, bool fMTP) {
+CAmount GetBlockSubsidyWithMTPFlag(int nHeight, const Consensus::Params &consensusParams) {
     // Genesis block is 0 coin
     if (nHeight == 0)
         return 0;
@@ -1600,14 +1599,11 @@ CAmount GetBlockSubsidyWithMTPFlag(int nHeight, const Consensus::Params &consens
     CAmount nSubsidy = 50 * COIN;
     nSubsidy >>= halvings;
 
-    if (nHeight > 0 && fMTP)
-        nSubsidy /= consensusParams.nMTPRewardReduction;
-
     return nSubsidy;
 }
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
-    return GetBlockSubsidyWithMTPFlag(nHeight, consensusParams, nTime >= (int)consensusParams.nMTPSwitchTime);
+    return GetBlockSubsidyWithMTPFlag(nHeight, consensusParams);
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
@@ -2544,8 +2540,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!IsZnodeBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
             return state.DoS(0, error("ConnectBlock(): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
-        //TODO Remove the fmtp part in checks
-        if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward, false)) {
+        if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward)) {
             mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
             return state.DoS(0, error("ConnectBlock(): couldn't find znode or superblock payments"),
                             REJECT_INVALID, "bad-cb-payee");
@@ -2558,9 +2553,6 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
                     pindex->GetBlockHash().ToString(), FormatStateMessage(state));
     }
     // END ZNODE
-
-    if (!fJustCheck)
-        MTPState::GetMTPState()->SetLastBlock(pindex, chainparams.GetConsensus());
 
     if (!ConnectBlockZC(state, chainparams, pindex, &block, fJustCheck) ||
         !sigma::ConnectBlockSigma(state, chainparams, pindex, &block, fJustCheck))
@@ -2925,8 +2917,6 @@ bool static DisconnectTip(CValidationState& state, const CChainParams& chainpara
 
 	DisconnectTipZC(block, pindexDelete);
 	sigma::DisconnectTipSigma(block, pindexDelete);
-    // Roll back MTP state
-    MTPState::GetMTPState()->SetLastBlock(pindexDelete->pprev, chainparams.GetConsensus());
 
     // Write the chain state to disk, if necessary.
     if (!FlushStateToDisk(state, FLUSH_STATE_IF_NEEDED))
@@ -3160,7 +3150,7 @@ int GetInputAge(const CTxIn &txin) {
     }
 }
 
-CAmount GetZnodePayment(const Consensus::Params &params, bool fMTP) {
+CAmount GetZnodePayment(const Consensus::Params &params) {
 //    CAmount ret = blockValue * 30/100 ; // start at 30%
 //    int nMNPIBlock = Params().GetConsensus().nZnodePaymentsStartBlock;
 ////    int nMNPIBlock = Params().GetConsensus().nZnodePaymentsIncreaseBlock;
@@ -3176,7 +3166,7 @@ CAmount GetZnodePayment(const Consensus::Params &params, bool fMTP) {
 //    if (nHeight > nMNPIBlock + (nMNPIPeriod * 6)) ret += blockValue / 40; // 261680 - 45.0% - 2015-05-01
 //    if (nHeight > nMNPIBlock + (nMNPIPeriod * 7)) ret += blockValue / 40; // 278960 - 47.5% - 2015-06-01
 //    if (nHeight > nMNPIBlock + (nMNPIPeriod * 9)) ret += blockValue / 40; // 313520 - 50.0% - 2015-08-03
-    CAmount coin = fMTP ? COIN/params.nMTPRewardReduction : COIN;
+    CAmount coin =  COIN;
     CAmount ret = 15 * coin; //15 or 7.5 XZC
 
     return ret;
@@ -4090,8 +4080,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
                 return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Stage 2 developer reward check failed");
         }
     }
-    //Remove fmtp
-    else if (!CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, nHeight, false)) {
+    else if (!CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, nHeight)) {
         return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Founders' reward check failed");
     }
 
@@ -4711,8 +4700,6 @@ bool static LoadBlockIndexDB(const CChainParams& chainparams)
         setDirtyBlockIndex.insert(changes.begin(), changes.end());
         FlushStateToDisk();
     }
-    // Initialize MTP state
-    MTPState::GetMTPState()->InitializeFromChain(&chainActive, chainparams.GetConsensus());
 
     LogPrintf("%s: hashBestChain=%s height=%d date=%s progress=%f\n", __func__,
         chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),

@@ -40,7 +40,6 @@
 #include "utilmoneystr.h"
 #include "validationinterface.h"
 #include "validation.h"
-#include "mtpstate.h"
 
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
@@ -760,7 +759,6 @@ void ThreadImport(std::vector <boost::filesystem::path> vImportFiles) {
 
     // -reindex
     if (fReindex) {
-        MTPState::GetMTPState()->Reset();
         int nFile = 0;
         while (true) {
             CDiskBlockPos pos(nFile, 0);
@@ -1749,8 +1747,6 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 llmq::DestroyLLMQSystem();
                 delete pblocktree;
                 delete evoDb;
-
-                MTPState::GetMTPState()->SetMTPStartBlock(chainparams.GetConsensus().nMTPStartBlock);
 
                 pblocktree = new CBlockTreeDB(nBlockTreeDBCache, false, fReindex);
 

@@ -160,7 +160,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     
     int64_t nTimeStart = GetTimeMicros();
 
-    // fMTP is always true currently
     const Consensus::Params &params = chainparams.GetConsensus();
 
     resetBlock();
@@ -183,14 +182,13 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     bool fDIP0003Active_context = nHeight >= chainparams.GetConsensus().DIP0003Height;
 
     pblock->nTime = GetAdjustedTime();
-    bool fMTP = pblock->nTime >= params.nMTPSwitchTime;
     const int64_t nMedianTimePast = pindexPrev->GetMedianTimePast();
 
-    pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus()) | (fMTP ? 0x1000 : 0);
+    pblock->nVersion = ComputeBlockVersion(pindexPrev, chainparams.GetConsensus());
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
     if (chainparams.MineBlocksOnDemand())
-        pblock->nVersion = GetArg("-blockversion", pblock->nVersion) | (fMTP ? 0x1000 : 0);
+        pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
     nLockTimeCutoff = (STANDARD_LOCKTIME_VERIFY_FLAGS & LOCKTIME_MEDIAN_TIME_PAST)
                        ? nMedianTimePast
@@ -241,7 +239,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vout[0].nValue = nFees + nBlockSubsidy;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
 
-    FillFoundersReward(coinbaseTx, fMTP);
+    FillFoundersReward(coinbaseTx);
 
     if (fDIP0003Active_context) {
         coinbaseTx.vin[0].scriptSig = CScript() << OP_RETURN;
@@ -286,7 +284,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         // Update coinbase transaction with additional info about znode and governance payments,
         // get some info back to pass to getblocktemplate
         if (nHeight >= params.nZnodePaymentsStartBlock) {
-            CAmount znodePayment = GetZnodePayment(chainparams.GetConsensus(), fMTP);
+            CAmount znodePayment = GetZnodePayment(chainparams.GetConsensus());
             coinbaseTx.vout[0].nValue -= znodePayment;
             FillZnodeBlockPayments(coinbaseTx, nHeight, znodePayment, pblock->txoutZnode, pblock->voutSuperblock);
         }
@@ -774,14 +772,14 @@ void BlockAssembler::addPriorityTxs()
     fNeedSizeAccounting = fSizeAccounting;
 }
 
-void BlockAssembler::FillFoundersReward(CMutableTransaction &coinbaseTx, bool fMTP) {
+void BlockAssembler::FillFoundersReward(CMutableTransaction &coinbaseTx) {
     auto &params = chainparams.GetConsensus();
-    CAmount coin = COIN / (fMTP ? params.nMTPRewardReduction : 1);
+    CAmount coin = COIN;
 
     if (nHeight >= params.nSubsidyHalvingFirst && nHeight < params.nSubsidyHalvingFirst + params.nSubsidyHalvingInterval) {
         // Stage 2
         CScript devPayoutScript = GetScriptForDestination(CBitcoinAddress(params.stage2DevelopmentFundAddress).Get());
-        CAmount devPayoutValue = (GetBlockSubsidyWithMTPFlag(nHeight, params, fMTP) * params.stage2DevelopmentFundShare) / 100;
+        CAmount devPayoutValue = (GetBlockSubsidyWithMTPFlag(nHeight, params) * params.stage2DevelopmentFundShare) / 100;
 
         coinbaseTx.vout[0].nValue -= devPayoutValue;
         coinbaseTx.vout.push_back(CTxOut(devPayoutValue, devPayoutScript));

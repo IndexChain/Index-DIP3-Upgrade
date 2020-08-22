@@ -450,8 +450,7 @@ void CZnode::UpdateLastPaid(const CBlockIndex *pindex, int nMaxBlocksToScanBack)
                 LogPrintf("ReadBlockFromDisk failed\n");
                 continue;
             }
-            bool fMTP = BlockReading->nHeight > 0 && BlockReading->nTime >= params.nMTPSwitchTime;
-            CAmount nZnodePayment = GetZnodePayment(params, fMTP);
+            CAmount nZnodePayment = GetZnodePayment(params);
 
             BOOST_FOREACH(CTxOut txout, block.vtx[0]->vout)
             if (mnpayee == txout.scriptPubKey && nZnodePayment == txout.nValue) {

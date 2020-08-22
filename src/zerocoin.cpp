@@ -541,11 +541,11 @@ bool CheckMintZcoinTransaction(const CTxOut &txout,
     return true;
 }
 
-bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state, const Consensus::Params &params, int nHeight, bool fMTP) {
+bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state, const Consensus::Params &params, int nHeight) {
     // Check for founders inputs
     if ((nHeight > params.nCheckBugFixedAtBlock) && (nHeight < params.nSubsidyHalvingFirst)) {
         // Reduce everything by a factor of two when MTP is in place
-        int reductionFactor = fMTP ? params.nMTPRewardReduction : 1;
+        int reductionFactor = 1;
 
         bool found_1 = false;
         bool found_2 = false;
@@ -624,7 +624,7 @@ bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state
                 FOUNDER_5_SCRIPT = GetScriptForDestination(CBitcoinAddress("TCsTzQZKVn4fao8jDmB9zQBk9YQNEZ3XfS").Get());
             }
 
-            CAmount znodePayment = GetZnodePayment(params, fMTP);
+            CAmount znodePayment = GetZnodePayment(params);
             BOOST_FOREACH(const CTxOut &output, tx.vout) {
                 if (output.scriptPubKey == FOUNDER_1_SCRIPT && output.nValue == (int64_t)(1 * COIN)/reductionFactor) {
                     found_1 = true;
@@ -658,7 +658,7 @@ bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state
                     if (!znodeSync.IsSynced()) {
                         validZnodePayment = true;
                     } else {
-                        validZnodePayment = znpayments.IsTransactionValid(tx, nHeight, fMTP);
+                        validZnodePayment = znpayments.IsTransactionValid(tx, nHeight);
                     }
                 } else {
                     validZnodePayment = total_payment_tx <= 1;

@@ -34,7 +34,7 @@ extern CZnodePayments znpayments;
 
 /// TODO: all 4 functions do not belong here really, they should be refactored/moved somewhere (main.cpp ?)
 bool IsZnodeBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockReward, std::string &strErrorRet);
-bool IsZnodeBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount blockReward, bool fMTP);
+bool IsZnodeBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount blockReward);
 void FillZnodeBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, CTxOut& txoutZnodeRet, std::vector<CTxOut>& voutSuperblockRet);
 std::string GetRequiredPaymentsString(int nBlockHeight);
 
@@ -101,7 +101,7 @@ public:
     bool GetBestPayee(CScript& payeeRet);
     bool HasPayeeWithVotes(CScript payeeIn, int nVotesReq);
 
-    bool IsTransactionValid(const CTransaction& txNew, bool fMTP);
+    bool IsTransactionValid(const CTransaction& txNew);
 
     std::string GetRequiredPaymentsString();
 };
@@ -202,7 +202,7 @@ public:
     void CheckAndRemove();
 
     bool GetBlockPayee(int nBlockHeight, CScript& payee);
-    bool IsTransactionValid(const CTransaction& txNew, int nBlockHeight, bool fMTP);
+    bool IsTransactionValid(const CTransaction& txNew, int nBlockHeight);
     bool IsScheduled(CZnode& mn, int nNotBlockHeight);
 
     bool CanVote(COutPoint outZnode, int nBlockHeight);

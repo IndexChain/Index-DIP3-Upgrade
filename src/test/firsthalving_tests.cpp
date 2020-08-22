@@ -194,7 +194,7 @@ BOOST_FIXTURE_TEST_CASE(devpayout, TestChainDIP3BeforeActivationSetup)
         BOOST_CHECK_EQUAL(dmnPayout->proTxHash.ToString(), dmnExpectedPayee->proTxHash.ToString());
 
         CValidationState state;
-        BOOST_ASSERT(CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, chainActive.Height(), false));
+        BOOST_ASSERT(CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, chainActive.Height()));
 
         BOOST_ASSERT(nValue == 15*COIN);    // znode reward before the first halving
     }

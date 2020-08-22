@@ -300,7 +300,6 @@ BITCOIN_CORE_H = \
   coin_containers.h \
   zerocoin_params.h \
   addresstype.h \
-  mtpstate.h \
   messagesigner.h \
   masternode-meta.h \
   masternode-payments.h \
@@ -463,7 +462,6 @@ libbitcoin_server_a_SOURCES = \
   zerocoin.cpp \
   sigma.cpp \
   coin_containers.cpp \
-  mtpstate.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
