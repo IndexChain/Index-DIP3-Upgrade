@@ -1550,11 +1550,6 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, int nHeight, con
         return error("%s: Deserialize or I/O error - %s at %s", __func__, e.what(), pos.ToString());
     }
 
-    // Zcoin - MTP
-    if (!CheckMerkleTreeProof(block, consensusParams)){
-    	return error("ReadBlockFromDisk: CheckMerkleTreeProof: Errors in block header at %s", pos.ToString());
-    }
-
     // Check the header
     if (!CheckProofOfWork(block.GetPoWHash(nHeight), block.nBits, consensusParams))
         return error("ReadBlockFromDisk: CheckProofOfWork: Errors in block header at %s", pos.ToString());
@@ -2549,8 +2544,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!IsZnodeBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
             return state.DoS(0, error("ConnectBlock(): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
-
-        if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward, block.IsMTP())) {
+        //TODO Remove the fmtp part in checks
+        if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward, false)) {
             mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
             return state.DoS(0, error("ConnectBlock(): couldn't find znode or superblock payments"),
                             REJECT_INVALID, "bad-cb-payee");
@@ -3839,10 +3834,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         // while still invalidating it.
         if (mutated)
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-duplicate", true, "duplicate transaction");
-
-        // Zcoin - MTP
-        if (block.IsMTP() && !CheckMerkleTreeProof(block, consensusParams))
-            return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
     }
 
     // All potential-corruption validation must be done before we do any
@@ -4006,11 +3997,6 @@ std::vector<unsigned char> GenerateCoinbaseCommitment(CBlock& block, const CBloc
 
 bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationState& state, const Consensus::Params& consensusParams, CBlockIndex * const pindexPrev, int64_t nAdjustedTime)
 {
-	// Zcoin - MTP
-    bool fBlockHasMTP = (block.nVersion & 4096) != 0 || (pindexPrev && consensusParams.nMTPSwitchTime == 0);
-
-    if (block.IsMTP() != fBlockHasMTP)
-		return state.Invalid(false, REJECT_OBSOLETE, strprintf("bad-version(0x%08x)", block.nVersion),strprintf("rejected nVersion=0x%08x block", block.nVersion));
 
 	// Check proof of work
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams))
@@ -4104,7 +4090,8 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
                 return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Stage 2 developer reward check failed");
         }
     }
-    else if (!CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, nHeight, block.IsMTP())) {
+    //Remove fmtp
+    else if (!CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, nHeight, false)) {
         return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Founders' reward check failed");
     }
 

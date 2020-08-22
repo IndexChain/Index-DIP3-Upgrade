@@ -15,7 +15,6 @@
 #include "crypto/scrypt.h"
 #include "crypto/Lyra2Z/Lyra2Z.h"
 #include "crypto/Lyra2Z/Lyra2.h"
-#include "crypto/MerkleTreeProof/mtp.h"
 #include "util.h"
 #include <iostream>
 #include <chrono>
@@ -51,22 +50,12 @@ uint256 CBlockHeader::GetHash() const {
     return SerializeHash(*this);
 }
 
-bool CBlockHeader::IsMTP() const {
-    // In case if nTime == ZC_GENESIS_BLOCK_TIME we're being called from CChainParams() constructor and
-    // it is not possible to get Params()
-    return nTime > ZC_GENESIS_BLOCK_TIME && nTime >= Params().GetConsensus().nMTPSwitchTime;
-}
-
 uint256 CBlockHeader::GetPoWHash(int nHeight) const {
     if (!cachedPoWHash.IsNull())
         return cachedPoWHash;
 
     uint256 powHash;
-    if (IsMTP()) {
-        // MTP processing is the same across all the types on networks
-        powHash = mtpHashValue;
-    }
-    else if (nHeight == 0) {
+     if (nHeight == 0) {
         // genesis block
         scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(powHash), GetNfactor(nTime));
     }

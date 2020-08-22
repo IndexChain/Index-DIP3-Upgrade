@@ -28,7 +28,6 @@
 #include "wallet/wallet.h"
 #include "definition.h"
 #include "crypto/scrypt.h"
-#include "crypto/MerkleTreeProof/mtp.h"
 #include "crypto/Lyra2Z/Lyra2Z.h"
 #include "crypto/Lyra2Z/Lyra2.h"
 #include "znode-payments.h"
@@ -305,10 +304,6 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
     pblock->nNonce         = 0;
     pblocktemplate->vTxSigOpsCost[0] = GetLegacySigOpCount(*pblock->vtx[0]);
-
-    // Zcoin - MTP
-    if (fMTP)
-        pblock->mtpHashData = make_shared<CMTPHashData>();
 
     CValidationState state;
     if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
@@ -1033,12 +1028,7 @@ void static ZcoinMiner(const CChainParams &chainparams) {
                 uint256 thash;
 
                 while (true) {
-                    if (pblock->IsMTP()) {
-                        //sleep(60);
-                        LogPrintf("BEFORE: mtp_hash\n");
-                        thash = mtp::hash(*pblock, Params().GetConsensus().powLimit);
-                        pblock->mtpHashValue = thash;
-                    } else if (!fTestNet && pindexPrev->nHeight + 1 >= HF_LYRA2Z_HEIGHT) {
+                    if (!fTestNet && pindexPrev->nHeight + 1 >= HF_LYRA2Z_HEIGHT) {
                         lyra2z_hash(BEGIN(pblock->nVersion), BEGIN(thash));
                     } else if (!fTestNet && pindexPrev->nHeight + 1 >= HF_LYRA2_HEIGHT) {
                         LYRA2(BEGIN(thash), 32, BEGIN(pblock->nVersion), 80, BEGIN(pblock->nVersion), 80, 2, 8192, 256);
