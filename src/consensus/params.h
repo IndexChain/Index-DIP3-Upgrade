@@ -141,9 +141,6 @@ struct Params {
     /** percentage of block subsidy going to znode */
     int stage2ZnodeShare;
 
-    int nStartDuplicationCheck;
-    int nStartBlacklist;
-
     /** Used to check majorities for block version upgrade */
     int nMajorityEnforceBlockUpgrade;
     int nMajorityRejectBlockOutdated;
@@ -225,9 +222,6 @@ struct Params {
     int nSigmaPaddingBlock;
 
     int nDisableUnpaddedSigmaBlock;
-
-    int nStartSigmaBlacklist;
-    int nRestartSigmaWithBlacklistCheck;
 
     // The block number after which old sigma clients are banned.
     int nOldSigmaBanBlock;

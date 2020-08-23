@@ -55,8 +55,6 @@
 #include "znodeman.h"
 #include "coins.h"
 
-#include "blacklists.h"
-
 #include "sigma/coinspend.h"
 #include "sigma/remint.h"
 #include "warnings.h"
@@ -604,7 +602,7 @@ bool CheckTransaction(const CTransaction &tx, CValidationState &state, bool fChe
     }
 
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
-    bool const check_di = nHeight != INT_MAX && nHeight > ::Params().GetConsensus().nStartDuplicationCheck;
+    bool const check_di = nHeight != INT_MAX;
     if (fCheckDuplicateInputs || check_di) {
         std::set<COutPoint> vInOutPoints;
         if (tx.IsZerocoinSpend() || tx.IsSigmaSpend() || tx.IsZerocoinRemint()) {
@@ -650,14 +648,6 @@ bool CheckTransaction(const CTransaction &tx, CValidationState &state, bool fChe
             return false;
     }
 
-    if (nHeight >= ::Params().GetConsensus().nStartBlacklist) {
-        for (const auto& vin : tx.vin) {
-            if(txid_blacklist.count(vin.prevout.hash.GetHex()) > 0) {
-                    return state.DoS(100, error("Spending this tx is temporarily disabled"),
-                                 REJECT_INVALID, "bad-txns-zerocoin");
-            }
-        }
-    }
     return true;
 }
 
@@ -757,12 +747,6 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
             return state.DoS(100, error("Old zerocoin spends no more allowed in mempool"),
                              REJECT_INVALID, "bad-txns-zerocoin");
         }
-    }
-
-    if (tx.IsSigmaMint() || tx.IsSigmaSpend()) {
-        if (consensus.nStartSigmaBlacklist != INT_MAX && chainActive.Height() < consensus.nRestartSigmaWithBlacklistCheck)
-            return state.DoS(100, error("Sigma is temporarily disabled"),
-                             REJECT_INVALID, "bad-txns-zerocoin");
     }
 
     if (!CheckTransaction(tx, state, true, hash, false, INT_MAX, isCheckWalletTransaction)) {
@@ -3874,9 +3858,6 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         nHeight = ZerocoinGetNHeight(block.GetBlockHeader());
 
     for (CTransactionRef tx : block.vtx) {
-        if (nHeight >= consensusParams.nStartSigmaBlacklist && nHeight < consensusParams.nRestartSigmaWithBlacklistCheck && (tx->IsSigmaMint() || tx->IsSigmaSpend())) {
-            return state.DoS(100, error("Sigma is temporarily disabled"), REJECT_INVALID, "bad-txns-zerocoin");
-        }
         // We don't check transactions against zerocoin state here, we'll check it again later in ConnectBlock
         if (!CheckTransaction(*tx, state, false, tx->GetHash(), isVerifyDB, nHeight, false, false, NULL, NULL))
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
