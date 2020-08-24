@@ -46,6 +46,7 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    std::vector<unsigned char> vchBlockSig;//Proof Of Stake Block signature
 
 
     static const int CURRENT_VERSION = 2;
@@ -71,6 +72,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if(nNonce == 0)
+            READWRITE(vchBlockSig);
     }
 
     template <typename Stream>
@@ -81,6 +84,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
+        if(nNonce == 0)
+            READWRITE(vchBlockSig);
     }
 
     void SetNull()
@@ -113,7 +118,7 @@ public:
         return (int64_t)nTime;
     }
     void InvalidateCachedPoWHash(int nHeight) const;
-
+    bool IsProofOfStake() const {return nNonce == 0;}
 };
 
 class CZerocoinTxInfo;
@@ -184,7 +189,20 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
+        if(block.nNonce == 0)
+            block.vchBlockSig    = vchBlockSig;
         return block;
+    }
+
+	// two types of block: proof-of-work or proof-of-stake
+    bool IsProofOfStake() const
+    {
+        return (vtx.size() > 1 && vtx[1]->IsCoinStake());
+    }
+
+    bool IsProofOfWork() const
+    {
+        return !IsProofOfStake();
     }
 
     std::string ToString() const;

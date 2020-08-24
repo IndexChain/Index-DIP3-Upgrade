@@ -196,7 +196,8 @@ public:
         consensus.BIP66Height = INT_MAX;
         consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 60 * 60; // 60 minutes between retargets
-        consensus.nPowTargetSpacing = 10 * 60; // 10 minute blocks
+        consensus.nPowTargetSpacing = 120; // alternate PoW/PoS every one minute
+        consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
@@ -277,6 +278,9 @@ public:
         nPoolMaxTransactions = 3;
         nFulfilledRequestExpireTime = 60*60; // fulfilled requests expire in 1 hour
         strSporkPubKey = "04549ac134f694c0243f503e8c8a9a986f5de6610049c40b07816809b0d1d06a21b07be27b9bb555931773f62ba6cf35a25fd52f694d4e1106ccd237a7bb899fdd";
+        //Stake stuff
+        consensus.nFirstPOSBlock = 52;
+        consensus.nStakeTimestampMask = 0xf; // 15
         strZnodePaymentsPubKey = "04549ac134f694c0243f503e8c8a9a986f5de6610049c40b07816809b0d1d06a21b07be27b9bb555931773f62ba6cf35a25fd52f694d4e1106ccd237a7bb899fdd";
 
         /**
@@ -420,6 +424,10 @@ public:
         consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         consensus.nPowTargetTimespan = 60 * 60; // 60 minutes between retargets
         consensus.nPowTargetSpacing = 5 * 60; // 5 minute blocks
+        consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
+        //Proof-of-Stake related values
+        consensus.nFirstPOSBlock = 135;//TODO akshaynexus :This needs to be decided
+        consensus.nStakeTimestampMask = 0xf; // 15
         consensus.fPowAllowMinDifficultyBlocks = true;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1512; // 75% for testchains
@@ -662,7 +670,9 @@ public:
         consensus.nModulusV1StopBlock = 140;
         consensus.nMultipleSpendInputsInOneTxStartBlock = 1;
         consensus.nDontAllowDupTxsStartBlock = 1;
-
+        consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
+        //Proof-of-Stake related values
+        consensus.nFirstPOSBlock = 135;//TODO akshaynexus :This needs to be decided
         // evo znodes
         consensus.DIP0003Height = 500;
         consensus.DIP0003EnforcementHeight = 550;

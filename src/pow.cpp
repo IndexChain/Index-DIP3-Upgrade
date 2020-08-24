@@ -35,35 +35,75 @@ double GetDifficultyHelper(unsigned int nBits) {
     return dDiff;
 }
 
-unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
-{
-    if (!pindexLast || pindexLast->nHeight < params.nDifficultyAdjustStartBlock)
-        return params.nFixedDifficulty;
+unsigned int DarkGravityWave(const CBlockIndex* pindexLast, const Consensus::Params& params, bool fProofOfStake) {
+    /* current difficulty formula, veil - DarkGravity v3, written by Evan Duffield - evan@dash.org */
+    const arith_uint256 bnPowLimit = UintToArith256(params.powLimit);
 
-    if (params.IsTestnet()) {
-        // If the new block's timestamp is more than nTargetSpacing*6
-        // then allow mining of a min-difficulty block
-        if (pblock->nTime > pindexLast->nTime + params.nPowTargetTimespan * 1) {
-            return params.nFixedDifficulty;
-        }
+    const CBlockIndex *pindex = pindexLast;
+    const CBlockIndex* pindexLastMatchingProof = nullptr;
+    arith_uint256 bnPastTargetAvg = 0;
+    // make sure we have at least (nPastBlocks + 1) blocks, otherwise just return powLimit
+    if (!pindexLast || pindexLast->nHeight < params.nDgwPastBlocks) {
+        return bnPowLimit.GetCompact();
     }
 
+    unsigned int nCountBlocks = 0;
+    while (nCountBlocks < params.nDgwPastBlocks) {
+        // Ran out of blocks, return pow limit
+        if (!pindex)
+            return bnPowLimit.GetCompact();
 
-    const uint32_t BlocksTargetSpacing =
-        (params.nMTPFiveMinutesStartBlock == 0) || (params.nMTPFiveMinutesStartBlock > 0 && pindexLast->nHeight >= params.nMTPFiveMinutesStartBlock) ?
-            params.nPowTargetSpacingMTP : params.nPowTargetSpacing;
-    unsigned int TimeDaySeconds = 60 * 60 * 24;
-    int64_t PastSecondsMin = TimeDaySeconds * 0.25; // 21600
-    int64_t PastSecondsMax = TimeDaySeconds * 7;// 604800
-    uint32_t PastBlocksMin = PastSecondsMin / BlocksTargetSpacing; // 36 blocks
-    uint32_t StartingPoWBlock = 0;
+        // Only consider PoW or PoS blocks but not both
+        if (pindex->IsProofOfStake() != fProofOfStake) {
+            pindex = pindex->pprev;
+            continue;
+        } else if (!pindexLastMatchingProof) {
+            pindexLastMatchingProof = pindex;
+        }
 
-    if ((pindexLast->nHeight + 1 - StartingPoWBlock) % params.DifficultyAdjustmentInterval() != 0) // Retarget every nInterval blocks
-    {
+        arith_uint256 bnTarget = arith_uint256().SetCompact(pindex->nBits);
+        bnPastTargetAvg = (bnPastTargetAvg * nCountBlocks + bnTarget) / (nCountBlocks + 1);
+
+        if (++nCountBlocks != params.nDgwPastBlocks)
+            pindex = pindex->pprev;
+    }
+
+    arith_uint256 bnNew(bnPastTargetAvg);
+
+    //Should only happen on the first PoS block
+    if (pindexLastMatchingProof)
+        pindexLastMatchingProof = pindexLast;
+
+    int64_t nActualTimespan = pindexLastMatchingProof->GetBlockTime() - pindex->GetBlockTime();
+    int64_t nTargetTimespan = params.nDgwPastBlocks * params.nPowTargetSpacing;
+
+    if (nActualTimespan < nTargetTimespan/3)
+        nActualTimespan = nTargetTimespan/3;
+    if (nActualTimespan > nTargetTimespan*3)
+        nActualTimespan = nTargetTimespan*3;
+
+    // Retarget
+    bnNew *= nActualTimespan;
+    bnNew /= nTargetTimespan;
+
+    if (bnNew > bnPowLimit) {
+        bnNew = bnPowLimit;
+    }
+
+    return bnNew.GetCompact();
+}
+
+// Index GetNextWorkRequired
+unsigned int GetNextWorkRequired(const CBlockIndex *pindexLast, const CBlockHeader *pblock, const Consensus::Params &params,bool fProofOfStake) {
+    assert(pindexLast != nullptr);
+
+    // Special rule for regtest: we never retarget.
+    if (params.fPowNoRetargeting) {
         return pindexLast->nBits;
     }
-    //TODO port over idx diff algo
-    return pindexLast->nBits;
+
+    return DarkGravityWave(pindexLast, params,fProofOfStake);
+
 }
 
 unsigned int CalculateNextWorkRequired(const CBlockIndex* pindexLast, int64_t nFirstBlockTime, const Consensus::Params& params)

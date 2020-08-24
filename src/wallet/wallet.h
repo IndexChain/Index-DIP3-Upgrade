@@ -8,9 +8,11 @@
 
 #include "amount.h"
 #include "../libzerocoin/bitcoin_bignum/bignum.h"
+#include <pos.h>
 #include "../sigma/coin.h"
 #include "streams.h"
 #include "tinyformat.h"
+#include "miner.h"
 #include "ui_interface.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
@@ -22,6 +24,7 @@
 #include "wallet/mnemoniccontainer.h"
 #include "../base58.h"
 #include "zerocoin_params.h"
+#include "znode-payments.h"
 #include "univalue.h"
 
 #include "hdmint/tracker.h"
@@ -109,6 +112,7 @@ class CReserveKey;
 class CScript;
 class CTxMemPool;
 class CWalletTx;
+struct CStakeCache;
 
 /** (client) version numbers for particular wallet features */
 enum WalletFeature
@@ -677,6 +681,7 @@ private:
     mutable std::vector<CompactTallyItem> vecAnonymizableTallyCached;
     mutable bool fAnonymizableTallyCachedNonDenom;
     mutable std::vector<CompactTallyItem> vecAnonymizableTallyCachedNonDenom;
+    std::map<COutPoint, CStakeCache> stakeCache;
 
     /**
      * Used to keep track of spent outpoints, and
@@ -1247,6 +1252,12 @@ public:
 
     /* Mark a transaction (and it in-wallet descendants) as abandoned so its inputs may be respent. */
     bool AbandonTransaction(const uint256& hashTx);
+	/* Staking */
+    bool CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int64_t nTime, int64_t nSearchInterval, CAmount& nFees, CMutableTransaction& tx, CKey& key, CBlockTemplate *pblocktemplate);
+    bool SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, CAmount& nValueRet) const;
+    void AvailableCoinsForStaking(std::vector<COutput>& vCoins) const;
+    bool HaveAvailableCoinsForStaking() const;
+    uint64_t GetStakeWeight() const;
 
     /** Mark a transaction as replaced by another transaction (e.g., BIP 125). */
     bool MarkReplaced(const uint256& originalHash, const uint256& newHash);

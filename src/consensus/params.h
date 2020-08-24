@@ -166,6 +166,7 @@ struct Params {
     bool fPowNoRetargeting;
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
+    int nDgwPastBlocks;
     int64_t nChainStartTime;
     unsigned char nMinNFactor;
     unsigned char nMaxNFactor;
@@ -207,7 +208,7 @@ struct Params {
 
     // Maximum number of outbound peers designated as Dandelion destinations.
     uint32_t nDandelionMaxDestinations;
-    
+
     // Expected time between Dandelion routing shuffles (in seconds).
     uint32_t nDandelionShuffleInterval;
 
@@ -297,11 +298,13 @@ struct Params {
 
     /** Time between blocks for LLMQ random time purposes. Can be less than actual average distance between blocks */
     int nLLMQPowTargetSpacing;
-	
+
     int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing ; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
-
+    // proof-of-stake
+    int nFirstPOSBlock;
+    int nStakeTimestampMask;
     bool IsMain() const { return chainType == chainMain; }
     bool IsTestnet() const { return chainType == chainTestnet; }
     bool IsRegtest() const { return chainType == chainRegtest; }

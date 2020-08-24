@@ -235,6 +235,17 @@ public:
         return false;
     }
 
+	void SetEmpty()
+    {
+        nValue = 0;
+        scriptPubKey.clear();
+    }
+
+    bool IsEmpty() const
+    {
+        return (nValue == 0 && scriptPubKey.empty());
+    }
+
     bool IsDust(const CFeeRate &minRelayTxFee) const
     {
 //        return (nValue < GetDustThreshold(minRelayTxFee));
@@ -455,6 +466,12 @@ public:
     bool IsCoinBase() const
     {
         return (vin.size() == 1 && vin[0].prevout.IsNull() && (vin[0].scriptSig.size() == 0 || (vin[0].scriptSig[0] != OP_ZEROCOINSPEND && vin[0].scriptSig[0] != OP_ZEROCOINTOSIGMAREMINT)));
+    }
+
+    bool IsCoinStake() const
+    {
+        // the coin stake transaction is marked with the first output empty
+        return (vin.size() > 0 && (!vin[0].prevout.IsNull()) && vout.size() >= 2 && vout[0].IsEmpty());
     }
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)

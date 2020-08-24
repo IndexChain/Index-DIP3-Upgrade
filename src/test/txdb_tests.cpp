@@ -33,7 +33,7 @@ CTransaction TxFromStr(std::string const & str)
 void AddTxToView(CTransaction const & tx, int height, CCoinsViewCache & viewCache)
 {
     for (size_t i=0; i<tx.vout.size(); i++)
-        viewCache.AddCoin(COutPoint(tx.GetHash(), i), Coin(tx.vout[i], height, tx.IsCoinBase()), false);
+        viewCache.AddCoin(COutPoint(tx.GetHash(), i), Coin(tx.vout[i], height, tx.IsCoinBase(),tx.IsCoinStake()), false);
 }
 }
 

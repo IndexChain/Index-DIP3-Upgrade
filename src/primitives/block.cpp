@@ -57,28 +57,11 @@ uint256 CBlockHeader::GetPoWHash(int nHeight) const {
         // genesis block
         scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(powHash), GetNfactor(nTime));
     }
-    else if (Params().GetConsensus().IsMain()) {
-         if (nHeight > 0) {
-            // we take values from precomputed table because calculations of these are horribly slow
-            powHash = GetPrecomputedBlockPoWHash(nHeight);
-
-            /*
-             * This is original code for reference
-             * 
-             * if (nHeight >= HF_LYRA2_HEIGHT) {
-             *   LYRA2(BEGIN(powHash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, 8192, 256);
-             * } else if (nHeight >= HF_LYRA2VAR_HEIGHT) {
-             *    LYRA2(BEGIN(powHash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, nHeight, 256);
-             * }
-             */
-        }
-    }
     else {
         // regtest - use simple block hash
         // current testnet is MTP since block 1, shouldn't get here
         powHash = GetHash();
     }
-    
     cachedPoWHash = powHash;
     return powHash;
 }

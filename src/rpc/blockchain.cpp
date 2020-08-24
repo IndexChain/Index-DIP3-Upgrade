@@ -20,7 +20,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "hash.h"
-
+#include "base58.h"
 #include "evo/specialtx.h"
 #include "evo/providertx.h"
 #include "evo/deterministicmns.h"
@@ -80,6 +80,43 @@ double GetDifficulty(const CBlockIndex* blockindex)
     return dDiff;
 }
 
+//Start Extra Blockinfo code
+CTransactionRef GetBlockRewardTransaction(const CBlock& block){
+    int RewardTXIndex = block.IsProofOfStake() ? 1:0;
+    return block.vtx[RewardTXIndex];
+}
+
+CTxOut GetStakeTXOut(const CTxIn& txin){
+    CTransactionRef prevTx;
+    uint256 hashBlock;
+    if (GetTransaction(txin.prevout.hash, prevTx, Params().GetConsensus(), hashBlock, true)) {
+        CTxOut const & txOut = prevTx->vout.at(txin.prevout.n);
+        return txOut;
+    }
+    return CTxOut();
+}
+
+std::string GetBlockRewardWinner(const CBlock& block){
+    CTransactionRef RewardTX = GetBlockRewardTransaction(block);
+    CTxDestination dstAddr;
+    const CTxOut& txout = block.IsProofOfStake() ? GetStakeTXOut(RewardTX->vin[0]) : RewardTX->vout[0];
+    if(txout != CTxOut() && ExtractDestination(txout.scriptPubKey, dstAddr))
+        return CBitcoinAddress(dstAddr).ToString();
+    return "";
+}
+
+float GetBlockInput(const CBlock& block){
+    float nValueIn = 0.0;
+    CTransactionRef RewardTX = GetBlockRewardTransaction(block);
+    //Cycle through inputs as we may have many inputs staking
+    for(CTxIn txin : RewardTX->vin){
+        CTxOut const & txOut = GetStakeTXOut(txin);
+        nValueIn+= ValueFromAmount(txOut.nValue).get_real();
+    }
+    return nValueIn;
+}
+//End extra block info code
+
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 {
     UniValue result(UniValue::VOBJ);
@@ -113,6 +150,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("hash", blockindex->GetBlockHash().GetHex()));
     int confirmations = -1;
+    float blockInput = 0.0;
     // Only report confirmations if the block is on the main chain
     if (chainActive.Contains(blockindex))
         confirmations = chainActive.Height() - blockindex->nHeight + 1;
@@ -152,6 +190,16 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
+    result.push_back(Pair("type",block.IsProofOfStake() ? "PoS":"PoW"));
+    if(block.IsProofOfStake())
+        blockInput = GetBlockInput(block);
+    if(blockInput > 0)
+            result.push_back(Pair("inputamount",blockInput));
+    result.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
+    if (block.IsProofOfStake()){
+        result.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
+        result.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
+    }
     return result;
 }
 

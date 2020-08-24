@@ -158,6 +158,7 @@ enum BlockStatus: uint32_t {
     BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 
     BLOCK_OPT_WITNESS       =   128, //!< block data in blk*.data was received with a witness-enforcing client
+    BLOCK_PROOF_OF_STAKE     =   256, //! is proof-of-stake block
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -203,6 +204,8 @@ public:
 
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
+	//! hash modifier of proof-of-stake
+    uint256 nStakeModifier;
 
     //! block header
     int nVersion;
@@ -210,6 +213,7 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
+    std::vector<unsigned char> vchBlockSig;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -261,6 +265,7 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+        vchBlockSig.clear();
 
 
         mintedPubCoins.clear();
@@ -268,6 +273,7 @@ public:
         accumulatorChanges.clear();
         spentSerials.clear();
         sigmaSpentSerials.clear();
+        nStakeModifier = uint256();
     }
 
     CBlockIndex()
@@ -284,6 +290,8 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
+        if(block.IsProofOfStake())
+            vchBlockSig    = block.vchBlockSig; // qtum
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -339,7 +347,20 @@ public:
     }
 
     enum { nMedianTimeSpan=11 };
+    int64_t GetPastTimeLimit() const
+    {
+        return GetMedianTimePast();
+    }
 
+    bool IsProofOfWork() const
+    {
+        return !IsProofOfStake();
+    }
+
+    bool IsProofOfStake() const
+    {
+        return nNonce == 0 || nStatus & BLOCK_PROOF_OF_STAKE;
+    }
     int64_t GetMedianTimePast() const
     {
         int64_t pmedian[nMedianTimeSpan];
@@ -440,7 +461,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
+        if(nNonce == 0)
+            READWRITE(vchBlockSig); // qtum
 
         if (!(s.GetType() & SER_GETHASH) && nVersion >= ZC_ADVANCED_INDEX_VERSION) {
             READWRITE(mintedPubCoins);
@@ -452,7 +474,8 @@ public:
             READWRITE(sigmaMintedPubCoins);
             READWRITE(sigmaSpentSerials);
         }
-
+	    // PoS
+        READWRITE(nStakeModifier);
         nDiskBlockVersion = nVersion;
     }
 

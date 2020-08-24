@@ -9,7 +9,7 @@
 #if defined(HAVE_CONFIG_H)
 #include "config/bitcoin-config.h"
 #endif
-
+#include <wallet/wallet.h>
 #include "amount.h"
 #include "chain.h"
 #include "coins.h"
@@ -49,6 +49,7 @@ class CTxPoolAggregate;
 class CValidationInterface;
 class CValidationState;
 struct ChainTxData;
+class CWallet;
 
 struct PrecomputedTransactionData;
 struct LockPoints;
@@ -195,6 +196,8 @@ extern bool fIsBareMultisigStd;
 extern bool fRequireStandard;
 extern bool fCheckBlockIndex;
 extern bool fCheckpointsEnabled;
+extern int64_t nLastCoinStakeSearchInterval;
+
 //extern int nBestHeight;
 
 // Settings
@@ -555,11 +558,12 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 /** Reprocess a number of blocks to try and get on the correct chain again **/
 bool DisconnectBlocks(int blocks);
 void ReprocessBlocks(int nBlocks);
+bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams);
 
 int GetInputAge(const CTxIn &txin);
 int GetInputAgeIX(const uint256 &nTXHash, const CTxIn &txin);
 int GetIXConfirmations(const uint256 &nTXHash);
-CAmount GetZnodePayment(const Consensus::Params &params);
+CAmount GetZnodePayment(const Consensus::Params &params, int nHeight = 0);
 
 /** Check a block is completely valid from start to finish (only works on top of our current best block, with cs_main held) */
 bool TestBlockValidity(CValidationState& state, const CChainParams& chainparams, const CBlock& block, CBlockIndex* pindexPrev, bool fCheckPOW = true, bool fCheckMerkleRoot = true);
@@ -583,7 +587,10 @@ public:
     ~CVerifyDB();
     bool VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview, int nCheckLevel, int nCheckDepth);
 };
+//////////////////////////////////////////////////////// qtum
+bool GetSpentCoinFromBlock(const CBlockIndex* pindex, COutPoint prevout, Coin* coin);
 
+bool GetSpentCoinFromMainChain(const CBlockIndex* pforkPrev, COutPoint prevoutStake, Coin* coin);
 /** Find the last common block between the parameter chain and a locator. */
 CBlockIndex* FindForkInGlobalIndex(const CChain& chain, const CBlockLocator& locator);
 
