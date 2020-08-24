@@ -21,7 +21,6 @@ class CSigmaTxInfo;
 
 } // namespace sigma.
 
-unsigned char GetNfactor(int64_t nTimestamp);
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -109,7 +108,7 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetPoWHash(int nHeight) const;
+    uint256 GetPoWHash() const;
 
     uint256 GetHash() const;
 

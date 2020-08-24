@@ -19,51 +19,15 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
-#include "precomputed_hash.h"
-
-
-
-unsigned char GetNfactor(int64_t nTimestamp) {
-    int l = 0;
-    if (nTimestamp <= Params().GetConsensus().nChainStartTime)
-        return Params().GetConsensus().nMinNFactor;
-
-    int64_t s = nTimestamp - Params().GetConsensus().nChainStartTime;
-    while ((s >> 1) > 3) {
-        l += 1;
-        s >>= 1;
-    }
-    s &= 3;
-    int n = (l * 158 + s * 28 - 2670) / 100;
-    if (n < 0) n = 0;
-    if (n > 255)
-        LogPrintf("GetNfactor(%d) - something wrong(n == %d)\n", nTimestamp, n);
-
-    unsigned char N = (unsigned char) n;
-
-    return std::min(std::max(N, Params().GetConsensus().nMinNFactor), Params().GetConsensus().nMaxNFactor);
-}
+#include "crypto/x16Rv2/hash_algos.h"
 
 uint256 CBlockHeader::GetHash() const {
-    return SerializeHash(*this);
+    return HashX16RV2(BEGIN(nVersion), END(nNonce), hashPrevBlock);
 }
 
-uint256 CBlockHeader::GetPoWHash(int nHeight) const {
-    if (!cachedPoWHash.IsNull())
-        return cachedPoWHash;
-
-    uint256 powHash;
-     if (nHeight == 0) {
-        // genesis block
-        scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(powHash), GetNfactor(nTime));
-    }
-    else {
-        // regtest - use simple block hash
-        // current testnet is MTP since block 1, shouldn't get here
-        powHash = GetHash();
-    }
-    cachedPoWHash = powHash;
-    return powHash;
+uint256 CBlockHeader::GetPoWHash() const {
+        //Changed hash algo to X16Rv2
+    return HashX16RV2(BEGIN(nVersion), END(nNonce), hashPrevBlock);
 }
 
 std::string CBlock::ToString() const {

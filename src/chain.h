@@ -322,7 +322,8 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-
+        if(block.nNonce == 0)
+            block.vchBlockSig    = vchBlockSig;
         return block;
     }
 
@@ -333,7 +334,7 @@ public:
 
     uint256 GetBlockPoWHash() const
     {
-        return GetBlockHeader().GetPoWHash(nHeight);
+        return GetBlockHeader().GetPoWHash();
     }
 
     int64_t GetBlockTime() const
