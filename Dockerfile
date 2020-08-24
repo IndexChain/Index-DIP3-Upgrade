@@ -72,7 +72,7 @@ RUN mkdir /home/zcoind/.zcoin
 VOLUME [ "/home/zcoind/.zcoin" ]
 
 # Main network ports
-EXPOSE 8168
+EXPOSE 7082
 EXPOSE 8888
 
 # Test network ports

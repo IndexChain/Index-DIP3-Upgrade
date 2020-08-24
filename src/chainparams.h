@@ -84,7 +84,6 @@ public:
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
     int FulfilledRequestExpireTime() const { return nFulfilledRequestExpireTime; }
     std::string SporkPubKey() const { return strSporkPubKey; }
-    std::string ZnodePaymentPubKey() const { return strZnodePaymentsPubKey; }
 	
 	/** Zerocoin-related block numbers when features are changed */
 	int nSpendV15StartBlock;
@@ -113,13 +112,12 @@ protected:
     bool fMineBlocksOnDemand;
     bool fAllowMultiplePorts;
     CCheckpointData checkpointData;
-	
+
     /** znode params*/
     long nMaxTipAge;
     int nPoolMaxTransactions;
     int nFulfilledRequestExpireTime;
     std::string strSporkPubKey;
-    std::string strZnodePaymentsPubKey;
     ChainTxData chainTxData;
 };
 
