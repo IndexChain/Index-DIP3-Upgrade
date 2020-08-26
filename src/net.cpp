@@ -2947,7 +2947,13 @@ bool CConnman::AddNode(const std::string& strNode)
     vAddedNodes.push_back(strNode);
     return true;
 }
-
+void CExplicitNetCleanup::callCleanup()
+{
+    // Explicit call to destructor of CNetCleanup because it's not implicitly called
+    // when the wallet is restarted from within the wallet itself.
+    CNetCleanup *tmp = new CNetCleanup();
+    delete tmp; // Stroustrup's gonna kill me for that
+}
 CNode* CNode::getDandelionDestination(CNode* pfrom) {
     for (auto const& e : mDandelionRoutes) {
         if (pfrom==e.first) {

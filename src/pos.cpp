@@ -202,8 +202,6 @@ bool CheckKernel(CBlockIndex* pindexPrev, unsigned int nBits, uint32_t nTimeBloc
 {
     uint256 hashProofOfStake, targetProofOfStake;
     auto it=cache.find(prevout);
-    *pBlockTime = pindexPrev->GetBlockTime();
-    if(nTime < *pBlockTime) return false;
     if(it == cache.end()) {
         //not found in cache (shouldn't happen during staking, only during verification which does not use cache)
         Coin coinPrev;

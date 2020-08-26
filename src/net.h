@@ -1033,7 +1033,11 @@ public:
 };
 
 
-
+class CExplicitNetCleanup
+{
+public:
+    static void callCleanup();
+};
 
 
 /** Return a timestamp in the future (in microseconds) for exponentially distributed events. */

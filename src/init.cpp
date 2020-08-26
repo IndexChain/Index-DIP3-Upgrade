@@ -114,6 +114,7 @@ static const bool DEFAULT_REST_ENABLE = false;
 static const bool DEFAULT_DISABLE_SAFEMODE = false;
 static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
+
 std::unique_ptr<CConnman> g_connman;
 std::unique_ptr<PeerLogicValidation> peerLogic;
 
@@ -190,9 +191,13 @@ static char *convert_str(const std::string &s) {
 
 std::atomic<bool> fRequestShutdown(false);
 std::atomic<bool> fDumpMempoolLater(false);
+std::atomic<bool> fRequestRestart(false);
 
-void StartShutdown()
+void StartRestart()
 {
+    fRequestShutdown = fRequestRestart = true;
+}
+void StartShutdown() {
     fRequestShutdown = true;
 }
 bool ShutdownRequested()
@@ -241,8 +246,8 @@ void Interrupt(boost::thread_group& threadGroup)
         g_connman->Interrupt();
     threadGroup.interrupt_all();
 }
-
-void Shutdown()
+/** Preparing steps before shutting down or restarting the wallet */
+void PrepareShutdown()
 {
     LogPrintf("%s: In progress...\n", __func__);
     static CCriticalSection cs_Shutdown;
@@ -372,6 +377,24 @@ void Shutdown()
     }
 #endif
     UnregisterAllValidationInterfaces();
+}
+/**
+* Shutdown is split into 2 parts:
+* Part 1: shut down everything but the main wallet instance (done in PrepareShutdown() )
+* Part 2: delete wallet instance
+*
+* In case of a restart PrepareShutdown() was already called before, but this method here gets
+* called implicitly when the parent object is deleted. In this case we have to skip the
+* PrepareShutdown() part because it was already executed and just delete the wallet instance.
+*/
+void Shutdown()
+{
+    // Shutdown part 1: prepare shutdown
+    if(!fRequestRestart){
+        PrepareShutdown();
+    }
+
+   // Shutdown part 2: delete wallet instance
 #ifdef ENABLE_WALLET
     delete pwalletMain;
     pwalletMain = NULL;
