@@ -64,7 +64,9 @@ bool fSendFreeTransactions = DEFAULT_SEND_FREE_TRANSACTIONS;
 bool fWalletRbf = DEFAULT_WALLET_RBF;
 
 const char * DEFAULT_WALLET_DAT = "wallet.dat";
-static int64_t GetStakeCombineThreshold() { return 500 * COIN; }
+static int64_t GetStakeCombineThreshold() { return 800 * COIN; }
+unsigned int GetStakeSplitOutputs() { return 4; }
+int64_t GetStakeSplitThreshold() { return GetStakeSplitOutputs() * GetStakeCombineThreshold(); }
 CAmount nReserveBalance = 0;
 
 /**
@@ -1049,13 +1051,16 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         CBlock *pblock = &pblocktemplate->block;
         bool Dip3Active = nHeight >= Params().GetConsensus().DIP0003EnforcementHeight;
         bool fPayIDXNode = nHeight >= Params().GetConsensus().nZnodePaymentsStartBlock;
+        bool IDXNodePaid = false;
         CAmount indexnodePayment = 0;
     if (fPayIDXNode) {
         const Consensus::Params &params = Params().GetConsensus();
         indexnodePayment = GetZnodePayment(Params().GetConsensus(),nHeight);
         FillZnodeBlockPayments(txNew, nHeight, indexnodePayment, pblock->txoutZnode, pblock->voutSuperblock);
-        if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0)
+        if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0){
             nReward -= indexnodePayment;
+            IDXNodePaid = true;
+        }
     }
     else if (Dip3Active) {
         std::vector<CTxOut> sbPayments;
@@ -1074,7 +1079,23 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         */
         nCredit += nReward;
     }
-    txNew.vout[1].nValue = nCredit;
+
+    if (nCredit >= GetStakeSplitThreshold())
+    {
+        for(unsigned int i = 0; i < GetStakeSplitOutputs() - 1; i++)
+            txNew.vout.push_back(CTxOut(0, txNew.vout[1].scriptPubKey)); //split stake
+    }
+
+    // Set output amount
+    if (txNew.vout.size() == GetStakeSplitOutputs() + 1)
+    {
+        CAmount nValue = (nCredit / GetStakeSplitOutputs() / CENT) * CENT;
+        for(unsigned int i = 1; i < GetStakeSplitOutputs(); i++)
+            txNew.vout[i].nValue = nValue;
+        txNew.vout[GetStakeSplitOutputs()].nValue = nCredit - nValue * (GetStakeSplitOutputs() - 1);
+    }
+    else
+        txNew.vout[1].nValue = nCredit;
 
     // Sign
     int nIn = 0;
@@ -2246,7 +2267,34 @@ void CWalletTx::GetAmounts(list<COutputEntry>& listReceived,
         CAmount nValueOut = tx->GetValueOut();
         nFee = nDebit - nValueOut;
     }
+    // treat coinstake as a single "recieve" entry
+    if (IsCoinStake())
+    {
+        for (unsigned int i = 0; i < tx->vout.size(); ++i)
+        {
+            const CTxOut& txout = tx->vout[i];
+            isminetype fIsMine = pwallet->IsMine(txout);
 
+            // get my vout with positive output
+            if (!(fIsMine & filter) || txout.nValue <= 0)
+                        continue;
+
+            // get address
+            CTxDestination address = CNoDestination();
+            ExtractDestination(txout.scriptPubKey, address);
+
+            // nfee is negative for coinstake generation, because we are gaining money from it
+            COutputEntry output = {address, -nFee, (int)i};
+            listReceived.push_back(output);
+            nFee = 0;
+            return;
+        }
+
+        // if we reach here there is probably a mistake
+        COutputEntry output = {CNoDestination(), 0, 0};
+        listReceived.push_back(output);
+        return;
+    }
     // Sent/received.
     for (unsigned int i = 0; i < tx->vout.size(); ++i)
     {
@@ -2395,7 +2443,7 @@ void CWallet::ReacceptWalletTransactions()
     std::map<int64_t, CWalletTx*> mapSorted;
 
     // Sort pending wallet transactions based on their initial wallet insertion order
-    BOOST_FOREACH(PAIRTYPE(const uint256, CWalletTx)& item, mapWallet)
+    for (std::pair<const uint256, CWalletTx>& item : mapWallet)
     {
         const uint256& wtxid = item.first;
         CWalletTx& wtx = item.second;
@@ -2403,8 +2451,13 @@ void CWallet::ReacceptWalletTransactions()
 
         int nDepth = wtx.GetDepthInMainChain();
 
-        if (!wtx.IsCoinBase() && (nDepth == 0 && !wtx.isAbandoned())) {
-            mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
+        if (nDepth == 0 && !wtx.isAbandoned()) {
+            if (wtx.IsCoinBase() || wtx.IsCoinStake()) {
+                LogPrintf("Abandoning wtx %s\n", wtx.GetHash().ToString());
+                AbandonTransaction(wtxid);
+                }
+            else
+                mapSorted.insert(std::make_pair(wtx.nOrderPos, &wtx));
         }
     }
 
@@ -2429,7 +2482,7 @@ void CWallet::ReacceptWalletTransactions()
 bool CWalletTx::RelayWalletTransaction(CConnman* connman)
 {
     assert(pwallet->GetBroadcastTransactions());
-    if (!IsCoinBase() && !IsCoinStake() && !isAbandoned() && GetDepthInMainChain() == 0)
+    if (!(IsCoinBase() || IsCoinStake()) && !isAbandoned() && GetDepthInMainChain() == 0)
     {
         CValidationState state;
         /* GetDepthInMainChain already catches known conflicts. */
@@ -2506,7 +2559,7 @@ CAmount CWalletTx::GetDebit(const isminefilter& filter) const
 CAmount CWalletTx::GetCredit(const isminefilter& filter) const
 {
     // Must wait until coinbase is safely deep enough in the chain before valuing it
-    if (IsCoinBase() && GetBlocksToMaturity() > 0)
+    if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
         return 0;
 
     CAmount credit = 0;
@@ -2538,7 +2591,7 @@ CAmount CWalletTx::GetCredit(const isminefilter& filter) const
 
 CAmount CWalletTx::GetImmatureCredit(bool fUseCache) const
 {
-    if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain())
+    if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0 && IsInMainChain())
     {
         if (fUseCache && fImmatureCreditCached)
             return nImmatureCreditCached;
@@ -2555,7 +2608,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, bool fExcludeLocked) const
         return 0;
 
     // Must wait until coinbase is safely deep enough in the chain before valuing it
-    if (IsCoinBase() && GetBlocksToMaturity() > 0)	
+    if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
         return 0;
 
     // We cannot use cache if vout contains mints due to it will not update when it spend
@@ -2590,7 +2643,7 @@ CAmount CWalletTx::GetAvailableCredit(bool fUseCache, bool fExcludeLocked) const
 
 CAmount CWalletTx::GetImmatureWatchOnlyCredit(const bool& fUseCache) const
 {
-    if (IsCoinBase() && GetBlocksToMaturity() > 0 && IsInMainChain())
+    if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0 && IsInMainChain())
     {
         if (fUseCache && fImmatureWatchCreditCached)
             return nImmatureWatchCreditCached;
@@ -2608,7 +2661,7 @@ CAmount CWalletTx::GetAvailableWatchOnlyCredit(const bool& fUseCache) const
         return 0;
 
     // Must wait until coinbase is safely deep enough in the chain before valuing it
-    if (IsCoinStake() && GetBlocksToMaturity() > 0)
+    if ((IsCoinBase() || IsCoinStake()) && GetBlocksToMaturity() > 0)
         return 0;
 
     if (fUseCache && fAvailableWatchCreditCached)
@@ -3146,6 +3199,20 @@ bool CWallet::GetCoinsToSpend(
     return true;
 }
 
+// peercoin: total coins staked (non-spendable until maturity)
+CAmount CWallet::GetStake() const
+{
+    CAmount nTotal = 0;
+    LOCK2(cs_main, cs_wallet);
+    for (const auto& entry : mapWallet)
+    {
+        const CWalletTx* pcoin = &entry.second;
+        if (pcoin->IsCoinStake() && pcoin->GetBlocksToMaturity() > 0 && pcoin->GetDepthInMainChain() > 0)
+            nTotal += entry.second.GetCredit(ISMINE_ALL);
+    }
+    return nTotal;
+}
+
 CAmount CWallet::GetUnconfirmedBalance() const {
     CAmount nTotal = 0;
     {
@@ -3231,7 +3298,7 @@ void CWallet::AvailableCoins(vector <COutput> &vCoins, bool fOnlyConfirmed, cons
             if (fOnlyConfirmed && !pcoin->IsTrusted())
                 continue;
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
+            if ((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetBlocksToMaturity() > 0)
                 continue;
 
             int nDepth = pcoin->GetDepthInMainChain(false);
@@ -7804,7 +7871,7 @@ std::map<CTxDestination, CAmount> CWallet::GetAddressBalances()
             if (!pcoin->IsTrusted())
                 continue;
 
-            if (pcoin->IsCoinBase() && pcoin->GetBlocksToMaturity() > 0)
+            if ((pcoin->IsCoinBase() || pcoin->IsCoinStake()) && pcoin->GetBlocksToMaturity() > 0)
                 continue;
 
             int nDepth = pcoin->GetDepthInMainChain();

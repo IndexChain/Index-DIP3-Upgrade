@@ -920,6 +920,7 @@ public:
     CAmount GetWatchOnlyBalance() const;
     CAmount GetUnconfirmedWatchOnlyBalance() const;
     CAmount GetImmatureWatchOnlyBalance() const;
+    CAmount GetStake() const;
 
     static std::vector<CRecipient> CreateSigmaMintRecipients(
         std::vector<sigma::PrivateCoin>& coins,
