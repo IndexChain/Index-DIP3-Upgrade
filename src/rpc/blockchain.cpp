@@ -182,7 +182,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if(blockInput > 0)
             result.push_back(Pair("inputamount",blockInput));
     result.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
-    result.push_back(Pair("blockreward",GetCoinbaseReward(block) / COIN));
+    result.push_back(Pair("blockreward",ValueFromAmount(GetCoinbaseReward(block))));
     if (block.IsProofOfStake()){
         result.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
         result.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
