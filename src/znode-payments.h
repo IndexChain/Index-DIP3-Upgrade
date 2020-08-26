@@ -6,6 +6,7 @@
 #define ZNODE_PAYMENTS_H
 
 #include "util.h"
+#include "net.h"
 #include "core_io.h"
 #include "key.h"
 #include "validation.h"
@@ -15,7 +16,7 @@
 class CZnodePayments;
 class CZnodePaymentVote;
 class CZnodeBlockPayees;
-
+class CZnode;
 static const int MNPAYMENTS_SIGNATURES_REQUIRED         = 6;
 static const int MNPAYMENTS_SIGNATURES_TOTAL            = 10;
 
