@@ -228,7 +228,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     nLastBlockWeight = nBlockWeight;
 
     CAmount nBlockSubsidy = GetBlockSubsidy(nHeight, chainparams.GetConsensus(), pblock->nTime);
-
+    LogPrintf("Block reward is %d\n",nBlockSubsidy / COIN);
     // Create coinbase transaction.
     CMutableTransaction coinbaseTx;
     coinbaseTx.vin.resize(1);
@@ -291,7 +291,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     }
     else if (Dip3Active) {
         std::vector<CTxOut> sbPayments;
-        FillBlockPayments(coinbaseTx, nHeight, nBlockSubsidy, pblocktemplate->voutMasternodePayments, sbPayments);
+        FillBlockPayments(coinbaseTx, nHeight, nBlockSubsidy, pblocktemplate->voutMasternodePayments, fProofOfStake);
     }
     //Only take out idx payment if a indexnode is actually filled in txoutindexnode and indexnodepayment is not 0
     if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0)
@@ -307,7 +307,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     if(!fProofOfStake)
         UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
     pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus(),fProofOfStake);
-    pblock->nNonce = fProofOfStake;
+    pblock->nNonce = !fProofOfStake;
     pblocktemplate->vTxSigOpsCost[0] = GetLegacySigOpCount(*pblock->vtx[0]);
 
     CValidationState state;
@@ -1204,11 +1204,13 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
                 {
                     // increase priority
                     SetThreadPriority(THREAD_PRIORITY_ABOVE_NORMAL);
-                     // Check if stake check passes and process the new block
-                    CheckStake(pblock, *pwallet, chainparams);
-                    // return back to low priority
-                    SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                    MilliSleep(5000);
+                    // Check if stake check passes and process the new block
+                    if(CheckStake(pblock, *pwallet, chainparams)){
+                        BroadcastPoSBlock(pblock, *pwallet, chainparams);
+                        // return back to low priority
+                        SetThreadPriority(THREAD_PRIORITY_LOWEST);
+                        MilliSleep(5000);
+                    }
                 }
             }
             MilliSleep(nMinerSleep);

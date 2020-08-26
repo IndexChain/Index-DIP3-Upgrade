@@ -58,7 +58,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp, const CScript &genesi
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount &genesisReward,
                    std::vector<unsigned char> extraNonce) {
     //btzc: zcoin timestamp
-    const char *pszTimestamp = "Times 2014/10/31 Maine Judge Says Nurse Must Follow Ebola Quarantine for Now";
+    const char *pszTimestamp = "Bitcoin Recovers from Below $7.2K After Schiff Says ‘Game Is Over";
     const CScript genesisOutputScript = CScript();
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward,
                               extraNonce);
@@ -339,6 +339,7 @@ public:
         checkpointData = (CCheckpointData) {
                 boost::assign::map_list_of
                     (0, genesis.GetHash())
+                    (2, uint256S("0x00000fbc990a720d213a9b5a2baa91686f00f9548c71087252e80c8640ff6d86"))
                     (86810,uint256S("0x2eac965dcd0e10574dc05f44ee14756e5224bf521358e5455f33da1ad8a9536c"))
                     (86818,uint256S("0x00000000068be20010a30c14f4002161b02d4694c109cd4c38958ccb3bb2a8cd"))
                     (86980,uint256S("0x047f44feee06d93a16e5184fc8f8b85e9bdac2bc1676fff6c1d54d615b512b20"))
@@ -520,17 +521,17 @@ public:
          * nNonce: 1620571
          */
         std::vector<unsigned char> extraNonce(4);
-        extraNonce[0] = 0x09;
+        extraNonce[0] = 0x08;
         extraNonce[1] = 0x00;
         extraNonce[2] = 0x00;
         extraNonce[3] = 0x00;
 
-        genesis = CreateGenesisBlock(ZC_GENESIS_BLOCK_TIME, 3577337, 0x1e0ffff0, 2, 0 * COIN, extraNonce);
+        genesis = CreateGenesisBlock(ZC_GENESIS_BLOCK_TIME, 215095, 504365040, 2, 0 * COIN, extraNonce);
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock ==
-                uint256S("0xaa22adcc12becaf436027ffe62a8fb21b234c58c23865291e5dc52cf53f64fca"));
+               assert(consensus.hashGenesisBlock ==
+                uint256S("0x00000bab1c62ca4063a0b1c2f0562cf6427e047333359106b8799cfa923c79f3"));
         assert(genesis.hashMerkleRoot ==
-                uint256S("0xf70dba2d976778b985de7b5503ede884988d78fbb998d6969e4f676b40b9a741"));
+                uint256S("3f105b7ee0068c963cab5e889bcec419d82646b9060905f559eb8c4c1975f4c6"));
         vFixedSeeds.clear();
         vSeeds.clear();
         // zcoin test seeds

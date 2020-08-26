@@ -117,7 +117,7 @@ public:
         return (int64_t)nTime;
     }
     void InvalidateCachedPoWHash(int nHeight) const;
-    bool IsProofOfStake() const {return nNonce == 0;}
+    bool IsProofOfStake() const {return (nNonce == 0);}
 };
 
 class CZerocoinTxInfo;
@@ -188,7 +188,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        if(block.nNonce == 0)
+        if(nNonce == 0)
             block.vchBlockSig    = vchBlockSig;
         return block;
     }

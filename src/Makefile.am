@@ -173,6 +173,7 @@ BITCOIN_CORE_H = \
   batchedlogger.h \
   bloom.h \
   blockencodings.h \
+  blockinfo/blockinfo.h \
   chain.h \
   chainparams.h \
   chainparamsbase.h \
@@ -393,6 +394,7 @@ libbitcoin_server_a_SOURCES = \
   batchedlogger.cpp \
   bloom.cpp \
   blockencodings.cpp \
+  blockinfo/blockinfo.cpp \
   chain.cpp \
   checkpoints.cpp \
   dsnotificationinterface.cpp \

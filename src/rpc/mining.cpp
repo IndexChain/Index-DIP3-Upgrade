@@ -898,6 +898,42 @@ UniValue submitblock(const JSONRPCRequest& request)
     return BIP22ValidationResult(sc.state);
 }
 
+UniValue getstakinginfo(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 0)
+        throw runtime_error(
+            "getstakinginfo\n"
+            "Returns an object containing staking-related information.");
+
+    uint64_t nWeight = 0;
+    if (pwalletMain)
+        nWeight = pwalletMain->GetStakeWeight();
+
+    uint64_t nNetworkWeight = GetPoSKernelPS();
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    uint64_t nExpectedTime = staking ? (Params().GetConsensus().nPowTargetSpacing * nNetworkWeight / nWeight) : 0;
+
+    UniValue obj(UniValue::VOBJ);
+
+    obj.push_back(Pair("enabled", GetBoolArg("-staking", true)));
+    obj.push_back(Pair("staking", staking));
+    obj.push_back(Pair("errors", GetWarnings("statusbar")));
+
+    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
+    obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
+
+    obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    obj.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
+
+    obj.push_back(Pair("weight", (uint64_t)nWeight));
+    obj.push_back(Pair("netstakeweight", (uint64_t)nNetworkWeight));
+
+    obj.push_back(Pair("expectedtime", nExpectedTime));
+
+    return obj;
+}
+
 UniValue estimatefee(const JSONRPCRequest& request)
 {
     if (request.fHelp || request.params.size() != 1)
@@ -1040,6 +1076,7 @@ static const CRPCCommand commands[] =
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  true,  {"txid","priority_delta","fee_delta"} },
     { "mining",             "getblocktemplate",       &getblocktemplate,       true,  {"template_request"} },
     { "mining",             "submitblock",            &submitblock,            true,  {"hexdata","parameters"} },
+    { "mining",             "getstakinginfo",         &getstakinginfo,         true,  {} },
 
     { "generating",         "setgenerate",            &setgenerate,            true  },
     { "generating",         "generate",               &generate,               true,  {"nblocks","maxtries"} },

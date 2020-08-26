@@ -559,6 +559,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 bool DisconnectBlocks(int blocks);
 void ReprocessBlocks(int nBlocks);
 bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams);
+bool BroadcastPoSBlock(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams);
 
 int GetInputAge(const CTxIn &txin);
 int GetInputAgeIX(const uint256 &nTXHash, const CTxIn &txin);

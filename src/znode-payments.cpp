@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "activeznode.h"
+#include "blockinfo/blockinfo.h"
 #include "znode-payments.h"
 #include "znode-sync.h"
 #include "znodeman.h"
@@ -36,9 +37,9 @@ CCriticalSection cs_mapZnodePaymentVotes;
 
 bool IsZnodeBlockValueValid(const CBlock &block, int nBlockHeight, CAmount blockReward, std::string &strErrorRet) {
     strErrorRet = "";
-
-    bool isBlockRewardValueMet = (block.vtx[0]->GetValueOut() <= blockReward);
-    if (fDebug) LogPrintf("block.vtx[0].GetValueOut() %lld <= blockReward %lld\n", block.vtx[0]->GetValueOut(), blockReward);
+    CAmount nMint = GetCoinbaseReward(block);
+    bool isBlockRewardValueMet = (nMint <= blockReward);
+    if (fDebug) LogPrintf("block.vtx[0].GetValueOut() %lld <= blockReward %lld\n", nMint, blockReward);
 
     // we are still using budgets, but we have no data about them anymore,
     // all we know is predefined budget cycle and window
@@ -91,7 +92,7 @@ bool IsZnodeBlockValueValid(const CBlock &block, int nBlockHeight, CAmount block
 //        }
         if (!isBlockRewardValueMet) {
             strErrorRet = strprintf("coinbase pays too much at height %d (actual=%d vs limit=%d), exceeded block reward, only regular blocks are allowed at this height",
-                                    nBlockHeight, block.vtx[0]->GetValueOut(), blockReward);
+                                    nBlockHeight, nMint, blockReward);
         }
         // it MUST be a regular block otherwise
         return isBlockRewardValueMet;

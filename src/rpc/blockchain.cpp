@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "amount.h"
+#include <blockinfo/blockinfo.h>
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
@@ -49,73 +50,58 @@ static CUpdatedBlock latestblock;
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry);
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex)
+double GetDifficulty(const CChain& chain, const CBlockIndex* blockindex)
 {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (blockindex == NULL)
+    if (blockindex == nullptr)
     {
-        if (chainActive.Tip() == NULL)
+        if (chain.Tip() == nullptr)
             return 1.0;
         else
-            blockindex = chainActive.Tip();
+            blockindex = GetLastBlockIndex(chain.Tip(), false);
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
+    return blockindex->GetBlockDifficulty();
+}
 
-    double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+double GetDifficulty(const CBlockIndex* blockindex)
+{
+    return GetDifficulty(chainActive, blockindex);
+}
 
-    while (nShift < 29)
+double GetPoSKernelPS()
+{
+    int nPoSInterval = 100;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    CBlockIndex* pindex = chainActive.Tip();;
+    CBlockIndex* pindexPrevStake = NULL;
+
+    while (pindex && nStakesHandled < nPoSInterval)
     {
-        dDiff *= 256.0;
-        nShift++;
+        if (pindex->IsProofOfStake())
+        {
+            if (pindexPrevStake)
+            {
+                dStakeKernelsTriedAvg += GetDifficulty(pindexPrevStake) * 4294967296.0;
+                nStakesTime += pindexPrevStake->nTime - pindex->nTime;
+                nStakesHandled++;
+            }
+            pindexPrevStake = pindex;
+        }
+
+        pindex = pindex->pprev;
     }
-    while (nShift > 29)
-    {
-        dDiff /= 256.0;
-        nShift--;
-    }
 
-    return dDiff;
-}
+    double result = 0;
 
-//Start Extra Blockinfo code
-CTransactionRef GetBlockRewardTransaction(const CBlock& block){
-    int RewardTXIndex = block.IsProofOfStake() ? 1:0;
-    return block.vtx[RewardTXIndex];
-}
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
 
-CTxOut GetStakeTXOut(const CTxIn& txin){
-    CTransactionRef prevTx;
-    uint256 hashBlock;
-    if (GetTransaction(txin.prevout.hash, prevTx, Params().GetConsensus(), hashBlock, true)) {
-        CTxOut const & txOut = prevTx->vout.at(txin.prevout.n);
-        return txOut;
-    }
-    return CTxOut();
-}
+    result *= 16;
 
-std::string GetBlockRewardWinner(const CBlock& block){
-    CTransactionRef RewardTX = GetBlockRewardTransaction(block);
-    CTxDestination dstAddr;
-    const CTxOut& txout = block.IsProofOfStake() ? GetStakeTXOut(RewardTX->vin[0]) : RewardTX->vout[0];
-    if(txout != CTxOut() && ExtractDestination(txout.scriptPubKey, dstAddr))
-        return CBitcoinAddress(dstAddr).ToString();
-    return "";
+    return result;
 }
-
-float GetBlockInput(const CBlock& block){
-    float nValueIn = 0.0;
-    CTransactionRef RewardTX = GetBlockRewardTransaction(block);
-    //Cycle through inputs as we may have many inputs staking
-    for(CTxIn txin : RewardTX->vin){
-        CTxOut const & txOut = GetStakeTXOut(txin);
-        nValueIn+= ValueFromAmount(txOut.nValue).get_real();
-    }
-    return nValueIn;
-}
-//End extra block info code
 
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 {
@@ -196,6 +182,7 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if(blockInput > 0)
             result.push_back(Pair("inputamount",blockInput));
     result.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
+    result.push_back(Pair("blockreward",GetCoinbaseReward(block) / COIN));
     if (block.IsProofOfStake()){
         result.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
         result.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
@@ -383,7 +370,10 @@ UniValue getdifficulty(const JSONRPCRequest& request)
         );
 
     LOCK(cs_main);
-    return GetDifficulty();
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("proof-of-work",  GetDifficulty()));
+    obj.push_back(Pair("proof-of-stake", GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    return obj;
 }
 
 std::string EntryDescriptionString()

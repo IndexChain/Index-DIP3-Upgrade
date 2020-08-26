@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "activemasternode.h"
+#include "blockinfo/blockinfo.h"
 #include "consensus/validation.h"
 //#include "governance-classes.h"
 #include "base58.h"
@@ -82,8 +83,8 @@ bool IsOldBudgetBlockValueValid(const CBlock& block, int nBlockHeight, CAmount b
 
 bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockReward, std::string& strErrorRet)
 {
-    const Consensus::Params& consensusParams = Params().GetConsensus();
-    bool isBlockRewardValueMet = (block.vtx[0]->GetValueOut() <= blockReward);
+    CAmount nMint = GetCoinbaseReward(block);
+    bool isBlockRewardValueMet = (nMint <= blockReward);
 
     /*
     strErrorRet = "";
@@ -180,7 +181,6 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
     // we are still using budgets, but we have no data about them anymore,
     // we can only check masternode payments
 
-    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     /*
     if(nBlockHeight < consensusParams.nSuperblockStartBlock) {
@@ -223,7 +223,7 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
     return false;
 }
 
-void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& voutMasternodePaymentsRet, std::vector<CTxOut>& /*voutSuperblockPaymentsRet*/)
+void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& voutMasternodePaymentsRet, bool fProofOfStake)
 {
     /*
     // only create superblocks if spork is enabled AND if superblock is actually triggered
@@ -244,8 +244,8 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 
     std::string voutMasternodeStr;
     for (const auto& txout : voutMasternodePaymentsRet) {
-        // subtract MN payment from miner reward
-        txNew.vout[0].nValue -= txout.nValue;
+        // subtract MN payment from miner /staker reward
+        txNew.vout[fProofOfStake].nValue -= txout.nValue;
         if (!voutMasternodeStr.empty())
             voutMasternodeStr += ",";
         voutMasternodeStr += txout.ToString();

@@ -290,7 +290,7 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
-        if(block.IsProofOfStake())
+        if(nNonce == 0)
             vchBlockSig    = block.vchBlockSig; // qtum
     }
 
@@ -322,7 +322,7 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        if(block.nNonce == 0)
+        if(nNonce == 0)
             block.vchBlockSig    = vchBlockSig;
         return block;
     }
@@ -346,7 +346,31 @@ public:
     {
         return (int64_t)nTimeMax;
     }
+    /**
+     * Duplicate from bitcoinrpc that originaly define this method.
+     * May require some cleanup since this method should be available both for rpc
+     * and qt clients.
+     */
+    double GetBlockDifficulty() const
+    {
+        int nShift = (nBits >> 24) & 0xff;
 
+        double dDiff =
+            (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+
+        while (nShift < 29)
+        {
+            dDiff *= 256.0;
+            nShift++;
+        }
+        while (nShift > 29)
+        {
+            dDiff /= 256.0;
+            nShift--;
+        }
+
+        return dDiff;
+    }
     enum { nMedianTimeSpan=11 };
     int64_t GetPastTimeLimit() const
     {
@@ -563,5 +587,6 @@ public:
     /** Find the earliest block with timestamp equal or greater than the given. */
     CBlockIndex* FindEarliestAtLeast(int64_t nTime) const;
 };
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 
 #endif // BITCOIN_CHAIN_H

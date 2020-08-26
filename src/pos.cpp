@@ -70,7 +70,7 @@ bool CheckStakeBlockTimestamp(int64_t nTimeBlock)
 bool CheckStakeKernelHash(const CBlockIndex* pindexPrev, unsigned int nBits, unsigned int nBlockTime, const Coin* txPrev, const COutPoint& prevout, unsigned int nTimeTx, bool fPrintProofOfStake)
 {
       if ((nTimeTx < nBlockTime) && !(txPrev->nHeight <= Params().GetConsensus().nFirstPOSBlock))  // Transaction timestamp violation
-        return false;
+        return error("CheckStakeKernelHash() : nTime violation");
         // return error("CheckStakeKernelHash() : nTime violation");
 
     // Base target
@@ -140,7 +140,7 @@ bool GetStakeCoin(const COutPoint& prevout, Coin& coinPrev, CBlockIndex*& blockF
 // Check kernel hash target and coinstake signature
 bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned int nBlockTime, unsigned int nBits, CValidationState &state, CCoinsViewCache& view)
 {
-    
+
     if (!tx.IsCoinStake())
         return error("CheckProofOfStake() : called on non-coinstake %s", tx.GetHash().ToString());
 
@@ -171,8 +171,10 @@ bool CheckProofOfStake(CBlockIndex* pindexPrev, const CTransaction& tx, unsigned
 
     if (!CheckStakeKernelHash(pindexPrev, nBits, nTime,&coinTxPrev, txin.prevout, nBlockTime, fDebug))
        return state.Invalid(false, REJECT_INVALID,"CheckProofOfStake() : INFO: check kernel failed on coinstake %s", tx.GetHash().ToString()); // may occur during initial download or if behind on block chain sync
+
     return true;
 }
+
 bool VerifySignature(const Coin& coin, const uint256 txFromHash, const CTransaction& txTo, unsigned int nIn, unsigned int flags)
 {
     TransactionSignatureChecker checker(&txTo, nIn, 0);

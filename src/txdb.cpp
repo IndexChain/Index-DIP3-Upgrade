@@ -386,8 +386,8 @@ bool CBlockTreeDB::LoadBlockIndexGuts(boost::function<CBlockIndex*(const uint256
                 pindexNew->nStakeModifier = diskindex.nStakeModifier;
                 pindexNew->vchBlockSig    = diskindex.vchBlockSig; // qtum
 
-                // if (pindexNew->nNonce != 0 && !CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
-                //         return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
+                if (pindexNew->nNonce != 0 && !CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
+                        return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
 
                 pcursor->Next();
             } else {

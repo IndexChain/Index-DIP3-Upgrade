@@ -1534,7 +1534,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, int nHeight, con
     }
 
     // Check the header
-    if (!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
+    if (block.IsProofOfWork() &&!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
         return error("ReadBlockFromDisk: CheckProofOfWork: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -1567,23 +1567,40 @@ bool ReadBlockHeaderFromDisk(CBlock &block, const CDiskBlockPos &pos) {
 }
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
+    bool fPremineBlock = nHeight == 2;
+    int nYearBlocksinmin = 525600;
+    bool phaseinitaldiff = nHeight > 2 && nHeight <= 5000;
+    bool phaseyear1 = nHeight > 5000 && nHeight <= nYearBlocksinmin;
+    bool phaseyear2 = nHeight > nYearBlocksinmin && nHeight <= (nYearBlocksinmin * 2);
+    bool phaseyear3 = nHeight > (nYearBlocksinmin * 2) && nHeight <= (nYearBlocksinmin * 3);
+    bool phaseyear4 = nHeight > (nYearBlocksinmin * 3) && nHeight <= (nYearBlocksinmin * 4);
+    bool phaseyear5 = nHeight > (nYearBlocksinmin * 4) && nHeight <= (nYearBlocksinmin * 5);
+    bool phaseyear6 = nHeight > (nYearBlocksinmin * 5) && nHeight <= (nYearBlocksinmin * 6);
+    bool phaseyear7 = nHeight > (nYearBlocksinmin * 6) && nHeight <= (nYearBlocksinmin * 7);
+
     // Genesis block is 0 coin
-    if (nHeight == 0)
-        return 0;
-
-    // Subsidy is cut in half after nSubsidyHalvingFirst block, then every nSubsidyHalvingInterval blocks.
-    // After block nSubsidyHalvingStopBlock there will be no subsidy at all
-    if (nHeight >= consensusParams.nSubsidyHalvingStopBlock)
-        return 0;
-    int halvings = nHeight < consensusParams.nSubsidyHalvingFirst ? 0 : (nHeight - consensusParams.nSubsidyHalvingFirst) / consensusParams.nSubsidyHalvingInterval + 1;
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
-
-    CAmount nSubsidy = 50 * COIN;
-    nSubsidy >>= halvings;
-
-    return nSubsidy;
+    if (nHeight < 2)
+        return 0 * COIN;
+    else if (fPremineBlock)
+        return 306001473.12730116 * COIN;//Snapshot sending block
+    else if (phaseinitaldiff)
+        return 0.1 * COIN;
+    else if (phaseyear1)
+        return 1 * COIN;//Next years it reduces by 20% each year
+    else if (phaseyear2)
+        return 0.8 * COIN;
+    else if (phaseyear3)
+        return 0.512 * COIN;
+    else if (phaseyear4)
+        return 0.4096 * COIN;
+    else if (phaseyear5)
+        return 0.32768 * COIN;
+    else if (phaseyear6)
+        return 0.262144 * COIN;
+    else if (phaseyear7)
+        return 0.2097152 * COIN;
+    else
+        return 0.2097152 * COIN;
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
@@ -1789,7 +1806,7 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
             assert(!coin.IsSpent());
 
             // If prev is coinbase, check that it's matured
-            if (coin.IsCoinBase()) {
+            if (coin.IsCoinBase() || coin.IsCoinStake()) {
                 if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
                     return state.Invalid(false,
                         REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
@@ -1803,17 +1820,24 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
 
         }
 
-        if (nValueIn < tx.GetValueOut())
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-in-belowout", false,
-                strprintf("value in (%s) < value out (%s)", FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())));
 
-        // Tally transaction fees
-        CAmount nTxFee = nValueIn - tx.GetValueOut();
-        if (nTxFee < 0)
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-negative");
-        nFees += nTxFee;
-        if (!MoneyRange(nFees))
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-fee-outofrange");
+        if (!tx.IsCoinStake()) {
+            if (nValueIn < tx.GetValueOut())
+                return state.DoS(100, error("CheckInputs() : %s value in (%s) < value out (%s)",
+                                          tx.GetHash().ToString(), FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())),
+                    REJECT_INVALID, "bad-txns-in-belowout");
+
+            // Tally transaction fees
+            CAmount nTxFee = nValueIn - tx.GetValueOut();
+            if (nTxFee < 0)
+                return state.DoS(100, error("CheckInputs() : %s nTxFee < 0", tx.GetHash().ToString()),
+                    REJECT_INVALID, "bad-txns-fee-negative");
+            nFees += nTxFee;
+            if (!MoneyRange(nFees))
+                return state.DoS(100, error("CheckInputs() : nFees out of range"),
+                    REJECT_INVALID, "bad-txns-fee-outofrange");
+        }
+
     return true;
 }
 }// namespace Consensus
@@ -2553,7 +2577,8 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         txdata.emplace_back(tx);
         if (!tx.IsCoinBase() && !tx.IsZerocoinSpend() && !tx.IsSigmaSpend() && !tx.IsZerocoinRemint())
         {
-            nFees += view.GetValueIn(tx)-tx.GetValueOut();
+	        if (!tx.IsCoinStake())
+                nFees += view.GetValueIn(tx) - tx.GetValueOut();
 
             std::vector<CScriptCheck> vChecks;
             bool fCacheResults = fJustCheck; /* Don't cache results if we're actually connecting blocks (still consult the cache, though) */
@@ -2591,11 +2616,14 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
     //btzc: Add time to check
     CAmount blockSubsidy = GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus(), pindex->nTime);
     CAmount blockReward = nFees + blockSubsidy;
-    if (block.vtx[0]->GetValueOut() > blockReward)
-        return state.DoS(100,
-                         error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
-                               block.vtx[0]->GetValueOut(), blockReward),
-                               REJECT_INVALID, "bad-cb-amount");
+    if(block.IsProofOfWork()){
+        if (block.vtx[0]->GetValueOut() > blockReward)
+            return state.DoS(100,
+                            error("ConnectBlock(): coinbase pays too much (actual=%d vs limit=%d)",
+                                block.vtx[0]->GetValueOut(), blockReward),
+                                REJECT_INVALID, "bad-cb-amount");
+    }
+
 
     std::string strError = "";
     if (deterministicMNManager->IsDIP3Enforced(pindex->nHeight)) {
@@ -2603,7 +2631,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!IsBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
             return state.DoS(0, error("ConnectBlock(EVOZNODES): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
-       
+
         if (!IsBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockSubsidy)) {
             mapRejectedBlocks.insert(std::make_pair(block.GetHash(), GetTime()));
             return state.DoS(0, error("ConnectBlock(EVPZNODES): couldn't find evo znode payments"),
@@ -3841,8 +3869,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 
 //btzc: code from vertcoin, add
 bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state, const Consensus::Params &consensusParams, bool fCheckPOW) {
-    int nHeight = ZerocoinGetNHeight(block);
-    fCheckPOW = block.nNonce !=0 && fCheckPOW;
+    fCheckPOW = !block.IsProofOfStake() && fCheckPOW;
     if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
             if (fCheckPOW && !CheckProofOfWork(block.GetHash(), block.nBits, consensusParams)) {
                return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
@@ -3854,10 +3881,10 @@ bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state, const 
 bool GetBlockPublicKey(const CBlock& block, std::vector<unsigned char>& vchPubKey)
 {
     if (block.IsProofOfWork())
-        return false;
+        return error("Tried to get Sig for PoW Block");
 
-    if (block.vchBlockSig.empty())
-        return false;
+    if (block.IsProofOfStake() && block.vchBlockSig.empty())
+        return error("Empty Block signature for PoS Block");
 
     vector<vector<unsigned char> > vSolutions;
     const CTxOut& txout = block.vtx[1]->vout[1];
@@ -3865,7 +3892,7 @@ bool GetBlockPublicKey(const CBlock& block, std::vector<unsigned char>& vchPubKe
     Solver(txout.scriptPubKey,whichType, vSolutions);
 
     if (whichType == TX_NONSTANDARD)
-        return error("Nonstandard TX/Stake\n");
+        return error("Nonstandard TX/Stake");
 
     if (whichType == TX_PUBKEY)
     {
@@ -3892,8 +3919,9 @@ bool GetBlockPublicKey(const CBlock& block, std::vector<unsigned char>& vchPubKe
         return true;
     }
 
-    return error("Fallthroughx\n");
+    return error("Unsupported Input found");
 }
+
 static bool CheckBlockSignature(const CBlock& block)
 {
     //Blocksig for pow should be empty
@@ -3919,7 +3947,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     if (!block.sigmaTxInfo)
         block.sigmaTxInfo = std::make_shared<sigma::CSigmaTxInfo>();
 
-    LogPrintf("CheckBlock() nHeight=%s, blockHash= %s, isVerifyDB = %s\n", nHeight, block.GetHash().ToString(), isVerifyDB);
+    LogPrintf("CheckBlock() nHeight=%s, blockHash= %s, isVerifyDB = %s isPoW = %s\n", nHeight, block.GetHash().ToString(), isVerifyDB,block.IsProofOfWork());
 
     // These are checks that are independent of context.
 
@@ -3959,9 +3987,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // First transaction must be coinbase, the rest must not be
     if (block.vtx.empty() || !block.vtx[0]->IsCoinBase())
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
-    for (unsigned int i = 1; i < block.vtx.size(); i++)
+    for (unsigned int i = 1; i < block.vtx.size(); i++){
         if (block.vtx[i]->IsCoinBase())
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
+    }
 	if (block.IsProofOfStake()) {
             // Coinbase output must be empty if proof-of-stake block
             if (block.vtx[0]->vout.size() != 1 || !block.vtx[0]->vout[0].IsEmpty())
@@ -4287,6 +4316,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
 
     return true;
 }
+
 bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams)
 {
     uint256 hashBlock = pblock->GetHash();
@@ -4294,19 +4324,27 @@ bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams
 
     if(!pblock->IsProofOfStake())
         return error("CheckStake() : %s is not a proof-of-stake block", hashBlock.GetHex());
+    if(pblock->nNonce != 0)
+        return error("%s : Block does not have nonce as 0,nonce is %s",__func__,pblock->nNonce);
 
     CValidationState state;
     CTransactionRef txCoinstake = pblock->vtx[1];
     // verify hash target and signature of coinstake tx
     if (!CheckProofOfStake(mapBlockIndex[pblock->hashPrevBlock], *txCoinstake, pblock->nTime, pblock->nBits, state,*pcoinsTip))
-        return error("CheckStake() : proof-of-stake checking failed");
-
+        return false;
+/*
     //// debug print
     LogPrintf("%s\n", pblock->ToString());
     LogPrintf("out %s\n", FormatMoney(txCoinstake->GetValueOut()));
-
+*/
     // Found a solution
-    {
+
+    return true;
+}
+
+bool BroadcastPoSBlock(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams)
+{
+        {
         LOCK(cs_main);
         if (pblock->hashPrevBlock != chainActive.Tip()->GetBlockHash())
             return error("CheckStake() : generated block is stale");
@@ -4314,16 +4352,16 @@ bool CheckStake(CBlock* pblock, CWallet& wallet, const CChainParams& chainparams
         // Track how many getdata requests this block gets
         {
             LOCK(wallet.cs_wallet);
-            wallet.mapRequestCount[hashBlock] = 0;
+            wallet.mapRequestCount[pblock->GetHash()] = 0;
         }
         bool fNewBlock = true;
         // Process this block the same as if we had received it from another node
-        if (!ProcessNewBlock(chainparams, shared_pblock,false,&fNewBlock))
+        if (!ProcessNewBlock(chainparams, std::make_shared<const CBlock>(*pblock),false,&fNewBlock))
             return error("CheckStake() : ProcessNewBlock, block not accepted");
     }
-
     return true;
 }
+
 static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state, const CChainParams& chainparams, CBlockIndex** ppindex, bool fCheckPOW = true)
 {
     AssertLockHeld(cs_main);
@@ -4343,7 +4381,7 @@ static bool AcceptBlockHeader(const CBlockHeader& block, CValidationState& state
             return true;
         }
 
-        if (!CheckBlockHeader(block, state, chainparams.GetConsensus(), block.nNonce != 0))
+        if (!CheckBlockHeader(block, state, chainparams.GetConsensus(), !block.IsProofOfStake()))
             return error("%s: Consensus::CheckBlockHeader: %s, %s", __func__, hash.ToString(), FormatStateMessage(state));
 
         // Get prev block index
