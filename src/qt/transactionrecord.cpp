@@ -131,6 +131,19 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         sub.address = QCoreApplication::translate("zcoin-core", "Zerocoin->Sigma remint").toStdString();
         parts.append(sub);
     }
+    else if (wtx.IsCoinStake()) // peercoin: coinstake transaction
+    {
+        TransactionRecord sub(hash, nTime, TransactionRecord::StakeMint, "", -nDebit, wtx.tx->GetValueOut());
+        CTxDestination address;
+        const CTxOut& txout = wtx.tx->vout[1];
+        isminetype mine = wallet->IsMine(txout);
+
+        if(ExtractDestination(txout.scriptPubKey, address) && IsMine(*wallet, address))
+            sub.address = CBitcoinAddress(address).ToString();
+
+        sub.involvesWatchAddress = mine & ISMINE_WATCH_ONLY;
+        parts.append(sub);
+    }
     else if (nNet > 0 || wtx.IsCoinBase())
     {
         //
@@ -305,7 +318,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         }
     }
     // For generated transactions, determine maturity
-    else if(type == TransactionRecord::Generated)
+    else if(type == TransactionRecord::Generated || type == TransactionRecord::StakeMint)
     {
         if (wtx.GetBlocksToMaturity() > 0)
         {
@@ -316,7 +329,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
                 status.matures_in = wtx.GetBlocksToMaturity();
 
                 // Check if the block was requested by anyone
-                if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
+                if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0 && !wtx.IsCoinStake())
                     status.status = TransactionStatus::MaturesWarning;
             }
             else

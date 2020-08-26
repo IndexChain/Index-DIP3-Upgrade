@@ -74,7 +74,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, TransactionReco
     int nRequests = wtx.GetRequestCount();
     if (nRequests != -1)
     {
-        if (nRequests == 0)
+        if (nRequests == 0 && !wtx.IsCoinStake())
             strHTML += tr(", has not been successfully broadcast yet");
         else if (nRequests > 0)
             strHTML += tr(", broadcast through %n node(s)", "", nRequests);
@@ -274,11 +274,12 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx, TransactionReco
         }
     }
 
+    quint32 numBlocksToMaturity = COINBASE_MATURITY + 1;
     if (wtx.IsCoinBase())
-    {
-        quint32 numBlocksToMaturity = COINBASE_MATURITY +  1;
         strHTML += "<br>" + tr("Generated coins must mature %1 blocks before they can be spent. When you generated this block, it was broadcast to the network to be added to the block chain. If it fails to get into the chain, its state will change to \"not accepted\" and it won't be spendable. This may occasionally happen if another node generates a block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
-    }
+    if (wtx.IsCoinStake())
+		strHTML += "<br>" + tr("Staked coins must wait %1 blocks before they can return to balance and be spent.  When you generated this proof-of-stake block, it was broadcast to the network to be added to the block chain.  If it fails to get into the chain, its state will change to \"not accepted\" and it won't be a valid stake.  This may occasionally happen if another node generates a proof-of-stake block within a few seconds of yours.").arg(QString::number(numBlocksToMaturity)) + "<br>";
+
 
     //
     // Debug view
