@@ -21,6 +21,7 @@
 #include "platformstyle.h"
 #include "rpcconsole.h"
 #include "utilitydialog.h"
+#include "hybridui/navigationbar.h"
 
 #ifdef ENABLE_WALLET
 #include "walletframe.h"
@@ -72,6 +73,8 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QDockWidget>
+#include <QSizeGrip>
 
 #if QT_VERSION < 0x050000
 #include <QTextDocument>
@@ -276,6 +279,7 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
     statusBar()->addWidget(progressBarLabel);
     statusBar()->addWidget(progressBar);
     statusBar()->addPermanentWidget(frameBlocks);
+    setStyleSheet("QMainWindow::separator { width: 1px; height: 1px; margin: 0px; padding: 0px; }");
 
     // Install event filter to be able to catch status tip events (QEvent::StatusTip)
     this->installEventFilter(this);
@@ -568,27 +572,38 @@ void BitcoinGUI::createToolBars()
 {
     if(walletFrame)
     {
-        QToolBar *toolbar = addToolBar(tr("Tabs toolbar"));
-        toolbar->setMovable(false);
-        toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        toolbar->addAction(overviewAction);
-        toolbar->addAction(sendCoinsAction);
-        toolbar->addAction(receiveCoinsAction);
-        toolbar->addAction(historyAction);
-        toolbar->addAction(sigmaAction);
-        toolbar->addAction(zc2SigmaAction);
-        toolbar->addAction(znodeAction);
-        toolbar->addAction(masternodeAction);
+        appNavigationBar = new NavigationBar();
+        addDockWindows(Qt::LeftDockWidgetArea, appNavigationBar);
+        appNavigationBar->addAction(overviewAction);
+        appNavigationBar->addAction(sendCoinsAction);
+        appNavigationBar->addAction(receiveCoinsAction);
+        appNavigationBar->addAction(historyAction);
+        appNavigationBar->addAction(sigmaAction);
+        appNavigationBar->addAction(znodeAction);
+        appNavigationBar->addAction(masternodeAction);
 
 #ifdef ENABLE_ELYSIUM
-        if (isElysiumEnabled()) {
-            toolbar->addAction(elyAssetsAction);
-            toolbar->addAction(toolboxAction);
+        if (isExodusEnabled()) {
+            appNavigationBar->addAction(elyAssetsAction);
+            appNavigationBar->addAction(toolboxAction);
         }
 #endif
+        appNavigationBar->buildUi();
 
         overviewAction->setChecked(true);
     }
+}
+
+void BitcoinGUI::addDockWindows(Qt::DockWidgetArea area, QWidget* widget)
+{
+    QDockWidget *dock = new QDockWidget(this);
+    dock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    dock->setAllowedAreas(area);
+    QWidget* titleBar = new QWidget();
+    titleBar->setMaximumSize(0, 0);
+    dock->setTitleBarWidget(titleBar);
+    dock->setWidget(widget);
+    addDockWidget(area, dock);
 }
 
 void BitcoinGUI::setClientModel(ClientModel *_clientModel)

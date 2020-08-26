@@ -31,6 +31,7 @@
 #include <QString>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <qt/hybridui/styleSheet.h>
 
 QList<CAmount> CoinControlDialog::payAmounts;
 CCoinControl* CoinControlDialog::coinControl = new CCoinControl();
@@ -50,7 +51,8 @@ CoinControlDialog::CoinControlDialog(const PlatformStyle *_platformStyle, QWidge
     platformStyle(_platformStyle)
 {
     ui->setupUi(this);
-
+    SetObjectStyleSheet(ui->pushButtonSelectAll, StyleSheetNames::ButtonDark);
+    SetObjectStyleSheet(ui->treeWidget, StyleSheetNames::TreeView);
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);

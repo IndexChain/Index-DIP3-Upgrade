@@ -16,6 +16,7 @@
 #include "sigmadialog.h"
 
 #include "wallet/coincontrol.h"
+#include "hybridui/styleSheet.h"
 #include "init.h"
 #include "validation.h" // For minRelayTxFee
 #include "wallet/wallet.h"
@@ -52,7 +53,8 @@ SigmaCoinControlDialog::SigmaCoinControlDialog(const PlatformStyle *platformStyl
     platformStyle(platformStyle)
 {
     ui->setupUi(this);
-
+    SetObjectStyleSheet(ui->pushButtonSelectAll, StyleSheetNames::ButtonDark);
+    SetObjectStyleSheet(ui->treeWidget, StyleSheetNames::TreeView);
     // context menu actions
     QAction *copyAddressAction = new QAction(tr("Copy address"), this);
     QAction *copyLabelAction = new QAction(tr("Copy label"), this);
