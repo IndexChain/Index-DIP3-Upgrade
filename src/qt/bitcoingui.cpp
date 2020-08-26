@@ -219,12 +219,14 @@ BitcoinGUI::BitcoinGUI(const PlatformStyle *_platformStyle, const NetworkStyle *
 
     // Status bar notification icons
     QFrame *frameBlocks = new QFrame();
+    frameBlocks->setObjectName("frameBlocks");
     frameBlocks->setContentsMargins(0,0,0,0);
     frameBlocks->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     QHBoxLayout *frameBlocksLayout = new QHBoxLayout(frameBlocks);
     frameBlocksLayout->setContentsMargins(3,0,3,0);
     frameBlocksLayout->setSpacing(3);
     unitDisplayControl = new UnitDisplayStatusBarControl(platformStyle);
+    unitDisplayControl->setObjectName("unitDisplayControl");
     labelWalletEncryptionIcon = new QLabel();
     labelWalletHDStatusIcon = new QLabel();
     connectionsControl = new GUIUtil::ClickableLabel();
@@ -482,6 +484,7 @@ void BitcoinGUI::createActions()
     openRPCConsoleAction->setStatusTip(tr("Open debugging and diagnostic console"));
     // initially disable the debug window menu item
     openRPCConsoleAction->setEnabled(false);
+    openRPCConsoleAction->setObjectName("openRPCConsoleAction");
 
     usedSendingAddressesAction = new QAction(platformStyle->TextColorIcon(":/icons/address-book"), tr("&Sending addresses..."), this);
     usedSendingAddressesAction->setStatusTip(tr("Show the list of used sending addresses and labels"));

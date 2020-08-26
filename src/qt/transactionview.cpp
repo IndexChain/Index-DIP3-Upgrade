@@ -54,6 +54,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     }
 
     watchOnlyWidget = new QComboBox(this);
+    watchOnlyWidget->setObjectName("watchOnlyWidget");
     watchOnlyWidget->setFixedWidth(24);
     watchOnlyWidget->addItem("", TransactionFilterProxy::WatchOnlyFilter_All);
     watchOnlyWidget->addItem(platformStyle->SingleColorIcon(":/icons/eye_plus"), "", TransactionFilterProxy::WatchOnlyFilter_Yes);
@@ -139,6 +140,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     view->installEventFilter(this);
 
     transactionView = view;
+    transactionView->setObjectName("transactionView");
 
     // Actions
     abandonAction = new QAction(tr("Abandon transaction"), this);
@@ -154,6 +156,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     QAction *showDetailsAction = new QAction(tr("Show transaction details"), this);
 
     contextMenu = new QMenu(this);
+    contextMenu->setObjectName("contextMenu");
     contextMenu->addAction(copyAddressAction);
     contextMenu->addAction(copyLabelAction);
     contextMenu->addAction(copyAmountAction);
