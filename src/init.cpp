@@ -491,6 +491,7 @@ std::string HelpMessage(HelpMessageMode mode)
             "(default: 0 = disable pruning blocks, 1 = allow manual pruning via RPC, >%u = automatically prune block files to stay under the specified target size in MiB)"), MIN_DISK_SPACE_FOR_BLOCK_FILES / 1024 / 1024));
     strUsage += HelpMessageOpt("-reindex-chainstate", _("Rebuild chain state from the currently indexed blocks"));
     strUsage += HelpMessageOpt("-reindex", _("Rebuild chain state and block index from the blk*.dat files on disk"));
+    strUsage += HelpMessageOpt("-resync", _("Delete blockchain folders and resync from scratch") + " " + _("on startup"));
 #ifndef WIN32
     strUsage += HelpMessageOpt("-sysperms", _("Create new files with system default permissions, instead of umask 077 (only effective with disabled wallet functionality)"));
 #endif
@@ -1722,13 +1723,50 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     if(fLiteMode) {
         InitWarning(_("You are starting in lite mode, all Dash-specific functionality is disabled."));
     }
+    if (GetBoolArg("-resync", false)) {
+            //Clear banned on resync aswell
+            g_connman->ClearBanned();
+            uiInterface.InitMessage(_("Preparing for resync..."));
+            // Delete the local blockchain folders to force a resync from scratch to get a consitent blockchain-state
+            boost::filesystem::path blocksDir = GetDataDir() / "blocks";
+            boost::filesystem::path chainstateDir = GetDataDir() / "chainstate";
+            boost::filesystem::path sporksDir = GetDataDir() / "sporks";
+            boost::filesystem::path indexnodeCache = GetDataDir() / "incache.dat";
+            boost::filesystem::path indexnodePayments = GetDataDir() / "inpayments.dat";
 
-    // ********************************************************* Step 7b: load block chain
+            LogPrintf("Deleting blockchain folders blocks, chainstate, sporks and zerocoin\n");
+            // We delete in 4 individual steps in case one of the folder is missing already
+            try {
+                if (boost::filesystem::exists(blocksDir)){
+                    boost::filesystem::remove_all(blocksDir);
+                    LogPrintf("-resync: folder deleted: %s\n", blocksDir.string().c_str());
+                }
 
+                if (boost::filesystem::exists(chainstateDir)){
+                    boost::filesystem::remove_all(chainstateDir);
+                    LogPrintf("-resync: folder deleted: %s\n", chainstateDir.string().c_str());
+                }
+
+                if (boost::filesystem::exists(sporksDir)){
+                    boost::filesystem::remove_all(sporksDir);
+                    LogPrintf("-resync: folder deleted: %s\n", sporksDir.string().c_str());
+                }
+                if (boost::filesystem::exists(indexnodeCache)){
+                    boost::filesystem::remove(indexnodeCache);
+                    LogPrintf("-resync: file deleted: %s\n", indexnodeCache.string().c_str());
+                }
+                if (boost::filesystem::exists(indexnodePayments)){
+                    boost::filesystem::remove(indexnodePayments);
+                    LogPrintf("-resync: file deleted: %s\n", indexnodePayments.string().c_str());
+                }
+            } catch (const boost::filesystem::filesystem_error& error) {
+                LogPrintf("Failed to delete blockchain folders %s\n", error.what());
+            }
+        }
+    boost::filesystem::create_directories(GetDataDir() / "blocks");
+    LogPrintf("Step 7: load block chain ************************************\n");
     fReindex = GetBoolArg("-reindex", false);
     bool fReindexChainState = GetBoolArg("-reindex-chainstate", false);
-
-    boost::filesystem::create_directories(GetDataDir() / "blocks");
 
     // cache size calculations
     int64_t nTotalCache = (GetArg("-dbcache", nDefaultDbCache) << 20);
@@ -1793,6 +1831,8 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
                 if (fReindex) {
                     pblocktree->WriteReindexing(true);
+                    //Clear banned if we are reindexing
+                    g_connman->ClearBanned();
                     //If we're reindexing in prune mode, wipe away unusable block files and all undo data files
                     if (fPruneMode)
                         CleanupBlockRevFiles();

@@ -93,6 +93,7 @@ public Q_SLOTS:
     void walletZaptxes2();
     void walletUpgrade();
     void walletReindex();
+    void walletResync();
 
     void fontBigger();
     void fontSmaller();

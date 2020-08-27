@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>740</width>
-    <height>430</height>
+    <height>534</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_info">
       <attribute name="title">
@@ -165,17 +165,17 @@
         </widget>
        </item>
        <item row="6" column="0">
-           <widget class="QLabel" name="labelNetwork">
-               <property name="font">
-                   <font>
-                       <weight>75</weight>
-                       <bold>true</bold>
-                   </font>
-               </property>
-               <property name="text">
-                   <string>Network</string>
-               </property>
-           </widget>
+        <widget class="QLabel" name="labelNetwork">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Network</string>
+         </property>
+        </widget>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_8">
@@ -433,11 +433,11 @@
              <height>24</height>
             </size>
            </property>
-           <property name="text">
-            <string/>
-           </property>
            <property name="toolTip">
             <string>Decrease font size</string>
+           </property>
+           <property name="text">
+            <string/>
            </property>
            <property name="icon">
             <iconset resource="../bitcoin.qrc">
@@ -1416,7 +1416,7 @@
        </item>
       </layout>
      </widget>
-    <widget class="QWidget" name="tab_repair">
+     <widget class="QWidget" name="tab_repair">
       <attribute name="title">
        <string>&amp;Wallet Repair</string>
       </attribute>
@@ -1426,7 +1426,7 @@
          <x>10</x>
          <y>90</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1445,7 +1445,7 @@
          <x>10</x>
          <y>140</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1464,7 +1464,7 @@
          <x>10</x>
          <y>190</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1483,7 +1483,7 @@
          <x>10</x>
          <y>240</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1502,7 +1502,7 @@
          <x>10</x>
          <y>290</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -1541,7 +1541,7 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>80</y>
+         <y>90</y>
          <width>471</width>
          <height>41</height>
         </rect>
@@ -1557,14 +1557,14 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>129</y>
+         <y>140</y>
          <width>471</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
         <string>-rescan: Rescan the block chain for missing wallet transactions.</string>
-               </property>
+       </property>
        <property name="wordWrap">
         <bool>true</bool>
        </property>
@@ -1573,7 +1573,7 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>179</y>
+         <y>190</y>
          <width>471</width>
          <height>41</height>
         </rect>
@@ -1589,7 +1589,7 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>229</y>
+         <y>240</y>
          <width>471</width>
          <height>41</height>
         </rect>
@@ -1605,7 +1605,7 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>279</y>
+         <y>290</y>
          <width>471</width>
          <height>41</height>
         </rect>
@@ -1623,7 +1623,7 @@
          <x>10</x>
          <y>10</y>
          <width>711</width>
-         <height>16</height>
+         <height>21</height>
         </rect>
        </property>
        <property name="font">
@@ -1646,7 +1646,7 @@
          <x>10</x>
          <y>340</y>
          <width>221</width>
-         <height>23</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="text">
@@ -1657,13 +1657,39 @@
        <property name="geometry">
         <rect>
          <x>250</x>
-         <y>330</y>
+         <y>340</y>
          <width>471</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
         <string>-reindex: Rebuild block chain index from current blk000??.dat files.</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btn_resync">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>390</y>
+         <width>221</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Resync</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_repair_resync">
+       <property name="geometry">
+        <rect>
+         <x>250</x>
+         <y>390</y>
+         <width>471</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>-resync: Delete blockchain folders and resync from scratch.</string>
        </property>
       </widget>
      </widget>
