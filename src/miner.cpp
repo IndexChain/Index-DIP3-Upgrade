@@ -1026,13 +1026,15 @@ bool SignBlock(CBlock& block, CWallet& wallet, int64_t& nFees, CBlockTemplate *p
 
     CKey key;
     CTransactionRef txCoinBase(block.vtx[0]);
-    CTransactionRef txQc(block.vtx[1]);
+    CTransactionRef txQc;
     CMutableTransaction txCoinStake;
 
     int64_t nStakeTime = GetAdjustedTime();
     nStakeTime &= ~Params().GetConsensus().nStakeTimestampMask;
     int64_t nSearchTime = nStakeTime; // search to current time
-
+    if(block.vtx.size() > 1){
+        txQc = block.vtx[1];
+    }
     if (nSearchTime > nLastCoinStakeSearchTime)
     {
         if (wallet.CreateCoinStake(wallet, block.nBits, nSearchTime, 1, nFees, txCoinStake, key, pblocktemplate))
@@ -1045,7 +1047,7 @@ bool SignBlock(CBlock& block, CWallet& wallet, int64_t& nFees, CBlockTemplate *p
                 block.vtx.resize(2);
                 block.vtx[1] = MakeTransactionRef(std::move(txCoinStake));
                 //Add Quorum commitment after dip3
-                if(fDIP0003Active_context){
+                if(fDIP0003Active_context && txQc != CTransactionRef()){
                     block.vtx.resize(3);
                     block.vtx[2] = txQc;
                 }
