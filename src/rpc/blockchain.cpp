@@ -131,12 +131,24 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     return result;
 }
 
+UniValue getextrablockdata(const CBlock& block){
+    UniValue blockdata(UniValue::VOBJ);
+    float blockInput = 0.0;
+    blockdata.push_back(Pair("type",block.IsProofOfStake() ? "PoS":"PoW"));
+    if(block.IsProofOfStake())
+        blockInput = GetBlockInput(block);
+    if(blockInput > 0)
+            blockdata.push_back(Pair("inputamount",blockInput));
+    blockdata.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
+    blockdata.push_back(Pair("blockreward",ValueFromAmount(GetCoinbaseReward(block))));
+    return blockdata;
+}
+
 UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false)
 {
     UniValue result(UniValue::VOBJ);
     result.push_back(Pair("hash", blockindex->GetBlockHash().GetHex()));
     int confirmations = -1;
-    float blockInput = 0.0;
     // Only report confirmations if the block is on the main chain
     if (chainActive.Contains(blockindex))
         confirmations = chainActive.Height() - blockindex->nHeight + 1;
@@ -176,13 +188,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
-    result.push_back(Pair("type",block.IsProofOfStake() ? "PoS":"PoW"));
-    if(block.IsProofOfStake())
-        blockInput = GetBlockInput(block);
-    if(blockInput > 0)
-            result.push_back(Pair("inputamount",blockInput));
-    result.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
-    result.push_back(Pair("blockreward",ValueFromAmount(GetCoinbaseReward(block))));
+    //Add extra blockdata
+    result.push_back(Pair("blockinfo",getextrablockdata(block)));
     if (block.IsProofOfStake()){
         result.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
         result.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
