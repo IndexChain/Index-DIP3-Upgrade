@@ -36,7 +36,7 @@ QString TransactionDesc::FormatTxStatus(const CWalletTx& wtx)
         int nDepth = wtx.GetDepthInMainChain();
         if (nDepth < 0)
             return tr("conflicted with a transaction with %1 confirmations").arg(-nDepth);
-        else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0)
+        else if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0 && !wtx.IsCoinStake())
             return tr("%1/offline").arg(nDepth);
         else if (nDepth == 0) {
             if (wtx.InMempool()) {

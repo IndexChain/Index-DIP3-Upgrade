@@ -11,7 +11,8 @@
 #include <atomic>
 
 #include "evo/deterministicmns.h"
-
+#include "rpc/server.h"
+#include "validation.h"
 class AddressTableModel;
 class BanTableModel;
 class OptionsModel;
@@ -82,7 +83,18 @@ public:
     void setNetworkActive(bool active);
     //! Return warnings to be displayed in status bar
     QString getStatusBarWarnings() const;
-
+    //! Get the reward for the block at some specific height
+    int64_t getBlockSubsidy(int nHeight);
+    uint64_t getNetworkStakeWeight()
+    {
+        LOCK(cs_main);
+        return GetPoSKernelPS();
+    }
+    double getEstimatedAnnualROI()
+    {
+        LOCK(cs_main);
+        return GetEstimatedAnnualROI();
+    }
     QString formatFullVersion() const;
     QString formatSubVersion() const;
     bool isReleaseVersion() const;

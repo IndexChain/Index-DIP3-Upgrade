@@ -1123,6 +1123,7 @@ public:
      * floating relay fee and user set minimum transaction fee
      */
     static CAmount GetRequiredFee(unsigned int nTxBytes);
+    std::atomic<bool> m_enabled_staking{true};
 
     bool NewKeyPool();
     bool TopUpKeyPool(unsigned int kpSize = 0);
@@ -1195,6 +1196,15 @@ public:
     {
         AssertLockHeld(cs_wallet); // setKeyPool
         return setKeyPool.size();
+    }
+
+    void setEnabledStaking(bool enabled)
+    {
+        m_enabled_staking = enabled;
+    }
+    bool getEnabledStaking()
+    {
+        return m_enabled_staking;
     }
 
     bool SetDefaultKey(const CPubKey &vchPubKey);

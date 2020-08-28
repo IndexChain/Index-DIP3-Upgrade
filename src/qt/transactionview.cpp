@@ -35,7 +35,7 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
-TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *parent) :
+TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *parent, bool hideFilter) :
     QWidget(parent), model(0), transactionProxyModel(0),
     transactionView(0), abandonAction(0), columnResizingFixer(0)
 {
@@ -121,8 +121,15 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     vlayout->setSpacing(0);
 
     QTableView *view = new QTableView(this);
-    vlayout->addLayout(hlayout);
-    vlayout->addWidget(createDateRangeWidget());
+    if(hideFilter)
+    {
+        createDateRangeWidget();
+    }
+    else
+    {
+        vlayout->addLayout(hlayout);
+        vlayout->addWidget(createDateRangeWidget());
+    }
     vlayout->addWidget(view);
     vlayout->setSpacing(0);
     int width = view->verticalScrollBar()->sizeHint().width();
@@ -193,6 +200,14 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     connect(editLabelAction, SIGNAL(triggered()), this, SLOT(editLabel()));
     connect(showDetailsAction, SIGNAL(triggered()), this, SLOT(showDetails()));
     connect(resendAction, SIGNAL(triggered()), this, SLOT(rebroadcastTx()));
+    if(hideFilter)
+    {
+        dateWidget->setVisible(false);
+        typeWidget->setVisible(false);
+        watchOnlyWidget->setVisible(false);
+        amountWidget->setVisible(false);
+        dateRangeWidget->setVisible(false);
+    }
 }
 
 void TransactionView::setModel(WalletModel *_model)

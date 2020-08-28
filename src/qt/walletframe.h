@@ -84,6 +84,8 @@ public Q_SLOTS:
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();
+    /** Switch to stake page */
+    void gotoStakePage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

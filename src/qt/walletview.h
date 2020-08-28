@@ -40,6 +40,7 @@ class WalletModel;
 class AddressBookPage;
 class ZerocoinPage;
 class Zc2SigmaPage;
+class StakePage;
 
 QT_BEGIN_NAMESPACE
 class QModelIndex;
@@ -116,6 +117,7 @@ private:
     QWidget *zcoinTransactionsView;
     ZnodeList *znodeListPage;
     MasternodeList *masternodeListPage;
+    StakePage *stakePage;
 
     QProgressDialog *progressDialog;
     const PlatformStyle *platformStyle;
@@ -143,6 +145,8 @@ public Q_SLOTS:
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();
+    /** Switch to stake page */
+    void gotoStakePage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

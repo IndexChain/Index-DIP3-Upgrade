@@ -388,6 +388,10 @@ void BitcoinGUI::createActions()
     masternodeAction->setStatusTip(tr("Browse Znodes"));
     masternodeAction->setToolTip(masternodeAction->statusTip());
     masternodeAction->setCheckable(true);
+    stakepageAction = new QAction(platformStyle->MultiStatesIcon(":/icons/tx_mined"), tr("&Staking"), this);
+    stakepageAction->setStatusTip(tr("Staking stats"));
+    stakepageAction->setToolTip(stakepageAction->statusTip());
+    stakepageAction->setCheckable(true);
 #ifdef Q_OS_MAC
     znodeAction->setShortcut(QKeySequence(Qt::CTRL + key++));
     masternodeAction->setShortcut(QKeySequence(Qt::CTRL + key++));
@@ -397,6 +401,8 @@ void BitcoinGUI::createActions()
 #endif
     tabGroup->addAction(znodeAction);
     tabGroup->addAction(masternodeAction);
+    tabGroup->addAction(stakepageAction);
+
 #endif
 
 #ifdef ENABLE_ELYSIUM
@@ -424,6 +430,8 @@ void BitcoinGUI::createActions()
     connect(znodeAction, SIGNAL(triggered()), this, SLOT(gotoZnodePage()));
     connect(masternodeAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
     connect(masternodeAction, SIGNAL(triggered()), this, SLOT(gotoMasternodePage()));
+    connect(stakepageAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
+    connect(stakepageAction, SIGNAL(triggered()), this, SLOT(gotoStakePage()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
 	connect(overviewAction, SIGNAL(triggered()), this, SLOT(gotoOverviewPage()));
 	connect(sendCoinsAction, SIGNAL(triggered()), this, SLOT(showNormalIfMinimized()));
@@ -590,6 +598,7 @@ void BitcoinGUI::createToolBars()
         appNavigationBar->addAction(sigmaAction);
         appNavigationBar->addAction(znodeAction);
         appNavigationBar->addAction(masternodeAction);
+        appNavigationBar->addAction(stakepageAction);
 
 #ifdef ENABLE_ELYSIUM
         if (isExodusEnabled()) {
@@ -901,6 +910,12 @@ void BitcoinGUI::gotoMasternodePage()
     QSettings settings;
     masternodeAction->setChecked(true);
     if (walletFrame) walletFrame->gotoMasternodePage();
+}
+
+void BitcoinGUI::gotoStakePage()
+{
+    stakepageAction->setChecked(true);
+    if (walletFrame) walletFrame->gotoStakePage();
 }
 
 void BitcoinGUI::gotoReceiveCoinsPage()

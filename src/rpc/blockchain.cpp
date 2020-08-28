@@ -103,6 +103,28 @@ double GetPoSKernelPS()
     return result;
 }
 
+double GetEstimatedAnnualROI()
+{
+    double result = 0;
+    double networkWeight = GetPoSKernelPS();
+    CBlockIndex* pindex = pindexBestHeader == 0 ? chainActive.Tip() : pindexBestHeader;
+    int nHeight = pindex ? pindex->nHeight : 0;
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+    double subsidy = GetBlockSubsidy(nHeight, consensusParams) - GetZnodePayment(consensusParams,nHeight);
+    int blocksInDay = 525600 / consensusParams.nPowTargetSpacing / 2;
+    if(networkWeight > 0)
+    {
+        // Formula: 100 * 675 blocks/day * 365 days * subsidy) / Network Weight
+        int roiform = 100 * blocksInDay * 365;
+        result = roiform * subsidy / networkWeight;
+    }
+    //Handle ultra high roi on regtest
+    if(result > 100000000)
+        result = 100;
+
+    return result;
+}
+
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
 {
     UniValue result(UniValue::VOBJ);
@@ -131,14 +153,17 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     return result;
 }
 
-UniValue getextrablockdata(const CBlock& block){
+UniValue getextrablockdata(const CBlock& block,const CBlockIndex* blockindex){
     UniValue blockdata(UniValue::VOBJ);
     float blockInput = 0.0;
     blockdata.push_back(Pair("type",block.IsProofOfStake() ? "PoS":"PoW"));
-    if(block.IsProofOfStake())
+    if (block.IsProofOfStake()){
         blockInput = GetBlockInput(block);
+        blockdata.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
+        blockdata.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
+    }
     if(blockInput > 0)
-            blockdata.push_back(Pair("inputamount",blockInput));
+        blockdata.push_back(Pair("inputamount",blockInput));
     blockdata.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
     blockdata.push_back(Pair("blockreward",ValueFromAmount(GetCoinbaseReward(block))));
     return blockdata;
@@ -176,6 +201,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if (!block.vtx[0]->vExtraPayload.empty()) {
         CbtxToJson(*block.vtx[0], result);
     }
+    //Add extra blockdata
+    result.push_back(Pair("blockinfo",getextrablockdata(block,blockindex)));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
@@ -188,13 +215,13 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     CBlockIndex *pnext = chainActive.Next(blockindex);
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
-    //Add extra blockdata
-    result.push_back(Pair("blockinfo",getextrablockdata(block)));
-    if (block.IsProofOfStake()){
-        result.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
-        result.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
-    }
     return result;
+}
+
+static UniValue getestimatedannualroi(const JSONRPCRequest& request)
+{
+    LOCK(cs_main);
+    return GetEstimatedAnnualROI();
 }
 
 UniValue getblockcount(const JSONRPCRequest& request)
@@ -1696,6 +1723,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "verifychain",            &verifychain,            true,  {"checklevel","nblocks"} },
 
     { "blockchain",         "preciousblock",          &preciousblock,          true,  {"blockhash"} },
+    { "blockchain",         "getestimatedannualroi",  &getestimatedannualroi,  true,  {} },
 
     /* Not shown in help */
     { "hidden",             "invalidateblock",        &invalidateblock,        true,  {"blockhash"} },

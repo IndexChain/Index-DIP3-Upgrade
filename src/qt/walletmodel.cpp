@@ -1072,3 +1072,15 @@ int WalletModel::getDefaultConfirmTarget() const
 {
     return nTxConfirmTarget;
 }
+
+bool WalletModel::getEnabledStaking() const
+{
+    return wallet->getEnabledStaking();
+}
+
+bool WalletModel::setEnabledStaking(bool enabled) const
+{
+    wallet->setEnabledStaking(enabled);
+    return true;
+}
+

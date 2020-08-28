@@ -220,6 +220,8 @@ public:
     bool abandonTransaction(uint256 hash) const;
 
     static bool isWalletEnabled();
+    bool getEnabledStaking() const;
+    bool setEnabledStaking(bool enabled) const;
 
     bool hdEnabled() const;
 

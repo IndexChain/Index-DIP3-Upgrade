@@ -948,10 +948,8 @@ void static ZcoinMiner(const CChainParams &chainparams) {
                 uint256 thash;
 
                 while (true) {
-                uint256 thash = pblock->GetHash();
-
                     boost::this_thread::interruption_point();
-
+                    thash = pblock->GetHash();
                     //LogPrintf("*****\nhash   : %s  \ntarget : %s\n", UintToArith256(thash).ToString(), hashTarget.ToString());
 
                     if (UintToArith256(thash) <= hashTarget) {
@@ -1033,7 +1031,7 @@ bool SignBlock(CBlock& block, CWallet& wallet, int64_t& nFees, CBlockTemplate *p
     nStakeTime &= ~Params().GetConsensus().nStakeTimestampMask;
     int64_t nSearchTime = nStakeTime; // search to current time
     //Set txqc if it exists from block template
-    if(block.vtx.size() > 1 && block.vtx[1] != CTransactionRef())
+    if(block.vtx.size() > 1)
         txQc = block.vtx[1];
 
     if (nSearchTime > nLastCoinStakeSearchTime)
@@ -1108,7 +1106,10 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
             //         continue;
             //     }
             // }
-
+            if(!pwallet->getEnabledStaking()){
+                MilliSleep(3000);
+                continue;
+            }
             //
             // Create new block
             //

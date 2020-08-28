@@ -19,6 +19,8 @@
 #include "sendcoinsdialog.h"
 #include "metadexcanceldialog.h"
 #include "metadexdialog.h"
+#include <qt/stakepage.h>
+
 #include "signverifymessagedialog.h"
 #include "tradehistorydialog.h"
 #include "transactiontablemodel.h"
@@ -83,6 +85,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #endif
     znodeListPage = new ZnodeList(platformStyle);
     masternodeListPage = new MasternodeList(platformStyle);
+    stakePage = new StakePage(platformStyle);
 
     setupTransactionPage();
     setupSendCoinPage();
@@ -106,6 +109,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #endif
     addWidget(znodeListPage);
     addWidget(masternodeListPage);
+    addWidget(stakePage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(focusBitcoinHistoryTab(QModelIndex)));
@@ -260,6 +264,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 
         // Pass through encryption status changed signals
         connect(this, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
+        // connect(this, SIGNAL(encryptionStatusChanged(int)), stakePage, &StakePage::updateEncryptionStatus);
 
         // Pass through transaction notifications
         connect(this, SIGNAL(incomingTransaction(QString,int,CAmount,QString,QString,QString)), gui, SLOT(incomingTransaction(QString,int,CAmount,QString,QString,QString)));
@@ -277,6 +282,8 @@ void WalletView::setClientModel(ClientModel *_clientModel)
     sendZcoinView->setClientModel(clientModel);
     znodeListPage->setClientModel(clientModel);
     masternodeListPage->setClientModel(clientModel);
+    stakePage->setClientModel(_clientModel);
+
 #ifdef ENABLE_ELYSIUM
     elyAssetsPage->setClientModel(clientModel);
 #endif
@@ -315,6 +322,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     usedSendingAddressesPage->setModel(_walletModel->getAddressTableModel());
     znodeListPage->setWalletModel(_walletModel);
     masternodeListPage->setWalletModel(_walletModel);
+    stakePage->setWalletModel(_walletModel);
     sendZcoinView->setModel(_walletModel);
     zc2SigmaPage->setWalletModel(_walletModel);
 #ifdef ENABLE_ELYSIUM
@@ -347,6 +355,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
 
         // Ask for passphrase if needed
         connect(_walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
+        connect(stakePage, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
 
         // Show progress dialog
         connect(_walletModel, SIGNAL(showProgress(QString,int)), this, SLOT(showProgress(QString,int)));
@@ -439,6 +448,11 @@ void WalletView::gotoZnodePage()
 void WalletView::gotoMasternodePage()
 {
     setCurrentWidget(masternodeListPage);
+}
+
+void WalletView::gotoStakePage()
+{
+    setCurrentWidget(stakePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()
@@ -573,6 +587,8 @@ void WalletView::unlockWallet()
         AskPassphraseDialog dlg(AskPassphraseDialog::Unlock, this);
         dlg.setModel(walletModel);
         dlg.exec();
+        if(sender() == stakePage)
+            stakePage->updateEncryptionStatus();
     }
 }
 

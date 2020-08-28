@@ -98,6 +98,12 @@ int ClientModel::getNumBlocks() const
     return chainActive.Height();
 }
 
+int64_t ClientModel::getBlockSubsidy(int nHeight)
+{
+        const CChainParams& chainparams = Params();
+        return GetBlockSubsidy(nHeight, chainparams.GetConsensus()) - GetZnodePayment(chainparams.GetConsensus(),nHeight);
+}
+
 int ClientModel::getHeaderTipHeight() const
 {
     if (cachedBestHeaderHeight == -1) {

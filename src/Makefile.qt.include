@@ -117,6 +117,7 @@ QT_FORMS_UI = \
   qt/forms/receivecoinsdialog.ui \
   qt/forms/receiverequestdialog.ui \
   qt/forms/debugwindow.ui \
+  qt/forms/stakepage.ui \
   qt/forms/sendcoinsdialog.ui \
   qt/forms/sendcoinsentry.ui \
   qt/forms/signverifymessagedialog.ui \
@@ -169,10 +170,12 @@ QT_MOC_CPP = \
   qt/moc_paymentserver.cpp \
   qt/moc_qvalidatedlineedit.cpp \
   qt/moc_qvaluecombobox.cpp \
+  qt/moc_qswitchcontrol.cpp \
   qt/moc_receivecoinsdialog.cpp \
   qt/moc_receiverequestdialog.cpp \
   qt/moc_recentrequeststablemodel.cpp \
   qt/moc_rpcconsole.cpp \
+  qt/moc_stakepage.cpp \
   qt/moc_sendcoinsdialog.cpp \
   qt/moc_sendcoinsentry.cpp \
   qt/moc_signverifymessagedialog.cpp \
@@ -261,11 +264,13 @@ BITCOIN_QT_H = \
   qt/platformstyle.h \
   qt/qvalidatedlineedit.h \
   qt/qvaluecombobox.h \
+  qt/qswitchcontrol.h \
   qt/receivecoinsdialog.h \
   qt/receiverequestdialog.h \
   qt/recentrequeststablemodel.h \
   qt/rpcconsole.h \
   qt/sendcoinsdialog.h \
+  qt/stakepage.h \
   qt/hybridui/styleSheet.h \
   qt/sendcoinsentry.h \
   qt/signverifymessagedialog.h \
@@ -504,6 +509,7 @@ BITCOIN_QT_BASE_CPP = \
   qt/optionsmodel.cpp \
   qt/peertablemodel.cpp \
   qt/platformstyle.cpp \
+  qt/qswitchcontrol.cpp \
   qt/qvalidatedlineedit.cpp \
   qt/qvaluecombobox.cpp \
   qt/rpcconsole.cpp \
@@ -535,6 +541,7 @@ BITCOIN_QT_WALLET_CPP = \
   qt/recentrequeststablemodel.cpp \
   qt/sendcoinsdialog.cpp \
   qt/sendcoinsentry.cpp \
+  qt/stakepage.cpp \
   qt/signverifymessagedialog.cpp \
   qt/transactiondesc.cpp \
   qt/transactiondescdialog.cpp \
