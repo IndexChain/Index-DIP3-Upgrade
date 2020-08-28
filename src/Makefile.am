@@ -171,6 +171,7 @@ BITCOIN_CORE_H = \
   addrman.h \
   base58.h \
   batchedlogger.h \
+  blacklist/blacklist.h \
   bloom.h \
   blockencodings.h \
   blockinfo/blockinfo.h \
@@ -394,6 +395,7 @@ libbitcoin_server_a_SOURCES = \
   batchedlogger.cpp \
   bloom.cpp \
   blockencodings.cpp \
+  blacklist/blacklist.cpp \
   blockinfo/blockinfo.cpp \
   chain.cpp \
   checkpoints.cpp \

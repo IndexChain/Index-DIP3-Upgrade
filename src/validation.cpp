@@ -12,6 +12,7 @@
 #include "zerocoin.h"
 
 #include "arith_uint256.h"
+#include "blacklist/blacklist.h"
 #include "chainparams.h"
 #include "checkpoints.h"
 #include "checkqueue.h"
@@ -139,7 +140,7 @@ static void CheckBlockIndex(const Consensus::Params& consensusParams);
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Zcoin Signed Message:\n";
+const string strMessageMagic = "Index Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -601,24 +602,21 @@ bool CheckTransaction(const CTransaction &tx, CValidationState &state, bool fChe
     }
 
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
-    bool const check_di = nHeight != INT_MAX;
-    if (fCheckDuplicateInputs || check_di) {
-        std::set<COutPoint> vInOutPoints;
-        if (tx.IsZerocoinSpend() || tx.IsSigmaSpend() || tx.IsZerocoinRemint()) {
-            std::set<CScript> spendScripts;
-            for (const auto& txin: tx.vin)
-            {
-                if (!spendScripts.insert(txin.scriptSig).second)
-                    return state.DoS(100, false, REJECT_INVALID, "bad-txns-spend-inputs-duplicate");
-            }
+    std::set<COutPoint> vInOutPoints;
+    if (tx.IsZerocoinSpend() || tx.IsSigmaSpend() || tx.IsZerocoinRemint()) {
+        std::set<CScript> spendScripts;
+        for (const auto& txin: tx.vin)
+        {
+            if (!spendScripts.insert(txin.scriptSig).second)
+                return state.DoS(100, false, REJECT_INVALID, "bad-txns-spend-inputs-duplicate");
         }
-        else {
-            std::set<COutPoint> vInOutPoints;
-            for (const auto& txin : tx.vin)
-            {
-                if (!vInOutPoints.insert(txin.prevout).second)
-                    return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-duplicate");
-            }
+    }
+    else {
+        std::set<COutPoint> vInOutPoints;
+        for (const auto& txin : tx.vin)
+        {
+            if (!vInOutPoints.insert(txin.prevout).second)
+                return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-duplicate");
         }
     }
 
@@ -1791,51 +1789,73 @@ int GetSpendHeight(const CCoinsViewCache& inputs)
 namespace Consensus {
 bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoinsViewCache& inputs, int nSpendHeight)
 {
-        // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
-        // for an attacker to attempt to split the network.
-        if (!inputs.HaveInputs(tx))
-            return state.Invalid(false, 0, "", "Inputs unavailable");
+    // This doesn't trigger the DoS code on purpose; if it did, it would make it easier
+    // for an attacker to attempt to split the network.
+    if (!inputs.HaveInputs(tx))
+        return state.Invalid(false, 0, "", "Inputs unavailable");
 
-        CAmount nValueIn = 0;
-        CAmount nFees = 0;
-        for (unsigned int i = 0; i < tx.vin.size(); i++)
-        {
-            const COutPoint &prevout = tx.vin[i].prevout;
-            const Coin &coin = inputs.AccessCoin(prevout);
-            assert(!coin.IsSpent());
+    CAmount nValueIn = 0;
+    CAmount nFees = 0;
+    for (unsigned int i = 0; i < tx.vin.size(); i++) {
+        const COutPoint& prevout = tx.vin[i].prevout;
+        const Coin& coin = inputs.AccessCoin(prevout);
+        assert(!coin.IsSpent());
 
-            // If prev is coinbase, check that it's matured
-            if (coin.IsCoinBase() || coin.IsCoinStake()) {
-                if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
-                    return state.Invalid(false,
-                        REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
-                        strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
+        // If prev is coinbase, check that it's matured
+        if (coin.IsCoinBase() || coin.IsCoinStake()) {
+            if (nSpendHeight - coin.nHeight < COINBASE_MATURITY)
+                return state.Invalid(false,
+                    REJECT_INVALID, "bad-txns-premature-spend-of-coinbase",
+                    strprintf("tried to spend coinbase at depth %d", nSpendHeight - coin.nHeight));
+        }
+
+        // Check for negative or overflow input values
+        nValueIn += coin.out.nValue;
+        if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn))
+            return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
+            /*
+        //Start blacklisted check
+        bool fBlacklistCheck = nSpendHeight > 86810;
+        if (fBlacklistCheck) {
+            CTransactionRef txPrev;
+            uint256 hash;
+
+            // get previous transaction
+            if (GetTransaction(tx.vin[i].prevout.hash, txPrev, ::Params().GetConsensus(), hash, true)) {
+                CTxDestination source;
+
+                //make sure the previous input exists,and destination is extractable
+                if (txPrev->vout.size() > tx.vin[i].prevout.n  && ExtractDestination(txPrev->vout[tx.vin[i].prevout.n].scriptPubKey, source)) {
+                    // convert to an address
+                    CBitcoinAddress addressSource(source);
+                    std::string addr = addressSource.ToString();
+
+                    if (ContainsBlacklistedAddr(addr)) {
+                        LogPrintf("Bad SpendHeight is %d\n", nSpendHeight);
+                        return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-blacklisted", false);
+                    }
+                }
             }
-
-            // Check for negative or overflow input values
-            nValueIn += coin.out.nValue;
-            if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn))
-                return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
-
         }
+        */
+    }
 
+    if (!tx.IsCoinStake()) {
+        if (nValueIn < tx.GetValueOut())
+            return state.DoS(100, error("CheckInputs() : %s value in (%s) < value out (%s)",
+                                      tx.GetHash().ToString(), FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())),
+                REJECT_INVALID, "bad-txns-in-belowout");
 
-        if (!tx.IsCoinStake()) {
-            if (nValueIn < tx.GetValueOut())
-                return state.DoS(100, error("CheckInputs() : %s value in (%s) < value out (%s)",
-                                          tx.GetHash().ToString(), FormatMoney(nValueIn), FormatMoney(tx.GetValueOut())),
-                    REJECT_INVALID, "bad-txns-in-belowout");
-
-            // Tally transaction fees
-            CAmount nTxFee = nValueIn - tx.GetValueOut();
-            if (nTxFee < 0)
-                return state.DoS(100, error("CheckInputs() : %s nTxFee < 0", tx.GetHash().ToString()),
-                    REJECT_INVALID, "bad-txns-fee-negative");
-            nFees += nTxFee;
-            if (!MoneyRange(nFees))
-                return state.DoS(100, error("CheckInputs() : nFees out of range"),
-                    REJECT_INVALID, "bad-txns-fee-outofrange");
-        }
+        // Tally transaction fees
+        CAmount nTxFee = nValueIn - tx.GetValueOut();
+        if (nTxFee < 0)
+            return state.DoS(100, error("CheckInputs() : %s nTxFee < 0", tx.GetHash().ToString()),
+                REJECT_INVALID, "bad-txns-fee-negative");
+        nFees += nTxFee;
+        if (!MoneyRange(nFees))
+            return state.DoS(100, error("CheckInputs() : nFees out of range"),
+                REJECT_INVALID, "bad-txns-fee-outofrange");
+    }
 
     return true;
 }
@@ -4248,7 +4268,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
                 return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Stage 2 developer reward check failed");
         }
     }
-    else if (!CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, nHeight)) {
+    else if (!CheckZerocoinFoundersInputs(*block.vtx[block.IsProofOfStake()], state, consensusParams, nHeight)) {
         return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Founders' reward check failed");
     }
 
