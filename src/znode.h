@@ -20,7 +20,7 @@ static const int ZNODE_CHECK_SECONDS               =   5;
 static const int ZNODE_MIN_MNB_SECONDS             =   5 * 60; //BROADCAST_TIME
 static const int ZNODE_EXPIRATION_SECONDS          =  65 * 60;
 static const int ZNODE_WATCHDOG_MAX_SECONDS        = 120 * 60;
-static const int ZNODE_COIN_REQUIRED  = 1000;
+static const int ZNODE_COIN_REQUIRED  = 5000;
 
 static const int ZNODE_POSE_BAN_MAX_SCORE          = 5;
 

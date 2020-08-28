@@ -194,8 +194,8 @@ public:
         consensus.BIP34Hash = uint256S("0x000000000000024b89b42a942fe0d9fea3bb44ab7bd1b19115dd6a759c0808b8");
         consensus.BIP65Height = INT_MAX;
         consensus.BIP66Height = INT_MAX;
-        consensus.powLimit = uint256S("00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        consensus.nPowTargetTimespan = 60 * 60; // 60 minutes between retargets
+        consensus.powLimit = uint256S("00000fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+        consensus.nPowTargetTimespan = 40 * 60; // 40 minutes between retargets 
         consensus.nPowTargetSpacing = 120; // alternate PoW/PoS every one minute
         consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
         consensus.fPowAllowMinDifficultyBlocks = false;
@@ -203,19 +203,18 @@ public:
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1475020800; // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1580217929; // January 1, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1611840329; // December 31, 2008
 
         // Deployment of BIP68, BIP112, and BIP113.
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1462060800; // May 1st, 2016
-        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1493596800; // May 1st, 2017
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nStartTime = 1580217929; // May 1st, 2016
+        consensus.vDeployments[Consensus::DEPLOYMENT_CSV].nTimeout = 1611840329; // May 1st, 2017
 
         // Deployment of SegWit (BIP141, BIP143, and BIP147)
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].bit = 1;
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1479168000; // November 15th, 2016.
-        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1510704000; // November 15th, 2017.
-
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nStartTime = 1580217929; // November 15th, 2016.
+        consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1611840329; // November 15th, 2017.
         // Deployment of MTP
         consensus.vDeployments[Consensus::DEPLOYMENT_MTP].bit = 12;
         consensus.vDeployments[Consensus::DEPLOYMENT_MTP].nStartTime = SWITCH_TO_MTP_BLOCK_HEADER - 2*60; // 2 hours leeway
@@ -239,7 +238,7 @@ public:
         consensus.nModulusV1MempoolStopBlock = ZC_MODULUS_V1_MEMPOOL_STOP_BLOCK;
 	    consensus.nModulusV1StopBlock = ZC_MODULUS_V1_STOP_BLOCK;
         consensus.nMultipleSpendInputsInOneTxStartBlock = ZC_MULTIPLE_SPEND_INPUT_STARTING_BLOCK;
-        consensus.nDontAllowDupTxsStartBlock = 119700;
+        consensus.nDontAllowDupTxsStartBlock = 1;
 
         // znode params
         consensus.nZnodePaymentsStartBlock = HF_ZNODE_PAYMENT_START; // not true, but it's ok as long as it's less then nZnodePaymentsIncreaseBlock
@@ -271,7 +270,7 @@ public:
         consensus.nInitialMTPDifficulty = 0x1c021e57;
         consensus.nMTPRewardReduction = 2;
 
-        consensus.nDisableZerocoinStartBlock = 157000;
+        consensus.nDisableZerocoinStartBlock = 1;
 
         nMaxTipAge = 6 * 60 * 60; // ~144 blocks behind -> 2 x fork detection time, was 24 * 60 * 60 in bitcoin
 
@@ -322,7 +321,7 @@ public:
         vSeeds.push_back(CDNSSeedData("202.182.101.157", "202.182.101.157", false));
         vSeeds.push_back(CDNSSeedData("207.148.96.237", "207.148.96.237", false));
         // Note that of those with the service bits flag, most only support a subset of possible options
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector < unsigned char > (1, 82);
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector < unsigned char > (1, 102);//Index address starts with 'i'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector < unsigned char > (1, 7);
         base58Prefixes[SECRET_KEY] = std::vector < unsigned char > (1, 210);
         base58Prefixes[EXT_PUBLIC_KEY] = boost::assign::list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container < std::vector < unsigned char > > ();
