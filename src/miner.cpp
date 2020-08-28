@@ -1089,26 +1089,26 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
         const int nHeight = pindexPrev->nHeight + 1;
         if (nHeight >= Params().GetConsensus().nFirstPOSBlock)
         {
-            // while (pwallet->IsLocked())
-            // {
-            //     nLastCoinStakeSearchInterval = 0;
-            //     MilliSleep(10000);
-            // }
-            // while (fvNodesEmpty || IsInitialBlockDownload() || !znodeSync.IsSynced())
-            // {
-            //     nLastCoinStakeSearchInterval = 0;
-            //     fTryToSync = true;
-            //     MilliSleep(1000);
-            // }
-            // if (fTryToSync)
-            // {
-            //     fTryToSync = false;
-            //     if (nodecount < 2 || pindexBestHeader->GetBlockTime() < GetTime() - 10 * 60)
-            //     {
-            //         MilliSleep(6000);
-            //         continue;
-            //     }
-            // }
+            while (pwallet->IsLocked())
+            {
+                nLastCoinStakeSearchInterval = 0;
+                MilliSleep(10000);
+            }
+            while (fvNodesEmpty || IsInitialBlockDownload() || !znodeSync.IsSynced())
+            {
+                nLastCoinStakeSearchInterval = 0;
+                fTryToSync = true;
+                MilliSleep(1000);
+            }
+            if (fTryToSync)
+            {
+                fTryToSync = false;
+                if (nodecount < 2 || pindexBestHeader->GetBlockTime() < GetTime() - 10 * 60)
+                {
+                    MilliSleep(6000);
+                    continue;
+                }
+            }
             if(!pwallet->getEnabledStaking()){
                 MilliSleep(3000);
                 continue;
