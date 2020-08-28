@@ -685,7 +685,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
                 aRules.push_back(gbt_vb_name(pos));
                 if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
                     // Not supported by the client; make sure it's safe to proceed
-                    if (!vbinfo.gbt_force) {
+                    if (!vbinfo.gbt_force && j != Consensus::DEPLOYMENT_SEGWIT) {
                         // If we do anything other than throw an exception here, be sure version/force isn't sent to old clients
                         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Support for '%s' rule requires explicit client support", vbinfo.name));
                     }
