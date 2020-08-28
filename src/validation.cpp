@@ -1563,7 +1563,7 @@ bool ReadBlockHeaderFromDisk(CBlock &block, const CDiskBlockPos &pos) {
     return true;
 }
 
-CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
+CAmount GetBlockSubsidyIDX(int nHeight, const Consensus::Params &consensusParams, int nTime) {
     bool fPremineBlock = nHeight == 2;
     int nYearBlocksinmin = 525600;
     bool phaseinitaldiff = nHeight > 2 && nHeight <= 5000;
@@ -1598,6 +1598,33 @@ CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, i
         return 0.2097152 * COIN;
     else
         return 0.2097152 * COIN;
+}
+
+CAmount GetBlockSubsidy(int nHeight, const Consensus::Params &consensusParams, int nTime) {
+    if(consensusParams.IsTestnet() || consensusParams.IsRegtest()){
+    // Genesis block is 0 coin
+    if (nHeight == 0)
+        return 0;
+
+    // Subsidy is cut in half after nSubsidyHalvingFirst block, then every nSubsidyHalvingInterval blocks.
+    // After block nSubsidyHalvingStopBlock there will be no subsidy at all
+    if (nHeight >= consensusParams.nSubsidyHalvingStopBlock)
+        return 0;
+    int halvings = nHeight < consensusParams.nSubsidyHalvingFirst ? 0 : (nHeight - consensusParams.nSubsidyHalvingFirst) / consensusParams.nSubsidyHalvingInterval + 1;
+    // Force block reward to zero when right shift is undefined.
+    if (halvings >= 64)
+        return 0;
+
+    CAmount nSubsidy = 50 * COIN;
+    nSubsidy >>= halvings;
+/*
+    if (nHeight > 0 && fMTP)
+        nSubsidy /= consensusParams.nMTPRewardReduction;
+*/
+    return nSubsidy;
+    }
+// Return mainnet vals
+return GetBlockSubsidyIDX(nHeight,consensusParams,nTime);
 }
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
@@ -3277,7 +3304,12 @@ int GetInputAge(const CTxIn &txin) {
 }
 
 CAmount GetZnodePayment(const Consensus::Params &params, int nHeight) {
-    if(nHeight > Params().GetConsensus().nZnodePaymentsStartBlock)
+    if(params.IsTestnet() || params.IsRegtest()){
+        CAmount coin =  COIN;
+        CAmount ret = 15 * coin; //15 or 7.5 XZC
+        return ret;
+    }
+    else if(nHeight > Params().GetConsensus().nZnodePaymentsStartBlock)
         return GetBlockSubsidy(nHeight,params) * 0.7;//Give 70 % to masternode
     //No reward before indexnodepaymentsstartblock
     return 0;
@@ -4253,7 +4285,7 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
             return false;
         }
     }
-
+/*  No Dev fees on IDX
     if (nHeight >= consensusParams.nSubsidyHalvingFirst) {
         if (nHeight < consensusParams.nSubsidyHalvingFirst + consensusParams.nSubsidyHalvingInterval) {
             // "stage 2" interval between first and second halvings
@@ -4268,7 +4300,8 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, const Co
                 return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Stage 2 developer reward check failed");
         }
     }
-    else if (!CheckZerocoinFoundersInputs(*block.vtx[block.IsProofOfStake()], state, consensusParams, nHeight)) {
+    */
+    if (!CheckZerocoinFoundersInputs(*block.vtx[block.IsProofOfStake()], state, consensusParams, nHeight)) {
         return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(), "Founders' reward check failed");
     }
 

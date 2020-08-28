@@ -583,8 +583,8 @@ public:
         consensus.nZerocoinV2SpendMempoolGracefulPeriod = ZC_V2_SPEND_TESTNET_GRACEFUL_MEMPOOL_PERIOD;
         consensus.nZerocoinV2SpendGracefulPeriod = ZC_V2_SPEND_TESTNET_GRACEFUL_PERIOD;
         consensus.nMaxSigmaInputPerBlock = ZC_SIGMA_INPUT_LIMIT_PER_BLOCK;
-        consensus.nMaxValueSigmaSpendPerBlock = ZC_SIGMA_VALUE_SPEND_LIMIT_PER_BLOCK;
-        consensus.nMaxSigmaInputPerTransaction = ZC_SIGMA_INPUT_LIMIT_PER_TRANSACTION;
+        consensus.nMaxValueSigmaSpendPerBlock = 600 * COIN;//for unit test
+        consensus.nMaxSigmaInputPerTransaction = 35;
         consensus.nMaxValueSigmaSpendPerTransaction = ZC_SIGMA_VALUE_SPEND_LIMIT_PER_TRANSACTION;
         consensus.nZerocoinToSigmaRemintWindowSize = 0;
 
@@ -765,9 +765,9 @@ public:
         consensus.nZerocoinV2SpendMempoolGracefulPeriod = 10;
         consensus.nZerocoinV2SpendGracefulPeriod = 20;
         consensus.nMaxSigmaInputPerBlock = ZC_SIGMA_INPUT_LIMIT_PER_BLOCK;
-        consensus.nMaxValueSigmaSpendPerBlock = ZC_SIGMA_VALUE_SPEND_LIMIT_PER_BLOCK;
-        consensus.nMaxSigmaInputPerTransaction = ZC_SIGMA_INPUT_LIMIT_PER_TRANSACTION;
-        consensus.nMaxValueSigmaSpendPerTransaction = ZC_SIGMA_VALUE_SPEND_LIMIT_PER_TRANSACTION;
+        consensus.nMaxValueSigmaSpendPerBlock = 600 * COIN;//For unit test
+        consensus.nMaxSigmaInputPerTransaction = 35;
+        consensus.nMaxValueSigmaSpendPerTransaction = 500 * COIN;
         consensus.nZerocoinToSigmaRemintWindowSize = 1000;
 
         // Dandelion related values.

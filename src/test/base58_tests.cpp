@@ -29,22 +29,22 @@ std::string bitcoin_address_to_zcoin(const std::string address) {
         vchTemp.resize(vchTemp.size() - 4);
         switch (vchTemp[0]) {
         case 0:
-            vchTemp[0] = 82;
+            vchTemp[0] = 102;//PUBKEY_ADDRESS mainnet
             break;
         case 5:
-            vchTemp[0] = 7;
+            vchTemp[0] = 7;//SCRIPT_ADDRESS mainnet
             break;
         case 128:
-            vchTemp[0] = 210;
+            vchTemp[0] = 210;//SECRET_KEY mainnet
             break;
         case 111:
-            vchTemp[0] = 65;
+            vchTemp[0] = 65;//PUBKEY_ADDRESS testnet
             break;
         case 196:
-            vchTemp[0] = 178;
+            vchTemp[0] = 178;//SCRIPT_ADDRESS testnet
             break;
         case 239:
-            vchTemp[0] = 185;
+            vchTemp[0] = 185;//SECRET_KEY testnet
             break;
         }
         return EncodeBase58Check(vchTemp);

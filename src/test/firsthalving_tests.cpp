@@ -240,7 +240,7 @@ BOOST_FIXTURE_TEST_CASE(devpayout, TestChainDIP3BeforeActivationSetup)
 
     consensusParams = consensusParamsBackup;
 }
-
+/* No Devfee on IDX
 BOOST_FIXTURE_TEST_CASE(devpayoutverification, TestChainDIP3BeforeActivationSetup)
 {
     Consensus::Params   &consensusParams = const_cast<Consensus::Params &>(Params().GetConsensus());
@@ -287,6 +287,6 @@ BOOST_FIXTURE_TEST_CASE(devpayoutverification, TestChainDIP3BeforeActivationSetu
 
     consensusParams = consensusParamsBackup;
 }
-
+*/
 
 BOOST_AUTO_TEST_SUITE_END()
