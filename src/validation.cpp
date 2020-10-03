@@ -1840,7 +1840,7 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
         nValueIn += coin.out.nValue;
         if (!MoneyRange(coin.out.nValue) || !MoneyRange(nValueIn))
             return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputvalues-outofrange");
-            /*
+
         //Start blacklisted check
         bool fBlacklistCheck = nSpendHeight > 86810;
         if (fBlacklistCheck) {
@@ -1864,7 +1864,7 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
                 }
             }
         }
-        */
+
     }
 
     if (!tx.IsCoinStake()) {

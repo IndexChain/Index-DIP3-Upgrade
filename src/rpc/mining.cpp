@@ -651,9 +651,6 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     UniValue aRules(UniValue::VARR);
     UniValue vbavailable(UniValue::VOBJ);
     for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
-        // MTP deployment has different set of rules
-        if (j == Consensus::DEPLOYMENT_MTP)
-            continue;
 
         Consensus::DeploymentPos pos = Consensus::DeploymentPos(j);
         ThresholdState state = VersionBitsState(pindexPrev, consensusParams, pos, versionbitscache);
