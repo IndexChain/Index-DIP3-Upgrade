@@ -745,8 +745,8 @@ public:
 
         // Sigma related values.
         consensus.nSigmaStartBlock = 400;
-        consensus.nSigmaPaddingBlock = 550;
-        consensus.nDisableUnpaddedSigmaBlock = 510;
+        consensus.nSigmaPaddingBlock = 1;
+        consensus.nDisableUnpaddedSigmaBlock = 1;
         consensus.nOldSigmaBanBlock = 450;
         consensus.nZerocoinV2MintMempoolGracefulPeriod = 2;
         consensus.nZerocoinV2MintGracefulPeriod = 5;
