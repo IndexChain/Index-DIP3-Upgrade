@@ -184,9 +184,9 @@ public:
         consensus.stage2ZnodeShare = 35;
         consensus.stage2DevelopmentFundAddress = "aFrAVZFr8pva5mG8XKaUH8EXcFVVNxLiuB";
 
-        consensus.nMajorityEnforceBlockUpgrade = 750;
-        consensus.nMajorityRejectBlockOutdated = 950;
-        consensus.nMajorityWindow = 1000;
+        consensus.nMajorityEnforceBlockUpgrade = 8100;
+        consensus.nMajorityRejectBlockOutdated = 10260;
+        consensus.nMajorityWindow = 10800;
         consensus.nMinNFactor = 10;
         consensus.nMaxNFactor = 30;
         consensus.nChainStartTime = 1389306217;
@@ -200,8 +200,8 @@ public:
         consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
-        consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
-        consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
+        consensus.nRuleChangeActivationThreshold = 10260; // 95% of 2016
+        consensus.nMinerConfirmationWindow = 10800; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1580217929; // January 1, 2008
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1611840329; // December 31, 2008
