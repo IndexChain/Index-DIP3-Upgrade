@@ -3306,7 +3306,7 @@ int GetInputAge(const CTxIn &txin) {
 CAmount GetZnodePayment(const Consensus::Params &params, int nHeight) {
     if(params.IsTestnet() || params.IsRegtest()){
         CAmount coin =  COIN;
-        CAmount ret = 15 * coin; //15 or 7.5 XZC
+        CAmount ret = 15 * coin; //15 or 7.5 IDX
         return ret;
     }
     else if(nHeight > Params().GetConsensus().nZnodePaymentsStartBlock)
@@ -4072,14 +4072,14 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
                     instantsend.Relay(hashLocked);
                     LOCK(cs_main);
                     mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-                    return state.DoS(0, error("CheckBlock(XZC): transaction %s conflicts with transaction lock %s",
+                    return state.DoS(0, error("CheckBlock(IDX): transaction %s conflicts with transaction lock %s",
                                                 tx->GetHash().ToString(), hashLocked.ToString()),
                                         REJECT_INVALID, "conflict-tx-lock");
                 }
             }
         }
     } else {
-        LogPrintf("CheckBlock(XZC): spork is off, skipping transaction locking checks\n");
+        LogPrintf("CheckBlock(IDX): spork is off, skipping transaction locking checks\n");
     }
     */
 

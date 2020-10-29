@@ -244,10 +244,10 @@ QT_TRANSLATE_NOOP("index-core", ""
 "Unable to locate enough PrivateSend denominated funds for this transaction."),
 QT_TRANSLATE_NOOP("index-core", ""
 "Unable to locate enough PrivateSend non-denominated funds for this "
-"transaction that are not equal 1000 XZC."),
+"transaction that are not equal 1000 IDX."),
 QT_TRANSLATE_NOOP("index-core", ""
 "Unable to locate enough funds for this transaction that are not equal 1000 "
-"XZC."),
+"IDX."),
 QT_TRANSLATE_NOOP("index-core", ""
 "Unable to rewind the database to a pre-fork state. You will need to "
 "redownload the blockchain"),

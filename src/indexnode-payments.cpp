@@ -556,7 +556,7 @@ bool CZnodeBlockPayees::IsTransactionValidAtHeight(const CTransaction &txNew, in
 
     if (!hasValidPayee) return true;
 
-    LogPrintf("CZnodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s', amount: %f XZC\n", strPayeesPossible, (float) nZnodePayment / COIN);
+    LogPrintf("CZnodeBlockPayees::IsTransactionValid -- ERROR: Missing required payment, possible payees: '%s', amount: %f IDX\n", strPayeesPossible, (float) nZnodePayment / COIN);
     return false;
 }
 

@@ -695,7 +695,7 @@ bool CZnodeBroadcast::CheckOutpoint(int &nDos) {
             return false;
         }
         if (coin.out.nValue != INDEXNODE_COIN_REQUIRED * COIN) {
-            LogPrint("indexnode", "CZnodeBroadcast::CheckOutpoint -- Znode UTXO should have 1000 XZC, indexnode=%s\n", vin.prevout.ToStringShort());
+            LogPrint("indexnode", "CZnodeBroadcast::CheckOutpoint -- Znode UTXO should have 1000 IDX, indexnode=%s\n", vin.prevout.ToStringShort());
             return false;
         }
         if (chainActive.Height() - coin.nHeight + 1 < Params().GetConsensus().nZnodeMinimumConfirmations) {
@@ -718,7 +718,7 @@ bool CZnodeBroadcast::CheckOutpoint(int &nDos) {
     }
 
     // verify that sig time is legit in past
-    // should be at least not earlier than block when 1000 XZC tx got nZnodeMinimumConfirmations
+    // should be at least not earlier than block when 1000 IDX tx got nZnodeMinimumConfirmations
     uint256 hashBlock = uint256();
     CTransactionRef tx2;
     GetTransaction(vin.prevout.hash, tx2, Params().GetConsensus(), hashBlock, true);
@@ -726,7 +726,7 @@ bool CZnodeBroadcast::CheckOutpoint(int &nDos) {
         LOCK(cs_main);
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi != mapBlockIndex.end() && (*mi).second) {
-            CBlockIndex *pMNIndex = (*mi).second; // block for 1000 XZC tx -> 1 confirmation
+            CBlockIndex *pMNIndex = (*mi).second; // block for 1000 IDX tx -> 1 confirmation
             CBlockIndex *pConfIndex = chainActive[pMNIndex->nHeight + Params().GetConsensus().nZnodeMinimumConfirmations - 1]; // block where tx got nZnodeMinimumConfirmations
             if (pConfIndex->GetBlockTime() > sigTime) {
                 LogPrintf("CZnodeBroadcast::CheckOutpoint -- Bad sigTime %d (%d conf block is at %d) for Znode %s %s\n",

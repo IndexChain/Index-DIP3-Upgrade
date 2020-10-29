@@ -1591,7 +1591,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
             "    \"seller\" : \"address\",               (string) the Zcoin address of the seller\n"
             "    \"amountavailable\" : \"n.nnnnnnnn\",   (string) the number of tokens still listed for sale and currently available\n"
             "    \"indexdesired\" : \"n.nnnnnnnn\",    (string) the number of indexs desired in exchange\n"
-            "    \"unitprice\" : \"n.nnnnnnnn\" ,        (string) the unit price (XZC/token)\n"
+            "    \"unitprice\" : \"n.nnnnnnnn\" ,        (string) the unit price (IDX/token)\n"
             "    \"timelimit\" : nn,                   (number) the time limit in blocks a buyer has to pay following a successful accept\n"
             "    \"minimumfee\" : \"n.nnnnnnnn\",        (string) the minimum mining fee a buyer has to pay to accept this offer\n"
             "    \"amountaccepted\" : \"n.nnnnnnnn\",    (string) the number of tokens currently reserved for pending \"accept\" orders\n"
@@ -1638,7 +1638,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
         int64_t minFee = selloffer.getMinFee();
         uint8_t timeLimit = selloffer.getBlockTimeLimit();
         int64_t sellOfferAmount = selloffer.getOfferAmountOriginal(); //badly named - "Original" implies off the wire, but is amended amount
-        int64_t sellBitcoinDesired = selloffer.getXZCDesiredOriginal(); //badly named - "Original" implies off the wire, but is amended amount
+        int64_t sellBitcoinDesired = selloffer.getIDXDesiredOriginal(); //badly named - "Original" implies off the wire, but is amended amount
         int64_t amountAvailable = getMPbalance(seller, propertyId, SELLOFFER_RESERVE);
         int64_t amountAccepted = getMPbalance(seller, propertyId, ACCEPT_RESERVE);
 
@@ -1680,7 +1680,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
                 int blocksLeftToPay = (blockOfAccept + selloffer.getBlockTimeLimit()) - curBlock;
                 int64_t amountAccepted = accept.getAcceptAmountRemaining();
                 // TODO: don't recalculate!
-                int64_t amountToPayInBTC = calculateDesiredBTC(accept.getOfferAmountOriginal(), accept.getXZCDesiredOriginal(), amountAccepted);
+                int64_t amountToPayInBTC = calculateDesiredBTC(accept.getOfferAmountOriginal(), accept.getIDXDesiredOriginal(), amountAccepted);
                 matchedAccept.push_back(Pair("buyer", buyer));
                 matchedAccept.push_back(Pair("block", blockOfAccept));
                 matchedAccept.push_back(Pair("blocksleft", blocksLeftToPay));
