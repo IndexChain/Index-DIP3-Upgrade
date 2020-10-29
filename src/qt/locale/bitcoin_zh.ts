@@ -12,7 +12,7 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Error</source>
         <translation>错误</translation>
@@ -107,7 +107,7 @@
         <translation>仅支付全额的%1</translation>
     </message>
     <message>
-        <source>Warning: Invalid Zcoin address</source>
+        <source>Warning: Invalid Index address</source>
         <translation>警告：比特币地址无效</translation>
     </message>
     </context>

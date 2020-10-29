@@ -76,7 +76,7 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Synchronizing with network...</source>
         <translation>Синхронизација са мрежом у току...</translation>
@@ -130,7 +130,7 @@
         <translation>Промени &amp;лозинку...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
+        <source>Send coins to a Index address</source>
         <translation>Пошаљите новац на index адресу</translation>
     </message>
     <message>

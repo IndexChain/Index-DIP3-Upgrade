@@ -52,7 +52,7 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Synchronizing with network...</source>
         <translation>Cysoni â'r rhwydwaith...</translation>
@@ -114,8 +114,8 @@
         <translation>Newid y cyfrinymadrodd a ddefnyddiwyd ar gyfer amgryptio'r waled</translation>
     </message>
     <message>
-        <source>Zcoin</source>
-        <translation>Zcoin</translation>
+        <source>Index</source>
+        <translation>Index</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -485,7 +485,7 @@
     </message>
     <message>
         <source>Index Core</source>
-        <translation>Craidd Zcoin</translation>
+        <translation>Craidd Index</translation>
     </message>
     <message>
         <source>Information</source>

@@ -104,7 +104,7 @@ private:
     AddressBookPage *usedSendingAddressesPage;
     AddressBookPage *usedReceivingAddressesPage;
     QWidget *sendCoinsPage;
-    SendCoinsDialog *sendZcoinView;
+    SendCoinsDialog *sendIndexView;
     TradeHistoryDialog *tradeHistoryTab;
     MetaDExDialog *metaDExTab;
     MetaDExCancelDialog *cancelTab;

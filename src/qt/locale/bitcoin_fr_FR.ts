@@ -128,7 +128,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Sign &amp;message...</source>
         <translation>Signer &amp;message...</translation>
@@ -218,8 +218,8 @@
         <translation>Réindexer les blocs sur le disque...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
-        <translation>Envoyer des pièces à une adresse Zcoin</translation>
+        <source>Send coins to a Index address</source>
+        <translation>Envoyer des pièces à une adresse Index</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -242,8 +242,8 @@
         <translation>&amp;Vérification du message</translation>
     </message>
     <message>
-        <source>Zcoin</source>
-        <translation>Zcoin</translation>
+        <source>Index</source>
+        <translation>Index</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -270,8 +270,8 @@
         <translation>Crypter les clé privées qui appartiennent votre portefeuille</translation>
     </message>
     <message>
-        <source>Sign messages with your Zcoin addresses to prove you own them</source>
-        <translation>Signer vos messages avec vos adresses Zcoin pour prouver que vous les détenez</translation>
+        <source>Sign messages with your Index addresses to prove you own them</source>
+        <translation>Signer vos messages avec vos adresses Index pour prouver que vous les détenez</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -306,8 +306,8 @@
         <translation>&amp;Options de ligne de commande</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Zcoin network</source>
-        <translation><numerusform>%n connexion active au réseau Zcoin</numerusform><numerusform>%n connexions actives au réseau Zcoin</numerusform></translation>
+        <source>%n active connection(s) to Index network</source>
+        <translation><numerusform>%n connexion active au réseau Index</numerusform><numerusform>%n connexions actives au réseau Index</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -684,8 +684,8 @@
         <translation>Expert</translation>
     </message>
     <message>
-        <source>Automatically open the Zcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Ouvrir le port du client Zcoin automatiquement sur le routeur. Cela ne fonctionne que si votre routeur supporte l'UPnP et si la fonctionnalité est activée.</translation>
+        <source>Automatically open the Index client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Ouvrir le port du client Index automatiquement sur le routeur. Cela ne fonctionne que si votre routeur supporte l'UPnP et si la fonctionnalité est activée.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
@@ -844,8 +844,8 @@
         <translation>Montant</translation>
     </message>
     <message>
-        <source>Enter a Zcoin address (e.g. %1)</source>
-        <translation>Entrer une adresse Zcoin (e.g. %1)</translation>
+        <source>Enter a Index address (e.g. %1)</source>
+        <translation>Entrer une adresse Index (e.g. %1)</translation>
     </message>
     <message>
         <source>%1 d</source>

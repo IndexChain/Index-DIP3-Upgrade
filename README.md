@@ -1,4 +1,4 @@
-Zcoin
+Index
 ===============
 
 [![Financial Contributors on Open Collective](https://opencollective.com/index/all/badge.svg?label=financial+contributors)](https://opencollective.com/index) [![latest-release](https://img.shields.io/github/release/indexofficial/index)](https://github.com/indexofficial/index/releases)
@@ -10,25 +10,25 @@ Zcoin
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/indexofficial/index.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/indexofficial/index/alerts/)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/indexofficial/index.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/indexofficial/index/context:cpp)
 
-What is Zcoin?
+What is Index?
 --------------
 
-[Zcoin](https://index.io) is a privacy focused cryptocurrency that utilizes zero-knowledge proofs which allows users to destroy coins and then redeem them later for brand new ones with no transaction history. It was the first project to implement the Zerocoin protocol and has now transitioned to the [Sigma protocol](https://index.io/what-is-sigma-and-why-is-it-replacing-zerocoin-in-index/) which has no trusted setup and small proof sizes. Zcoin also utilises [Dandelion++](https://arxiv.org/abs/1805.11060) to obscure the originating IP of transactions without relying on any external services such as Tor/i2P.
+[Index](https://indexchain.org) is a privacy focused cryptocurrency that utilizes zero-knowledge proofs which allows users to destroy coins and then redeem them later for brand new ones with no transaction history. It was the first project to implement the Zerocoin protocol and has now transitioned to the [Sigma protocol](https://indexchain.org/what-is-sigma-and-why-is-it-replacing-zerocoin-in-index/) which has no trusted setup and small proof sizes. Index also utilises [Dandelion++](https://arxiv.org/abs/1805.11060) to obscure the originating IP of transactions without relying on any external services such as Tor/i2P.
 
-Zcoin developed and utilizes [Merkle Tree Proofs (MTP)](https://arxiv.org/pdf/1606.03588.pdf) as its Proof-of-Work algorithm which aims to be memory hard with fast verification.
+Index developed and utilizes [Merkle Tree Proofs (MTP)](https://arxiv.org/pdf/1606.03588.pdf) as its Proof-of-Work algorithm which aims to be memory hard with fast verification.
 
-How Zcoin’s Privacy Technology Compares to the Competition
+How Index’s Privacy Technology Compares to the Competition
 --------------
-![A comparison chart of Zcoin’s solutions with other leading privacy technologies can be found below](https://index.io/wp-content/uploads/2019/04/index_table_coloured5-01.png) 
-read more https://index.io/indexs-privacy-technology-compares-competition/
+![A comparison chart of Index’s solutions with other leading privacy technologies can be found below](https://indexchain.org/wp-content/uploads/2019/04/index_table_coloured5-01.png) 
+read more https://indexchain.org/indexs-privacy-technology-compares-competition/
 
 Running with Docker
 ===================
 
-If you are already familiar with Docker, then running Zcoin with Docker might be the the easier method for you. To run Zcoin using this method, first install [Docker](https://store.docker.com/search?type=edition&offering=community). After this you may
+If you are already familiar with Docker, then running Index with Docker might be the the easier method for you. To run Index using this method, first install [Docker](https://store.docker.com/search?type=edition&offering=community). After this you may
 continue with the following instructions.
 
-Please note that we currently don't support the GUI when running with Docker. Therefore, you can only use RPC (via HTTP or the `index-cli` utility) to interact with Zcoin via this method.
+Please note that we currently don't support the GUI when running with Docker. Therefore, you can only use RPC (via HTTP or the `index-cli` utility) to interact with Index via this method.
 
 Pull our latest official Docker image:
 
@@ -36,7 +36,7 @@ Pull our latest official Docker image:
 docker pull indexofficial/indexd
 ```
 
-Start Zcoin daemon:
+Start Index daemon:
 
 ```sh
 docker run --detach --name indexd indexofficial/indexd
@@ -103,9 +103,9 @@ Build
 
         git clone https://github.com/indexofficial/index
 
-2.  Build Zcoin-core:
+2.  Build Index-core:
 
-    Configure and build the headless Zcoin binaries as well as the GUI (if Qt is found).
+    Configure and build the headless Index binaries as well as the GUI (if Qt is found).
 
     You can disable the GUI build by passing `--without-gui` to configure.
         

@@ -34,9 +34,9 @@ Note: You only need Berkeley DB if the wallet is enabled (see Disable-wallet mod
       
 Build Index Core
 ------------------------
-1.  Build Zcoin-core:
+1.  Build Index-core:
 
-    Configure and build the headless Zcoin binaries as well as the GUI (if Qt is found).
+    Configure and build the headless Index binaries as well as the GUI (if Qt is found).
     
     In case you want to build the disk image with `make deploy` (.dmg / optional), by passing `--with-gui` to configure.
     
@@ -75,7 +75,7 @@ You can monitor the download process by looking at the debug.log file:
 Other commands:
 -------
 
-    ./src/indexd -daemon # Starts the Zcoin daemon.
+    ./src/indexd -daemon # Starts the Index daemon.
     ./src/index-cli --help # Outputs a list of command-line options.
     ./src/index-cli help # Outputs a list of RPC commands when the daemon is running.
 

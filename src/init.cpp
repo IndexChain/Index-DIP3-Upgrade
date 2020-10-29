@@ -664,7 +664,7 @@ std::string HelpMessage(HelpMessageMode mode)
 std::string LicenseInfo()
 {
     const std::string URL_SOURCE_CODE = "<https://github.com/indexofficial/index>";
-    const std::string URL_WEBSITE = "<https://index.io/>";
+    const std::string URL_WEBSITE = "<https://indexchain.org/>";
     // todo: remove urls from translations on next change
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +
@@ -1117,7 +1117,7 @@ void InitLogging() {
     fLogIPs = GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Zcoin version %s\n", FormatFullVersion());
+    LogPrintf("Index version %s\n", FormatFullVersion());
 }
 
 namespace { // Variables internal to initialization process only
@@ -2332,7 +2332,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         LogPrintf("Staking disabled\n");
     else if (pwalletMain)
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain, chainparams));
-    // ********************************************************* Step 13a: update block tip in Zcoin modules
+    // ********************************************************* Step 13a: update block tip in Index modules
 
     bool fEvoZnodes = false;
     {

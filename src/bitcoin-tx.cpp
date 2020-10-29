@@ -65,8 +65,8 @@ static int AppInitRawTx(int argc, char* argv[])
         // First part of help message is specific to this utility
         std::string strUsage = strprintf(_("%s index-tx utility version"), _(PACKAGE_NAME)) + " " + FormatFullVersion() + "\n\n" +
             _("Usage:") + "\n" +
-              "  index-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded Zcoin transaction") + "\n" +
-              "  index-tx [options] -create [commands]   " + _("Create hex-encoded Zcoin transaction") + "\n" +
+              "  index-tx [options] <hex-tx> [commands]  " + _("Update hex-encoded Index transaction") + "\n" +
+              "  index-tx [options] -create [commands]   " + _("Create hex-encoded Index transaction") + "\n" +
               "\n";
 
         fprintf(stdout, "%s", strUsage.c_str());

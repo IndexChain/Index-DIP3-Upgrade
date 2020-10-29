@@ -526,8 +526,8 @@ public:
         vSeeds.clear();
         // index test seeds
 
-        vSeeds.push_back(CDNSSeedData("EVO1", "evo1.index.io", false));
-        vSeeds.push_back(CDNSSeedData("EVO2", "evo2.index.io", false));
+        vSeeds.push_back(CDNSSeedData("EVO1", "evo1.indexchain.org", false));
+        vSeeds.push_back(CDNSSeedData("EVO2", "evo2.indexchain.org", false));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector < unsigned char > (1, 65);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector < unsigned char > (1, 178);

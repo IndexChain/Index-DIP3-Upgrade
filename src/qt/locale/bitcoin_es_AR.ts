@@ -68,7 +68,7 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     </context>
 <context>
     <name>CoinControlDialog</name>

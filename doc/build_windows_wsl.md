@@ -1,6 +1,6 @@
-# How to compile and execute Zcoin code on Windows 10
+# How to compile and execute Index code on Windows 10
 
-There are two possibilities of compiling Zcoin code on Windows 10.
+There are two possibilities of compiling Index code on Windows 10.
  Both of them are based on using [WSL/Ubuntu](https://msdn.microsoft.com/en-us/commandline/wsl/install_guide).
  The main difference is in execution, using first method you will get .exe files, otherwise you need to use [Xming](http://www.straightrunning.com/XmingNotes/) to start **GUI**.
  
@@ -105,12 +105,12 @@ For the more complex second execution method, you need to install
 
     Now do either step **7** OR step **8**, not both.
 
-6. Build 32-bit debug build (from the Zcoin root directory)
+6. Build 32-bit debug build (from the Index root directory)
     
         ./configure --prefix=$HOME/index-depends/i686-w64-mingw32
         make -j`nproc`
 
-7. Build 64-bit debug build (from the Zcoin root directory)
+7. Build 64-bit debug build (from the Index root directory)
      
         ./configure --prefix=$HOME/index-depends/x86_64-w64-mingw32
         make -j`nproc`

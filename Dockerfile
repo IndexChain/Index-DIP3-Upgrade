@@ -41,7 +41,7 @@ RUN curl -L https://github.com/zeromq/libzmq/releases/download/v4.3.1/zeromq-4.3
 # Create user to run daemon
 RUN useradd -m -U indexd
 
-# Build Zcoin
+# Build Index
 COPY . /tmp/index/
 
 RUN cd /tmp/index && \
@@ -65,7 +65,7 @@ RUN apt-get remove -y \
     libzmq3-dev \
     make
 
-# Start Zcoin Daemon
+# Start Index Daemon
 USER indexd
 
 RUN mkdir /home/indexd/.index

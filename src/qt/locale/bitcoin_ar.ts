@@ -62,11 +62,11 @@
         <translation>استقبال العناوين</translation>
     </message>
     <message>
-        <source>These are your Zcoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <source>These are your Index addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
         <translation>هذه هي عناوين Bitcion التابعة لك من أجل إرسال الدفعات. تحقق دائما من المبلغ و عنوان المرسل المستقبل قبل إرسال العملات</translation>
     </message>
     <message>
-        <source>These are your Zcoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <source>These are your Index addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
         <translation>هذه هي عناوين Bitcion التابعة لك من أجل إستقبال الدفعات. ينصح استخدام عنوان جديد من أجل كل صفقة</translation>
     </message>
     <message>
@@ -228,7 +228,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Sign &amp;message...</source>
         <translation>التوقيع و الرسائل</translation>
@@ -318,7 +318,7 @@
         <translation>إعادة الفهرسة الكتل على القرص ...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
+        <source>Send coins to a Index address</source>
         <translation>ارسل عملات الى عنوان بيتكوين</translation>
     </message>
     <message>
@@ -342,7 +342,7 @@
         <translation>&amp;التحقق من الرسالة...</translation>
     </message>
     <message>
-        <source>Zcoin</source>
+        <source>Index</source>
         <translation>بت كوين</translation>
     </message>
     <message>
@@ -370,12 +370,12 @@
         <translation>تشفير المفتاح الخاص بمحفظتك</translation>
     </message>
     <message>
-        <source>Sign messages with your Zcoin addresses to prove you own them</source>
-        <translation>وقَع الرسائل بواسطة ال: Zcoin الخاص بك لإثبات امتلاكك لهم</translation>
+        <source>Sign messages with your Index addresses to prove you own them</source>
+        <translation>وقَع الرسائل بواسطة ال: Index الخاص بك لإثبات امتلاكك لهم</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Zcoin addresses</source>
-        <translation>تحقق من الرسائل للتأكد من أنَها وُقعت برسائل Zcoin محدَدة</translation>
+        <source>Verify messages to ensure they were signed with specified Index addresses</source>
+        <translation>تحقق من الرسائل للتأكد من أنَها وُقعت برسائل Index محدَدة</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -407,7 +407,7 @@
     </message>
     <message>
         <source>Open a index: URI or payment request</source>
-        <translation>فتح URI : Zcoin أو طلب دفع</translation>
+        <translation>فتح URI : Index أو طلب دفع</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -450,7 +450,7 @@
         <translation>محدث</translation>
     </message>
     <message>
-        <source>Show the %1 help message to get a list with possible Zcoin command-line options</source>
+        <source>Show the %1 help message to get a list with possible Index command-line options</source>
         <translation>بين اشارة المساعدة %1 للحصول على قائمة من خيارات اوامر البت كوين المحتملة </translation>
     </message>
     <message>
@@ -668,7 +668,7 @@
         <translation>تعديل عنوان الارسال</translation>
     </message>
     <message>
-        <source>The entered address "%1" is not a valid Zcoin address.</source>
+        <source>The entered address "%1" is not a valid Index address.</source>
         <translation>العنوان المدخل "%1" ليس عنوان بيت كوين صحيح.</translation>
     </message>
     <message>
@@ -1418,7 +1418,7 @@
         <translation>هذا دفع اعتيادي</translation>
     </message>
     <message>
-        <source>The Zcoin address to send the payment to</source>
+        <source>The Index address to send the payment to</source>
         <translation>عنوان البت كوين المرسل اليه الدفع</translation>
     </message>
     <message>
@@ -1495,7 +1495,7 @@
         <translation>التوقيع</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Zcoin address</source>
+        <source>Sign the message to prove you own this Index address</source>
         <translation>وقع الرسالة لتثبت انك تمتلك عنوان البت كوين هذا</translation>
     </message>
     <message>

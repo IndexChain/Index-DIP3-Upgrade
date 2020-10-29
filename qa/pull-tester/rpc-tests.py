@@ -172,7 +172,7 @@ testScripts = [
     'p2p-leaktests.py',
     'notifications.py',
 
-    # Zcoin-specific tests
+    # Index-specific tests
     'wallet_dumpnonhd.py',
     'wallet_dumpsigma.py',
     'wallet_dumpzerocoin.py',

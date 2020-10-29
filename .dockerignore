@@ -83,7 +83,7 @@ src/tor.timestamp*
 **/*.qm
 **/Makefile
 **/index-qt*
-**/Zcoin-Qt.app
+**/Index-Qt.app
 
 # Unit-tests
 **/Makefile.test

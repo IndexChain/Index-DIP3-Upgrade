@@ -124,13 +124,13 @@ WalletView::~WalletView()
 
 void WalletView::setupTransactionPage()
 {
-    // Create Zcoin transactions list
+    // Create Index transactions list
     indexTransactionList = new TransactionView(platformStyle);
 
     connect(indexTransactionList, SIGNAL(doubleClicked(QModelIndex)), indexTransactionList, SLOT(showDetails()));
     connect(indexTransactionList, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
-    // Create export panel for Zcoin transactions
+    // Create export panel for Index transactions
     auto exportButton = new QPushButton(tr("&Export"));
 
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
@@ -162,7 +162,7 @@ void WalletView::setupTransactionPage()
         elysiumTransactionsView = new TXHistoryDialog();
 
         transactionTabs = new QTabWidget();
-        transactionTabs->addTab(indexTransactionsView, tr("Zcoin"));
+        transactionTabs->addTab(indexTransactionsView, tr("Index"));
         transactionTabs->addTab(elysiumTransactionsView, tr("Elysium"));
     }
 #endif
@@ -182,9 +182,9 @@ void WalletView::setupTransactionPage()
 
 void WalletView::setupSendCoinPage()
 {
-    sendZcoinView = new SendCoinsDialog(platformStyle);
+    sendIndexView = new SendCoinsDialog(platformStyle);
 
-    connect(sendZcoinView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    connect(sendIndexView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
 #ifdef ENABLE_ELYSIUM
     // Create tab for coin type
@@ -192,7 +192,7 @@ void WalletView::setupSendCoinPage()
         sendElysiumView = new SendMPDialog(platformStyle);
 
         sendCoinsTabs = new QTabWidget();
-        sendCoinsTabs->addTab(sendZcoinView, tr("Zcoin"));
+        sendCoinsTabs->addTab(sendIndexView, tr("Index"));
         sendCoinsTabs->addTab(sendElysiumView, tr("Elysium"));
     }
 #endif
@@ -205,7 +205,7 @@ void WalletView::setupSendCoinPage()
         pageLayout->addWidget(sendCoinsTabs);
     } else
 #endif
-        pageLayout->addWidget(sendZcoinView);
+        pageLayout->addWidget(sendIndexView);
 
     sendCoinsPage->setLayout(pageLayout);
 }
@@ -279,7 +279,7 @@ void WalletView::setClientModel(ClientModel *_clientModel)
     this->clientModel = _clientModel;
 
     overviewPage->setClientModel(clientModel);
-    sendZcoinView->setClientModel(clientModel);
+    sendIndexView->setClientModel(clientModel);
     indexnodeListPage->setClientModel(clientModel);
     masternodeListPage->setClientModel(clientModel);
     stakePage->setClientModel(_clientModel);
@@ -323,7 +323,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     indexnodeListPage->setWalletModel(_walletModel);
     masternodeListPage->setWalletModel(_walletModel);
     stakePage->setWalletModel(_walletModel);
-    sendZcoinView->setModel(_walletModel);
+    sendIndexView->setModel(_walletModel);
     zc2SigmaPage->setWalletModel(_walletModel);
 #ifdef ENABLE_ELYSIUM
     elyAssetsPage->setWalletModel(walletModel);
@@ -491,7 +491,7 @@ void WalletView::gotoSendCoinsPage(QString addr)
     setCurrentWidget(sendCoinsPage);
 
     if (!addr.isEmpty()){
-        sendZcoinView->setAddress(addr);
+        sendIndexView->setAddress(addr);
     }
 }
 
@@ -527,7 +527,7 @@ bool WalletView::handlePaymentRequest(const SendCoinsRecipient& recipient)
     }
 #endif
 
-    return sendZcoinView->handlePaymentRequest(recipient);
+    return sendIndexView->handlePaymentRequest(recipient);
 }
 
 void WalletView::showOutOfSyncWarning(bool fShow)

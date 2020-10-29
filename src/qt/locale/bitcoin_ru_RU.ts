@@ -64,9 +64,9 @@
     <name>BanTableModel</name>
     </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
-        <source>Zcoin</source>
+        <source>Index</source>
         <translation>Index Core</translation>
     </message>
     <message>

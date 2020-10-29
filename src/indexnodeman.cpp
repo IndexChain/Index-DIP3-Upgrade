@@ -947,7 +947,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
 {
 
 //    LogPrint("indexnode", "CZnodeMan::ProcessMessage, strCommand=%s\n", strCommand);
-    if(fLiteMode) return; // disable all Zcoin specific functionality
+    if(fLiteMode) return; // disable all Index specific functionality
     if(!indexnodeSync.IsBlockchainSynced()) return;
 
     if (strCommand == NetMsgType::MNANNOUNCE) { //Znode Broadcast

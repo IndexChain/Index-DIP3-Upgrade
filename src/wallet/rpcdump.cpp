@@ -260,7 +260,7 @@ UniValue importaddress(const JSONRPCRequest& request)
         std::vector<unsigned char> data(ParseHex(request.params[0].get_str()));
         ImportScript(pwallet, CScript(data.begin(), data.end()), strLabel, fP2SH);
     } else {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Zcoin address or script");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Index address or script");
     }
 
     if (fRescan)
@@ -617,7 +617,7 @@ UniValue dumpprivkey(const JSONRPCRequest& request)
             "\nReveals the private key corresponding to 'address'.\n"
             "Then the importprivkey can be used with this output\n"
             "\nArguments:\n"
-            "1. \"address\"   (string, required) The Zcoin address for the private key\n"
+            "1. \"address\"   (string, required) The Index address for the private key\n"
             "\nResult:\n"
             "\"key\"                (string) The private key\n"
             "\nExamples:\n"
@@ -633,7 +633,7 @@ UniValue dumpprivkey(const JSONRPCRequest& request)
     string strAddress = request.params[0].get_str();
     CBitcoinAddress address;
     if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Zcoin address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Index address");
     CKeyID keyID;
     if (!address.GetKeyID(keyID))
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
@@ -653,7 +653,7 @@ UniValue dumpprivkey_index(const JSONRPCRequest& request)
             "\nReveals the private key corresponding to 'indexaddress'.\n"
             "Then the importprivkey can be used with this output\n"
             "\nArguments:\n"
-            "1. \"indexaddress\"   (string, required) The Zcoin address for the private key\n"
+            "1. \"indexaddress\"   (string, required) The Index address for the private key\n"
             "2. \"one-time-auth-code\"   (string, optional) A one time authorization code received from a previous call of dumpprivkey"
             "\nResult:\n"
             "\"key\"                (string) The private key\n"
@@ -671,7 +671,7 @@ UniValue dumpprivkey_index(const JSONRPCRequest& request)
             "WARNING! Your one time authorization code is: " + AuthorizationHelper::inst().generateAuthorizationCode(__FUNCTION__ + request.params[0].get_str()) + "\n"
             "This command exports your wallet private key. Anyone with this key has complete control over your funds. \n"
             "If someone asked you to type in this command, chances are they want to steal your coins. \n"
-            "Zcoin team members will never ask for this command's output and it is not needed for Znode setup or diagnosis!\n"
+            "Index team members will never ask for this command's output and it is not needed for Znode setup or diagnosis!\n"
             "\n"
             " Please seek help on one of our public channels. \n"
             " Telegram: https://t.me/indexproject \n"
@@ -733,7 +733,7 @@ UniValue dumpwallet(const JSONRPCRequest& request)
     std::sort(vKeyBirth.begin(), vKeyBirth.end());
 
     // produce output
-    file << strprintf("# Wallet dump created by Zcoin %s\n", CLIENT_BUILD);
+    file << strprintf("# Wallet dump created by Index %s\n", CLIENT_BUILD);
     file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString());
     file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
@@ -872,7 +872,7 @@ UniValue dumpwallet_index(const JSONRPCRequest& request)
             "WARNING! Your one time authorization code is: " + AuthorizationHelper::inst().generateAuthorizationCode(__FUNCTION__ + request.params[0].get_str()) + "\n"
             "This command exports all your private keys. Anyone with these keys has complete control over your funds. \n"
             "If someone asked you to type in this command, chances are they want to steal your coins. \n"
-            "Zcoin team members will never ask for this command's output and it is not needed for Znode setup or diagnosis!\n"
+            "Index team members will never ask for this command's output and it is not needed for Znode setup or diagnosis!\n"
             "\n"
             " Please seek help on one of our public channels. \n"
             " Telegram: https://t.me/indexproject \n"

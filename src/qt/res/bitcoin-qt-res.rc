@@ -19,8 +19,8 @@ BEGIN
     BEGIN
         BLOCK "040904E4" // U.S. English - multilingual (hex)
         BEGIN
-            VALUE "CompanyName",        "Zcoin"
-            VALUE "FileDescription",    PACKAGE_NAME " (GUI node for Zcoin)"
+            VALUE "CompanyName",        "Index"
+            VALUE "FileDescription",    PACKAGE_NAME " (GUI node for Index)"
             VALUE "FileVersion",        VER_FILEVERSION_STR
             VALUE "InternalName",       "index-qt"
             VALUE "LegalCopyright",     COPYRIGHT_STR

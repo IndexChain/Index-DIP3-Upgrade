@@ -139,7 +139,7 @@ CPubKey CWallet::GetKeyFromKeypath(uint32_t nChange, uint32_t nChild) {
     CKey key;                      //master key seed (256bit)
     CExtKey masterKey;             //hd master key
     CExtKey purposeKey;            //key at m/44'
-    CExtKey coinTypeKey;           //key at m/44'/<1/136>' (Testnet or Zcoin Coin Type respectively, according to SLIP-0044)
+    CExtKey coinTypeKey;           //key at m/44'/<1/136>' (Testnet or Index Coin Type respectively, according to SLIP-0044)
     CExtKey accountKey;            //key at m/44'/<1/136>'/0'
     CExtKey externalChainChildKey; //key at m/44'/<1/136>'/0'/<c> (Standard: 0/1, Mints: 2)
     CExtKey childKey;              //key at m/44'/<1/136>'/0'/<c>/<n>
@@ -204,7 +204,7 @@ CPubKey CWallet::GenerateNewKey(uint32_t nChange, bool fWriteChain)
         CKey key;                      //master key seed (256bit)
         CExtKey masterKey;             //hd master key
         CExtKey purposeKey;            //key at m/44'
-        CExtKey coinTypeKey;           //key at m/44'/<1/136>' (Testnet or Zcoin Coin Type respectively, according to SLIP-0044)
+        CExtKey coinTypeKey;           //key at m/44'/<1/136>' (Testnet or Index Coin Type respectively, according to SLIP-0044)
         CExtKey accountKey;            //key at m/44'/<1/136>'/0'
         CExtKey externalChainChildKey; //key at m/44'/<1/136>'/0'/<c> (Standard: 0/1, Mints: 2)
         CExtKey childKey;              //key at m/44'/<1/136>'/0'/<c>/<n>
@@ -2397,7 +2397,7 @@ CBlockIndex* CWallet::ScanForWalletTransactions(CBlockIndex *pindexStart, bool f
 
         // no need to read and scan block, if block was created before
         // our wallet birthday (as adjusted for block time variability)
-        // if you are recovering wallet with mnemonics start rescan from block when mnemonics implemented in Zcoin
+        // if you are recovering wallet with mnemonics start rescan from block when mnemonics implemented in Index
         if (fRecoverMnemonic) {
             pindex = chainActive[chainParams.GetConsensus().nMnemonicBlock];
             if (pindex == NULL)
@@ -5189,10 +5189,10 @@ bool CWallet::CreateZerocoinSpendTransaction(std::string &thirdPartyaddress, int
 
                 CBitcoinAddress address(thirdPartyaddress);
                 if (!address.IsValid()){
-                    strFailReason = _("Invalid Zcoin address");
+                    strFailReason = _("Invalid Index address");
                     return false;
                 }
-                // Parse Zcoin address
+                // Parse Index address
                 scriptChange = GetScriptForDestination(CBitcoinAddress(thirdPartyaddress).Get());
             }
 
@@ -5462,10 +5462,10 @@ bool CWallet::CreateMultipleZerocoinSpendTransaction(std::string &thirdPartyaddr
             }else{
                  CBitcoinAddress address(thirdPartyaddress);
                 if (!address.IsValid()){
-                    strFailReason = _("Invalid Zcoin address");
+                    strFailReason = _("Invalid Index address");
                     return false;
                 }
-                // Parse Zcoin address
+                // Parse Index address
                 scriptChange = GetScriptForDestination(CBitcoinAddress(thirdPartyaddress).Get());
             }
 
@@ -7688,7 +7688,7 @@ bool CMerkleTx::AcceptToMemoryPool(const CAmount &nAbsurdFee, CValidationState &
             false, /* fOverrideMempoolLimit */
             nAbsurdFee,
             true,
-            false /* markZcoinSpendTransactionSerial */
+            false /* markIndexSpendTransactionSerial */
         );
         if (!res) {
             LogPrintf(

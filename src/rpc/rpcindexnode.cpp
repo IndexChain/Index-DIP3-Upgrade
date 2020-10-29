@@ -472,7 +472,7 @@ UniValue indexnodelist(const JSONRPCRequest &request) {
                         "  lastpaidblock  - Print the last block height a node was paid on the network\n"
                         "  lastpaidtime   - Print the last time a node was paid on the network\n"
                         "  lastseen       - Print timestamp of when a indexnode was last seen on the network\n"
-                        "  payee          - Print Zcoin address associated with a indexnode (can be additionally filtered,\n"
+                        "  payee          - Print Index address associated with a indexnode (can be additionally filtered,\n"
                         "                   partial match)\n"
                         "  protocol       - Print protocol of a indexnode (can be additionally filtered, exact match))\n"
                         "  rank           - Print rank of a indexnode based on current block\n"

@@ -62,12 +62,12 @@
         <translation>Alamat-alamat penerima</translation>
     </message>
     <message>
-        <source>These are your Zcoin addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
-        <translation>Ini adalah alamat- alamat Zcoin Anda untuk mengirimkan pembayaran. Selalu periksa jumlah dan alamat penerima sebelum mengirimkan koin.</translation>
+        <source>These are your Index addresses for sending payments. Always check the amount and the receiving address before sending coins.</source>
+        <translation>Ini adalah alamat- alamat Index Anda untuk mengirimkan pembayaran. Selalu periksa jumlah dan alamat penerima sebelum mengirimkan koin.</translation>
     </message>
     <message>
-        <source>These are your Zcoin addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
-        <translation>Ini adalah alamat- alamat Zcoin Anda untuk menerima pembayaran. Dianjurkan untuk menggunakan alamat penerima yang baru setiap melakukan transaksi.</translation>
+        <source>These are your Index addresses for receiving payments. It is recommended to use a new receiving address for each transaction.</source>
+        <translation>Ini adalah alamat- alamat Index Anda untuk menerima pembayaran. Dianjurkan untuk menggunakan alamat penerima yang baru setiap melakukan transaksi.</translation>
     </message>
     <message>
         <source>&amp;Copy Address</source>
@@ -228,7 +228,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Sign &amp;message...</source>
         <translation>Pesan &amp;penanda...</translation>
@@ -334,8 +334,8 @@
         <translation>Mengindex ulang blok di dalam disk...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
-        <translation>Kirim koin ke alamat Zcoin</translation>
+        <source>Send coins to a Index address</source>
+        <translation>Kirim koin ke alamat Index</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -358,8 +358,8 @@
         <translation>&amp;Verifikasi pesan...</translation>
     </message>
     <message>
-        <source>Zcoin</source>
-        <translation>Zcoin</translation>
+        <source>Index</source>
+        <translation>Index</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -386,12 +386,12 @@
         <translation>Enkripsi private key yang dimiliki dompet Anda</translation>
     </message>
     <message>
-        <source>Sign messages with your Zcoin addresses to prove you own them</source>
-        <translation>Tanda tangani sebuah pesan menggunakan alamat Zcoin Anda untuk membuktikan bahwa Anda adalah pemilik alamat tersebut</translation>
+        <source>Sign messages with your Index addresses to prove you own them</source>
+        <translation>Tanda tangani sebuah pesan menggunakan alamat Index Anda untuk membuktikan bahwa Anda adalah pemilik alamat tersebut</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Zcoin addresses</source>
-        <translation>Verifikasi pesan untuk memastikan bahwa pesan tersebut ditanda tangani oleh suatu alamat Zcoin tertentu</translation>
+        <source>Verify messages to ensure they were signed with specified Index addresses</source>
+        <translation>Verifikasi pesan untuk memastikan bahwa pesan tersebut ditanda tangani oleh suatu alamat Index tertentu</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -430,8 +430,8 @@
         <translation>&amp;pilihan Command-line</translation>
     </message>
     <message numerus="yes">
-        <source>%n active connection(s) to Zcoin network</source>
-        <translation><numerusform>%n koneksi aktif ke jaringan Zcoin</numerusform></translation>
+        <source>%n active connection(s) to Index network</source>
+        <translation><numerusform>%n koneksi aktif ke jaringan Index</numerusform></translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -474,8 +474,8 @@
         <translation>Terbaru</translation>
     </message>
     <message>
-        <source>Show the %1 help message to get a list with possible Zcoin command-line options</source>
-        <translation>Tampilkan %1 pesan bantuan untuk mendapatkan daftar opsi baris perintah Zcoin yang memungkinkan</translation>
+        <source>Show the %1 help message to get a list with possible Index command-line options</source>
+        <translation>Tampilkan %1 pesan bantuan untuk mendapatkan daftar opsi baris perintah Index yang memungkinkan</translation>
     </message>
     <message>
         <source>%1 client</source>
@@ -864,16 +864,16 @@
         <translation>&amp;Perubahan saldo untuk transaksi yang belum dikonfirmasi</translation>
     </message>
     <message>
-        <source>Automatically open the Zcoin client port on the router. This only works when your router supports UPnP and it is enabled.</source>
-        <translation>Otomatis membuka port client Zcoin di router. Hanya berjalan apabila router anda mendukung UPnP dan di-enable.</translation>
+        <source>Automatically open the Index client port on the router. This only works when your router supports UPnP and it is enabled.</source>
+        <translation>Otomatis membuka port client Index di router. Hanya berjalan apabila router anda mendukung UPnP dan di-enable.</translation>
     </message>
     <message>
         <source>Map port using &amp;UPnP</source>
         <translation>Petakan port dengan &amp;UPnP</translation>
     </message>
     <message>
-        <source>Connect to the Zcoin network through a SOCKS5 proxy.</source>
-        <translation>Hubungkan ke jaringan Zcoin melalui SOCKS5 proxy.</translation>
+        <source>Connect to the Index network through a SOCKS5 proxy.</source>
+        <translation>Hubungkan ke jaringan Index melalui SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>Proxy &amp;IP:</source>
@@ -979,8 +979,8 @@
         <translation>Formulir</translation>
     </message>
     <message>
-        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Zcoin network after a connection is established, but this process has not completed yet.</source>
-        <translation>Informasi terlampir mungkin sudah kedaluwarsa. Dompet Anda secara otomatis mensinkronisasi dengan jaringan Zcoin ketika sebuah hubungan terbentuk, namun proses ini belum selesai.</translation>
+        <source>The displayed information may be out of date. Your wallet automatically synchronizes with the Index network after a connection is established, but this process has not completed yet.</source>
+        <translation>Informasi terlampir mungkin sudah kedaluwarsa. Dompet Anda secara otomatis mensinkronisasi dengan jaringan Index ketika sebuah hubungan terbentuk, namun proses ini belum selesai.</translation>
     </message>
     <message>
         <source>Available:</source>
@@ -1036,8 +1036,8 @@
         <translation>Nilai</translation>
     </message>
     <message>
-        <source>Enter a Zcoin address (e.g. %1)</source>
-        <translation>Masukkan alamat Zcoin (contoh %1)</translation>
+        <source>Enter a Index address (e.g. %1)</source>
+        <translation>Masukkan alamat Index (contoh %1)</translation>
     </message>
     <message>
         <source>%1 h</source>
@@ -1543,8 +1543,8 @@
         <translation>Salin tanda tangan terpilih ke sistem klipboard</translation>
     </message>
     <message>
-        <source>Sign the message to prove you own this Zcoin address</source>
-        <translation>Tandai pesan untuk menyetujui kamu pemiliki alamat Zcoin ini</translation>
+        <source>Sign the message to prove you own this Index address</source>
+        <translation>Tandai pesan untuk menyetujui kamu pemiliki alamat Index ini</translation>
     </message>
     <message>
         <source>Sign &amp;Message</source>

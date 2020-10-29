@@ -96,7 +96,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Sign &amp;message...</source>
         <translation>Chứ ký &amp; Tin nhắn...</translation>
@@ -186,8 +186,8 @@
         <translation>Đánh chỉ số (indexing) lại các khối (blocks) trên ổ đĩa ...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
-        <translation>Gửi coins đến tài khoản Zcoin</translation>
+        <source>Send coins to a Index address</source>
+        <translation>Gửi coins đến tài khoản Index</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -206,8 +206,8 @@
         <translation>&amp;Tin nhắn xác thực</translation>
     </message>
     <message>
-        <source>Zcoin</source>
-        <translation>Zcoin</translation>
+        <source>Index</source>
+        <translation>Index</translation>
     </message>
     <message>
         <source>Wallet</source>
@@ -234,12 +234,12 @@
         <translation>Mã hoá các khoá bí mật trong Ví của bạn.</translation>
     </message>
     <message>
-        <source>Sign messages with your Zcoin addresses to prove you own them</source>
-        <translation>Dùng địa chỉ Zcoin của bạn ký các tin nhắn để xác minh những nội dung tin nhắn đó là của bạn.</translation>
+        <source>Sign messages with your Index addresses to prove you own them</source>
+        <translation>Dùng địa chỉ Index của bạn ký các tin nhắn để xác minh những nội dung tin nhắn đó là của bạn.</translation>
     </message>
     <message>
-        <source>Verify messages to ensure they were signed with specified Zcoin addresses</source>
-        <translation>Kiểm tra các tin nhắn để chắc chắn rằng chúng được ký bằng các địa chỉ Zcoin xác định.</translation>
+        <source>Verify messages to ensure they were signed with specified Index addresses</source>
+        <translation>Kiểm tra các tin nhắn để chắc chắn rằng chúng được ký bằng các địa chỉ Index xác định.</translation>
     </message>
     <message>
         <source>&amp;File</source>
@@ -259,7 +259,7 @@
     </message>
     <message>
         <source>Request payments (generates QR codes and index: URIs)</source>
-        <translation>Yêu cầu thanh toán(tạo mã QR và địa chỉ Zcoin: URLs)</translation>
+        <translation>Yêu cầu thanh toán(tạo mã QR và địa chỉ Index: URLs)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -536,8 +536,8 @@
         <translation>Ví</translation>
     </message>
     <message>
-        <source>Connect to the Zcoin network through a SOCKS5 proxy.</source>
-        <translation>Kết nối đến máy chủ Zcoin thông qua SOCKS5 proxy.</translation>
+        <source>Connect to the Index network through a SOCKS5 proxy.</source>
+        <translation>Kết nối đến máy chủ Index thông qua SOCKS5 proxy.</translation>
     </message>
     <message>
         <source>Proxy &amp;IP:</source>

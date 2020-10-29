@@ -335,7 +335,7 @@ void BitcoinGUI::createActions()
 	tabGroup->addAction(overviewAction);
 
 	sendCoinsAction = new QAction(platformStyle->MultiStatesIcon(":/icons/send"), tr("&Send"), this);
-	sendCoinsAction->setStatusTip(tr("Send coins to a Zcoin address"));
+	sendCoinsAction->setStatusTip(tr("Send coins to a Index address"));
 	sendCoinsAction->setToolTip(sendCoinsAction->statusTip());
 	sendCoinsAction->setCheckable(true);
 	sendCoinsAction->setShortcut(QKeySequence(Qt::ALT + key++));
@@ -490,9 +490,9 @@ void BitcoinGUI::createActions()
     lockWalletAction = new QAction(platformStyle->MenuColorIcon(":/icons/lock_closed"), tr("&Lock Wallet"), this);
     lockWalletAction->setToolTip(tr("Lock wallet"));
     signMessageAction = new QAction(platformStyle->MultiStatesIcon(":/icons/edit"), tr("Sign &message..."), this);
-    signMessageAction->setStatusTip(tr("Sign messages with your Zcoin addresses to prove you own them"));
+    signMessageAction->setStatusTip(tr("Sign messages with your Index addresses to prove you own them"));
     verifyMessageAction = new QAction(platformStyle->MultiStatesIcon(":/icons/verify"), tr("&Verify message..."), this);
-    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Zcoin addresses"));
+    verifyMessageAction->setStatusTip(tr("Verify messages to ensure they were signed with specified Index addresses"));
 
     openRepairAction = new QAction(QIcon(":/icons/options"), tr("Wallet &Repair"), this);
     openRepairAction->setStatusTip(tr("Show wallet repair options"));
@@ -513,7 +513,7 @@ void BitcoinGUI::createActions()
 
     showHelpMessageAction = new QAction(platformStyle->SingleColorIcon(":/icons/info"), tr("&Command-line options"), this);
     showHelpMessageAction->setMenuRole(QAction::NoRole);
-    showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Zcoin command-line options").arg(tr(PACKAGE_NAME)));
+    showHelpMessageAction->setStatusTip(tr("Show the %1 help message to get a list with possible Index command-line options").arg(tr(PACKAGE_NAME)));
 
     connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(aboutClicked()));
@@ -978,7 +978,7 @@ void BitcoinGUI::updateNetworkState()
     QString tooltip;
 
     if (clientModel->getNetworkActive()) {
-        tooltip = tr("%n active connection(s) to Zcoin network", "", count) + QString(".<br>") + tr("Click to disable network activity.");
+        tooltip = tr("%n active connection(s) to Index network", "", count) + QString(".<br>") + tr("Click to disable network activity.");
     } else {
         tooltip = tr("Network activity disabled.") + QString("<br>") + tr("Click to enable network activity again.");
         icon = ":/icons/network_disabled";
@@ -1182,7 +1182,7 @@ void BitcoinGUI::setAdditionalDataSyncProgress(double nSyncProgress)
 
 void BitcoinGUI::message(const QString &title, const QString &message, unsigned int style, bool *ret)
 {
-    QString strTitle = tr("Zcoin"); // default title
+    QString strTitle = tr("Index"); // default title
     // Default to information icon
     int nMBoxIcon = QMessageBox::Information;
     int nNotifyIcon = Notificator::Information;
@@ -1208,7 +1208,7 @@ void BitcoinGUI::message(const QString &title, const QString &message, unsigned 
             break;
         }
     }
-    // Append title to "Zcoin - "
+    // Append title to "Index - "
     if (!msgType.isEmpty())
         strTitle += " - " + msgType;
 

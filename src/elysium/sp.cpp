@@ -72,16 +72,16 @@ CMPSPInfo::CMPSPInfo(const boost::filesystem::path& path, bool fWipe)
     implied_elysium.category = "N/A";
     implied_elysium.subcategory = "N/A";
     implied_elysium.name = "Exodus";
-    implied_elysium.url = "https://www.index.io";
-    implied_elysium.data = "Exodus serve as the binding between Zcoin, smart properties and contracts created on the Exodus Layer.";
+    implied_elysium.url = "https://www.indexchain.org";
+    implied_elysium.data = "Exodus serve as the binding between Index, smart properties and contracts created on the Exodus Layer.";
     implied_telysium.issuer = GetSystemAddress().ToString();
     implied_telysium.prop_type = ELYSIUM_PROPERTY_TYPE_DIVISIBLE;
     implied_telysium.num_tokens = 700000;
     implied_telysium.category = "N/A";
     implied_telysium.subcategory = "N/A";
     implied_telysium.name = "Test Exodus";
-    implied_telysium.url = "https://www.index.io";
-    implied_telysium.data = "Test Exodus serve as the binding between Zcoin, smart properties and contracts created on the Exodus Layer.";
+    implied_telysium.url = "https://www.indexchain.org";
+    implied_telysium.data = "Test Exodus serve as the binding between Index, smart properties and contracts created on the Exodus Layer.";
 
     init();
 }

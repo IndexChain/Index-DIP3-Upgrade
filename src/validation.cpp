@@ -86,7 +86,7 @@
 #include <boost/thread.hpp>
 
 #if defined(NDEBUG)
-# error "Zcoin cannot be compiled without assertions."
+# error "Index cannot be compiled without assertions."
 #endif
 
 bool AbortNode(const std::string& strMessage, const std::string& userMessage="");
@@ -131,7 +131,7 @@ CTxMemPool mempool(::minRelayTxFee);
 FeeFilterRounder filterRounder(::minRelayTxFee);
 CTxPoolAggregate txpools(::minRelayTxFee);
 
-// Zcoin indexnode
+// Index indexnode
 map <uint256, int64_t> mapRejectedBlocks GUARDED_BY(cs_main);
 
 
@@ -713,7 +713,7 @@ static bool IsCurrentForFeeEstimation()
 bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const CTransactionRef& ptx, bool fLimitFree,
                               bool* pfMissingInputs, int64_t nAcceptTime, std::list<CTransactionRef>* plTxnReplaced,
                               bool fOverrideMempoolLimit, const CAmount& nAbsurdFee, std::vector<COutPoint>& coins_to_uncache,
-                              bool isCheckWalletTransaction, bool markZcoinSpendTransactionSerial)
+                              bool isCheckWalletTransaction, bool markIndexSpendTransactionSerial)
 {
     bool fTestNet = Params().GetConsensus().IsTestnet();
     LogPrintf("AcceptToMemoryPoolWorker(), tx.IsZerocoinSpend()=%s, fTestNet=%s\n", ptx->IsZerocoinSpend() || ptx->IsSigmaSpend(), fTestNet);
@@ -1315,10 +1315,10 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
         }
     }
 
-    if ((tx.IsZerocoinSpend() || tx.IsZerocoinRemint()) && markZcoinSpendTransactionSerial)
+    if ((tx.IsZerocoinSpend() || tx.IsZerocoinRemint()) && markIndexSpendTransactionSerial)
         zcState->AddSpendToMempool(zcSpendSerials, hash);
     if (tx.IsSigmaSpend()){
-        if(markZcoinSpendTransactionSerial)
+        if(markIndexSpendTransactionSerial)
             sigmaState->AddSpendToMempool(zcSpendSerialsV3, hash);
         LogPrintf("Updating mint tracker state from Mempool..");
 #ifdef ENABLE_WALLET
@@ -1328,7 +1328,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
         }
 #endif
     }
-    if(markZcoinSpendTransactionSerial)
+    if(markIndexSpendTransactionSerial)
         sigmaState->AddMintsToMempool(zcMintPubcoinsV3);
 #ifdef ENABLE_WALLET
     if(tx.IsSigmaMint() && !GetBoolArg("-disablewallet", false) && pwalletMain->zwallet) {
@@ -1346,11 +1346,11 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState& state, const C
 bool AcceptToMemoryPoolWithTime(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, int64_t nAcceptTime, std::list<CTransactionRef>* plTxnReplaced,
                         bool fOverrideMempoolLimit, const CAmount nAbsurdFee,
-                        bool isCheckWalletTransaction, bool markZcoinSpendTransactionSerial)
+                        bool isCheckWalletTransaction, bool markIndexSpendTransactionSerial)
 {
     LogPrintf("AcceptToMemoryPool(), transaction: %s\n", tx->GetHash().ToString());
     std::vector<COutPoint> coins_to_uncache;
-    bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache, isCheckWalletTransaction, markZcoinSpendTransactionSerial);
+    bool res = AcceptToMemoryPoolWorker(pool, state, tx, fLimitFree, pfMissingInputs, nAcceptTime, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, coins_to_uncache, isCheckWalletTransaction, markIndexSpendTransactionSerial);
     if (!res) {
         BOOST_FOREACH(const COutPoint& hashTx, coins_to_uncache)
             pcoinsTip->Uncache(hashTx);
@@ -1364,16 +1364,16 @@ bool AcceptToMemoryPoolWithTime(CTxMemPool& pool, CValidationState &state, const
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced,
                         bool fOverrideMempoolLimit, const CAmount nAbsurdFee,
-                        bool isCheckWalletTransaction, bool markZcoinSpendTransactionSerial)
+                        bool isCheckWalletTransaction, bool markIndexSpendTransactionSerial)
 {
-    return AcceptToMemoryPoolWithTime(pool, state, tx, fLimitFree, pfMissingInputs, GetTime(), plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, isCheckWalletTransaction, markZcoinSpendTransactionSerial);
+    return AcceptToMemoryPoolWithTime(pool, state, tx, fLimitFree, pfMissingInputs, GetTime(), plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, isCheckWalletTransaction, markIndexSpendTransactionSerial);
 }
 
 
 bool AcceptToMemoryPool(CTxPoolAggregate& poolAggregate, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced,
-                        bool fOverrideMempoolLimit, const CAmount nAbsurdFee, bool isCheckWalletTransaction, bool markZcoinSpendTransactionSerial) {
-    bool res = AcceptToMemoryPool(mempool, state, tx, fLimitFree, pfMissingInputs, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, isCheckWalletTransaction, markZcoinSpendTransactionSerial);
+                        bool fOverrideMempoolLimit, const CAmount nAbsurdFee, bool isCheckWalletTransaction, bool markIndexSpendTransactionSerial) {
+    bool res = AcceptToMemoryPool(mempool, state, tx, fLimitFree, pfMissingInputs, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, isCheckWalletTransaction, markIndexSpendTransactionSerial);
     AcceptToMemoryPool(txpools.getStemTxPool(), state, tx, fLimitFree, pfMissingInputs, plTxnReplaced, fOverrideMempoolLimit, nAbsurdFee, isCheckWalletTransaction, false);
     return res;
 }
@@ -1959,7 +1959,7 @@ bool CheckInputs(const CTransaction& tx, CValidationState &state, const CCoinsVi
                 return state.DoS(
                     100, false,
                     REJECT_MALFORMED,
-                    "CheckSpendZcoinTransaction: can't mix zerocoin spend input with regular ones");
+                    "CheckSpendIndexTransaction: can't mix zerocoin spend input with regular ones");
             }
             CDataStream serializedCoinSpend((const char *)&*(txin.scriptSig.begin() + 1),
                                             (const char *)&*txin.scriptSig.end(),
@@ -3095,7 +3095,7 @@ bool static DisconnectTip(CValidationState& state, const CChainParams& chainpara
                     false, /* fOverrideMempoolLimit */
                     0, /* nAbsurdFee */
                     false, /* isCheckWalletTransaction */
-                    false /* markZcoinSpendTransactionSerial */
+                    false /* markIndexSpendTransactionSerial */
                 );
             }
             if (tx.IsCoinBase() || !AcceptToMemoryPool(mempool, stateDummy, MakeTransactionRef(tx), false, NULL)) {

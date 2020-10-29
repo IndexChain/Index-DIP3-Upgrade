@@ -319,7 +319,7 @@ WalletModel::SendCoinsReturn WalletModel::prepareTransaction(WalletModelTransact
             total += subtotal;
         }
         else
-        {   // User-entered Zcoin address / amount:
+        {   // User-entered Index address / amount:
             if(!validateAddress(rcp.address))
             {
                 return InvalidAddress;

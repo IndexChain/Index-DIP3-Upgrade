@@ -54,13 +54,13 @@ class CWallet;
 struct PrecomputedTransactionData;
 struct LockPoints;
 
-/** btzc: update Zcoin config */
+/** btzc: update Index config */
 /** Default for DEFAULT_WHITELISTRELAY. */
 static const bool DEFAULT_WHITELISTRELAY = true;
 /** Default for DEFAULT_WHITELISTFORCERELAY. */
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
-//btzc: update Zcoin fee
+//btzc: update Index fee
 static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = CENT / 1000; //0.00001 index,
 static const unsigned int MAX_STANDARD_TX_SIZE = 300000;
 //! -maxtxfee default
@@ -360,17 +360,17 @@ void PruneBlockFilesManual(int nPruneUpToHeight);
  * plTxnReplaced will be appended to with all transactions replaced from mempool **/
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced = NULL,
-                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markZcoinSpendTransactionSerial=true);
+                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markIndexSpendTransactionSerial=true);
 
 /** (try to) add transaction to memory pool with a specified acceptance time **/
 bool AcceptToMemoryPoolWithTime(CTxMemPool& pool, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, int64_t nAcceptTime, std::list<CTransactionRef>* plTxnReplaced = NULL,
-                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markZcoinSpendTransactionSerial=true);
+                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markIndexSpendTransactionSerial=true);
 
 /** (try to) add transaction to memory pool and stem pool **/
 bool AcceptToMemoryPool(CTxPoolAggregate& poolAggregate, CValidationState &state, const CTransactionRef &tx, bool fLimitFree,
                         bool* pfMissingInputs, std::list<CTransactionRef>* plTxnReplaced = NULL,
-                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markZcoinSpendTransactionSerial=true);
+                        bool fOverrideMempoolLimit=false, const CAmount nAbsurdFee=0, bool isCheckWalletTransaction=false, bool markIndexSpendTransactionSerial=true);
 
 bool GetUTXOCoin(const COutPoint& outpoint, Coin& coin);
 int GetUTXOHeight(const COutPoint& outpoint);

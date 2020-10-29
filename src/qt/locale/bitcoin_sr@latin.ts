@@ -124,7 +124,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>Synchronizing with network...</source>
         <translation>Usklađivanje sa mrežom...</translation>
@@ -158,16 +158,16 @@
         <translation>Otvori &amp;URI...</translation>
     </message>
     <message>
-        <source>Send coins to a Zcoin address</source>
-        <translation>Pošalji novčiće na Zcoin adresu</translation>
+        <source>Send coins to a Index address</source>
+        <translation>Pošalji novčiće na Index adresu</translation>
     </message>
     <message>
         <source>&amp;Verify message...</source>
         <translation>&amp;Proveri poruku...</translation>
     </message>
     <message>
-        <source>Zcoin</source>
-        <translation>Zcoin</translation>
+        <source>Index</source>
+        <translation>Index</translation>
     </message>
     <message>
         <source>Wallet</source>

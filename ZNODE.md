@@ -2,12 +2,12 @@ Znode Build Instructions and Notes
 =============================
  - Version 0.1.6
  - Date: 14 December 2017
- - More detailed guide available here: https://index.io/index-indexnode-setup-guide/
+ - More detailed guide available here: https://indexchain.org/index-indexnode-setup-guide/
 
 Prerequisites
 -------------
  - Ubuntu 16.04+
- - Libraries to build from Zcoin source
+ - Libraries to build from Index source
  - Port **7082** is open
 
 Step 1. Build

@@ -310,11 +310,11 @@ UniValue stop(const JSONRPCRequest& jsonRequest)
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Zcoin server.");
+            "\nStop Index server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "Zcoin server stopping";
+    return "Index server stopping";
 }
 
 /**
@@ -332,7 +332,7 @@ static const CRPCCommand vRPCCommands[] =
     { "addressindex",       "getaddressdeltas",       &getaddressdeltas,       false },
     { "addressindex",       "getaddresstxids",        &getaddresstxids,        false },
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      false },
-        /* Zcoin features */
+        /* Index features */
     { "index",               "indexnode",                 &indexnode,                  true  },
     { "index",               "znsync",                &znsync,                 true  },
     { "index",               "indexnodelist",             &indexnodelist,              true  },

@@ -88,7 +88,7 @@
     </message>
 </context>
 <context>
-    <name>ZcoinGUI</name>
+    <name>IndexGUI</name>
     <message>
         <source>&amp;Transactions</source>
         <translation>Transazioni</translation>
