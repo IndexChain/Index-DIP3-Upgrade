@@ -18,11 +18,11 @@ RUN update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32
 RUN pip install ez_setup
 
 # create user to use
-RUN useradd -m -U zcoin-builder
+RUN useradd -m -U index-builder
 
 # create a volume for home directory
-VOLUME [ "/home/zcoin-builder" ]
+VOLUME [ "/home/index-builder" ]
 
 # start shell with created user
-USER zcoin-builder
-WORKDIR /home/zcoin-builder
+USER index-builder
+WORKDIR /home/index-builder

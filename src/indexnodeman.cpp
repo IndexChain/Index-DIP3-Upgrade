@@ -2,12 +2,12 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "addrman.h"
 //#include "governance.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 #include "netfulfilledman.h"
 #include "darksend.h"
 #include "netmessagemaker.h"
@@ -177,7 +177,7 @@ bool CZnodeMan::Add(CZnode &mn)
 
     CZnode *pmn = Find(mn.vin);
     if (pmn == NULL) {
-        LogPrint("znode", "CZnodeMan::Add -- Adding new Znode: addr=%s, %i now\n", mn.addr.ToString(), size() + 1);
+        LogPrint("indexnode", "CZnodeMan::Add -- Adding new Znode: addr=%s, %i now\n", mn.addr.ToString(), size() + 1);
         vZnodes.push_back(mn);
         indexZnodes.AddZnodeVIN(mn.vin);
         fZnodesAdded = true;
@@ -202,25 +202,25 @@ void CZnodeMan::AskForMN(CNode* pnode, const CTxIn &vin)
                 return;
             }
             // we asked this node for this outpoint but it's ok to ask again already
-            LogPrintf("CZnodeMan::AskForMN -- Asking same peer %s for missing znode entry again: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
+            LogPrintf("CZnodeMan::AskForMN -- Asking same peer %s for missing indexnode entry again: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
         } else {
             // we already asked for this outpoint but not this node
-            LogPrintf("CZnodeMan::AskForMN -- Asking new peer %s for missing znode entry: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
+            LogPrintf("CZnodeMan::AskForMN -- Asking new peer %s for missing indexnode entry: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
         }
     } else {
         // we never asked any node for this outpoint
-        LogPrintf("CZnodeMan::AskForMN -- Asking peer %s for missing znode entry for the first time: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
+        LogPrintf("CZnodeMan::AskForMN -- Asking peer %s for missing indexnode entry for the first time: %s\n", pnode->addr.ToString(), vin.prevout.ToStringShort());
     }
     mWeAskedForZnodeListEntry[vin.prevout][pnode->addr] = GetTime() + DSEG_UPDATE_SECONDS;
 
-    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::DSEG, vin));
+    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::DSEG, vin));
 }
 
 void CZnodeMan::Check()
 {
     LOCK(cs);
 
-//    LogPrint("znode", "CZnodeMan::Check -- nLastWatchdogVoteTime=%d, IsWatchdogActive()=%d\n", nLastWatchdogVoteTime, IsWatchdogActive());
+//    LogPrint("indexnode", "CZnodeMan::Check -- nLastWatchdogVoteTime=%d, IsWatchdogActive()=%d\n", nLastWatchdogVoteTime, IsWatchdogActive());
 
     BOOST_FOREACH(CZnode& mn, vZnodes) {
         mn.Check();
@@ -229,7 +229,7 @@ void CZnodeMan::Check()
 
 void CZnodeMan::CheckAndRemove()
 {
-    if(!znodeSync.IsZnodeListSynced()) return;
+    if(!indexnodeSync.IsZnodeListSynced()) return;
 
     LogPrintf("CZnodeMan::CheckAndRemove\n");
 
@@ -240,17 +240,17 @@ void CZnodeMan::CheckAndRemove()
 
         Check();
 
-        // Remove spent znodes, prepare structures and make requests to reasure the state of inactive ones
+        // Remove spent indexnodes, prepare structures and make requests to reasure the state of inactive ones
         std::vector<CZnode>::iterator it = vZnodes.begin();
         std::vector<std::pair<int, CZnode> > vecZnodeRanks;
-        // ask for up to MNB_RECOVERY_MAX_ASK_ENTRIES znode entries at a time
+        // ask for up to MNB_RECOVERY_MAX_ASK_ENTRIES indexnode entries at a time
         int nAskForMnbRecovery = MNB_RECOVERY_MAX_ASK_ENTRIES;
         while(it != vZnodes.end()) {
             CZnodeBroadcast mnb = CZnodeBroadcast(*it);
             uint256 hash = mnb.GetHash();
             // If collateral was spent ...
             if ((*it).IsOutpointSpent()) {
-                LogPrint("znode", "CZnodeMan::CheckAndRemove -- Removing Znode: %s  addr=%s  %i now\n", (*it).GetStateString(), (*it).addr.ToString(), size() - 1);
+                LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- Removing Znode: %s  addr=%s  %i now\n", (*it).GetStateString(), (*it).addr.ToString(), size() - 1);
 
                 // erase all of the broadcasts we've seen from this txin, ...
                 mapSeenZnodeBroadcast.erase(hash);
@@ -263,7 +263,7 @@ void CZnodeMan::CheckAndRemove()
             } else {
                 bool fAsk = pCurrentBlockIndex &&
                             (nAskForMnbRecovery > 0) &&
-                            znodeSync.IsSynced() &&
+                            indexnodeSync.IsSynced() &&
                             it->IsNewStartRequired() &&
                             !IsMnbRecoveryRequested(hash);
                 if(fAsk) {
@@ -275,7 +275,7 @@ void CZnodeMan::CheckAndRemove()
                         vecZnodeRanks = GetZnodeRanks(nRandomBlockHeight);
                     }
                     bool fAskedForMnbRecovery = false;
-                    // ask first MNB_RECOVERY_QUORUM_TOTAL znodes we can connect to and we haven't asked recently
+                    // ask first MNB_RECOVERY_QUORUM_TOTAL indexnodes we can connect to and we haven't asked recently
                     for(int i = 0; setRequested.size() < MNB_RECOVERY_QUORUM_TOTAL && i < (int)vecZnodeRanks.size(); i++) {
                         // avoid banning
                         if(mWeAskedForZnodeListEntry.count(it->vin.prevout) && mWeAskedForZnodeListEntry[it->vin.prevout].count(vecZnodeRanks[i].second.addr)) continue;
@@ -286,7 +286,7 @@ void CZnodeMan::CheckAndRemove()
                         fAskedForMnbRecovery = true;
                     }
                     if(fAskedForMnbRecovery) {
-                        LogPrint("znode", "CZnodeMan::CheckAndRemove -- Recovery initiated, znode=%s\n", it->vin.prevout.ToStringShort());
+                        LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- Recovery initiated, indexnode=%s\n", it->vin.prevout.ToStringShort());
                         nAskForMnbRecovery--;
                     }
                     // wait for mnb recovery replies for MNB_RECOVERY_WAIT_SECONDS seconds
@@ -296,21 +296,21 @@ void CZnodeMan::CheckAndRemove()
             }
         }
 
-        // proces replies for ZNODE_NEW_START_REQUIRED znodes
-        LogPrint("znode", "CZnodeMan::CheckAndRemove -- mMnbRecoveryGoodReplies size=%d\n", (int)mMnbRecoveryGoodReplies.size());
+        // proces replies for INDEXNODE_NEW_START_REQUIRED indexnodes
+        LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- mMnbRecoveryGoodReplies size=%d\n", (int)mMnbRecoveryGoodReplies.size());
         std::map<uint256, std::vector<CZnodeBroadcast> >::iterator itMnbReplies = mMnbRecoveryGoodReplies.begin();
         while(itMnbReplies != mMnbRecoveryGoodReplies.end()){
             if(mMnbRecoveryRequests[itMnbReplies->first].first < GetTime()) {
                 // all nodes we asked should have replied now
                 if(itMnbReplies->second.size() >= MNB_RECOVERY_QUORUM_REQUIRED) {
                     // majority of nodes we asked agrees that this mn doesn't require new mnb, reprocess one of new mnbs
-                    LogPrint("znode", "CZnodeMan::CheckAndRemove -- reprocessing mnb, znode=%s\n", itMnbReplies->second[0].vin.prevout.ToStringShort());
+                    LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- reprocessing mnb, indexnode=%s\n", itMnbReplies->second[0].vin.prevout.ToStringShort());
                     // mapSeenZnodeBroadcast.erase(itMnbReplies->first);
                     int nDos;
                     itMnbReplies->second[0].fRecovery = true;
                     CheckMnbAndUpdateZnodeList(NULL, itMnbReplies->second[0], nDos);
                 }
-                LogPrint("znode", "CZnodeMan::CheckAndRemove -- removing mnb recovery reply, znode=%s, size=%d\n", itMnbReplies->second[0].vin.prevout.ToStringShort(), (int)itMnbReplies->second.size());
+                LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- removing mnb recovery reply, indexnode=%s, size=%d\n", itMnbReplies->second[0].vin.prevout.ToStringShort(), (int)itMnbReplies->second.size());
                 mMnbRecoveryGoodReplies.erase(itMnbReplies++);
             } else {
                 ++itMnbReplies;
@@ -324,7 +324,7 @@ void CZnodeMan::CheckAndRemove()
         std::map<uint256, std::pair< int64_t, std::set<CNetAddr> > >::iterator itMnbRequest = mMnbRecoveryRequests.begin();
         while(itMnbRequest != mMnbRecoveryRequests.end()){
             // Allow this mnb to be re-verified again after MNB_RECOVERY_RETRY_SECONDS seconds
-            // if mn is still in ZNODE_NEW_START_REQUIRED state.
+            // if mn is still in INDEXNODE_NEW_START_REQUIRED state.
             if(GetTime() - itMnbRequest->second.first > MNB_RECOVERY_RETRY_SECONDS) {
                 mMnbRecoveryRequests.erase(itMnbRequest++);
             } else {
@@ -385,7 +385,7 @@ void CZnodeMan::CheckAndRemove()
         std::map<uint256, CZnodePing>::iterator it4 = mapSeenZnodePing.begin();
         while(it4 != mapSeenZnodePing.end()){
             if((*it4).second.IsExpired()) {
-                LogPrint("znode", "CZnodeMan::CheckAndRemove -- Removing expired Znode ping: hash=%s\n", (*it4).second.GetHash().ToString());
+                LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- Removing expired Znode ping: hash=%s\n", (*it4).second.GetHash().ToString());
                 mapSeenZnodePing.erase(it4++);
             } else {
                 ++it4;
@@ -396,7 +396,7 @@ void CZnodeMan::CheckAndRemove()
         std::map<uint256, CZnodeVerification>::iterator itv2 = mapSeenZnodeVerification.begin();
         while(itv2 != mapSeenZnodeVerification.end()){
             if((*itv2).second.nBlockHeight < pCurrentBlockIndex->nHeight - MAX_POSE_BLOCKS){
-                LogPrint("znode", "CZnodeMan::CheckAndRemove -- Removing expired Znode verification: hash=%s\n", (*itv2).first.ToString());
+                LogPrint("indexnode", "CZnodeMan::CheckAndRemove -- Removing expired Znode verification: hash=%s\n", (*itv2).first.ToString());
                 mapSeenZnodeVerification.erase(itv2++);
             } else {
                 ++itv2;
@@ -458,7 +458,7 @@ int CZnodeMan::CountEnabled(int nProtocolVersion)
     return nCount;
 }
 
-/* Only IPv4 znodes are allowed in 12.1, saving this for later
+/* Only IPv4 indexnodes are allowed in 12.1, saving this for later
 int CZnodeMan::CountByIP(int nNetworkType)
 {
     LOCK(cs);
@@ -489,11 +489,11 @@ void CZnodeMan::DsegUpdate(CNode* pnode)
         }
     }
     
-    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::DSEG, CTxIn()));
+    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::DSEG, CTxIn()));
     int64_t askAgain = GetTime() + DSEG_UPDATE_SECONDS;
     mWeAskedForZnodeList[pnode->addr] = askAgain;
 
-    LogPrint("znode", "CZnodeMan::DsegUpdate -- asked %s for the list\n", pnode->addr.ToString());
+    LogPrint("indexnode", "CZnodeMan::DsegUpdate -- asked %s for the list\n", pnode->addr.ToString());
 }
 
 CZnode* CZnodeMan::Find(const std::string &txHash, const std::string &outputIndex)
@@ -547,7 +547,7 @@ CZnode* CZnodeMan::Find(const CPubKey &pubKeyZnode)
     return NULL;
 }
 
-bool CZnodeMan::Get(const CPubKey& pubKeyZnode, CZnode& znode)
+bool CZnodeMan::Get(const CPubKey& pubKeyZnode, CZnode& indexnode)
 {
     // Theses mutexes are recursive so double locking by the same thread is safe.
     LOCK(cs);
@@ -555,11 +555,11 @@ bool CZnodeMan::Get(const CPubKey& pubKeyZnode, CZnode& znode)
     if(!pMN)  {
         return false;
     }
-    znode = *pMN;
+    indexnode = *pMN;
     return true;
 }
 
-bool CZnodeMan::Get(const CTxIn& vin, CZnode& znode)
+bool CZnodeMan::Get(const CTxIn& vin, CZnode& indexnode)
 {
     // Theses mutexes are recursive so double locking by the same thread is safe.
     LOCK(cs);
@@ -567,13 +567,13 @@ bool CZnodeMan::Get(const CTxIn& vin, CZnode& znode)
     if(!pMN)  {
         return false;
     }
-    znode = *pMN;
+    indexnode = *pMN;
     return true;
 }
 
-znode_info_t CZnodeMan::GetZnodeInfo(const CTxIn& vin)
+indexnode_info_t CZnodeMan::GetZnodeInfo(const CTxIn& vin)
 {
-    znode_info_t info;
+    indexnode_info_t info;
     LOCK(cs);
     CZnode* pMN = Find(vin);
     if(!pMN)  {
@@ -583,9 +583,9 @@ znode_info_t CZnodeMan::GetZnodeInfo(const CTxIn& vin)
     return info;
 }
 
-znode_info_t CZnodeMan::GetZnodeInfo(const CPubKey& pubKeyZnode)
+indexnode_info_t CZnodeMan::GetZnodeInfo(const CPubKey& pubKeyZnode)
 {
-    znode_info_t info;
+    indexnode_info_t info;
     LOCK(cs);
     CZnode* pMN = Find(pubKeyZnode);
     if(!pMN)  {
@@ -633,7 +633,7 @@ char* CZnodeMan::GetNotQualifyReason(CZnode& mn, int nBlockHeight, bool fFilterS
                 DateTimeStrFormat("%Y-%m-%d %H:%M UTC", mn.sigTime).c_str(), DateTimeStrFormat("%Y-%m-%d %H:%M UTC", mn.sigTime + (nMnCount * 2.6 * 60)).c_str());
         return reasonStr;
     }
-    //make sure it has at least as many confirmations as there are znodes
+    //make sure it has at least as many confirmations as there are indexnodes
     if (mn.GetCollateralAge() < nMnCount) {
         // LogPrintf("mn.GetCollateralAge()=%s!\n", mn.GetCollateralAge());
         // LogPrintf("nMnCount=%s!\n", nMnCount);
@@ -645,7 +645,7 @@ char* CZnodeMan::GetNotQualifyReason(CZnode& mn, int nBlockHeight, bool fFilterS
 }
 
 //
-// Deterministically select the oldest/best znode to pay on the network
+// Deterministically select the oldest/best indexnode to pay on the network
 //
 CZnode* CZnodeMan::GetNextZnodeInQueueForPayment(bool fFilterSigTime, int& nCount)
 {
@@ -675,7 +675,7 @@ CZnode* CZnodeMan::GetNextZnodeInQueueForPayment(int nBlockHeight, bool fFilterS
         index += 1;
         // LogPrintf("index=%s, mn=%s\n", index, mn.ToString());
         /*if (!mn.IsValidForPayment()) {
-            LogPrint("znodeman", "Znode, %s, addr(%s), not-qualified: 'not valid for payment'\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), not-qualified: 'not valid for payment'\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString());
             continue;
         }
@@ -684,35 +684,35 @@ CZnode* CZnodeMan::GetNextZnodeInQueueForPayment(int nBlockHeight, bool fFilterS
             // LogPrintf("Invalid nProtocolVersion!\n");
             // LogPrintf("mn.nProtocolVersion=%s!\n", mn.nProtocolVersion);
             // LogPrintf("znpayments.GetMinZnodePaymentsProto=%s!\n", znpayments.GetMinZnodePaymentsProto());
-            LogPrint("znodeman", "Znode, %s, addr(%s), not-qualified: 'invalid nProtocolVersion'\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), not-qualified: 'invalid nProtocolVersion'\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString());
             continue;
         }
         //it's in the list (up to 8 entries ahead of current block to allow propagation) -- so let's skip it
         if (znpayments.IsScheduled(mn, nBlockHeight)) {
             // LogPrintf("znpayments.IsScheduled!\n");
-            LogPrint("znodeman", "Znode, %s, addr(%s), not-qualified: 'IsScheduled'\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), not-qualified: 'IsScheduled'\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString());
             continue;
         }
         //it's too new, wait for a cycle
         if (fFilterSigTime && mn.sigTime + (nMnCount * 2.6 * 60) > GetAdjustedTime()) {
             // LogPrintf("it's too new, wait for a cycle!\n");
-            LogPrint("znodeman", "Znode, %s, addr(%s), not-qualified: 'it's too new, wait for a cycle!', sigTime=%s, will be qualifed after=%s\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), not-qualified: 'it's too new, wait for a cycle!', sigTime=%s, will be qualifed after=%s\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString(), DateTimeStrFormat("%Y-%m-%d %H:%M UTC", mn.sigTime).c_str(), DateTimeStrFormat("%Y-%m-%d %H:%M UTC", mn.sigTime + (nMnCount * 2.6 * 60)).c_str());
             continue;
         }
-        //make sure it has at least as many confirmations as there are znodes
+        //make sure it has at least as many confirmations as there are indexnodes
         if (mn.GetCollateralAge() < nMnCount) {
             // LogPrintf("mn.GetCollateralAge()=%s!\n", mn.GetCollateralAge());
             // LogPrintf("nMnCount=%s!\n", nMnCount);
-            LogPrint("znodeman", "Znode, %s, addr(%s), not-qualified: 'mn.GetCollateralAge() < nMnCount', CollateralAge=%d, nMnCount=%d\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), not-qualified: 'mn.GetCollateralAge() < nMnCount', CollateralAge=%d, nMnCount=%d\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString(), mn.GetCollateralAge(), nMnCount);
             continue;
         }*/
         char* reasonStr = GetNotQualifyReason(mn, nBlockHeight, fFilterSigTime & (Params().NetworkIDString() != CBaseChainParams::REGTEST), nMnCount);
         if (reasonStr != NULL) {
-            LogPrint("znodeman", "Znode, %s, addr(%s), qualify %s\n",
+            LogPrint("indexnodeman", "Znode, %s, addr(%s), qualify %s\n",
                      mn.vin.prevout.ToStringShort(), CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString(), reasonStr);
             delete [] reasonStr;
             continue;
@@ -763,7 +763,7 @@ CZnode* CZnodeMan::FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, in
     int nCountEnabled = CountEnabled(nProtocolVersion);
     int nCountNotExcluded = nCountEnabled - vecToExclude.size();
 
-    LogPrintf("CZnodeMan::FindRandomNotInVec -- %d enabled znodes, %d znodes to choose from\n", nCountEnabled, nCountNotExcluded);
+    LogPrintf("CZnodeMan::FindRandomNotInVec -- %d enabled indexnodes, %d indexnodes to choose from\n", nCountEnabled, nCountNotExcluded);
     if(nCountNotExcluded < 1) return NULL;
 
     // fill a vector of pointers
@@ -789,11 +789,11 @@ CZnode* CZnodeMan::FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, in
         }
         if(fExclude) continue;
         // found the one not in vecToExclude
-        LogPrint("znode", "CZnodeMan::FindRandomNotInVec -- found, znode=%s\n", pmn->vin.prevout.ToStringShort());
+        LogPrint("indexnode", "CZnodeMan::FindRandomNotInVec -- found, indexnode=%s\n", pmn->vin.prevout.ToStringShort());
         return pmn;
     }
 
-    LogPrint("znode", "CZnodeMan::FindRandomNotInVec -- failed\n");
+    LogPrint("indexnode", "CZnodeMan::FindRandomNotInVec -- failed\n");
     return NULL;
 }
 
@@ -946,9 +946,9 @@ std::pair<CService, std::set<uint256> > CZnodeMan::PopScheduledMnbRequestConnect
 void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStream& vRecv)
 {
 
-//    LogPrint("znode", "CZnodeMan::ProcessMessage, strCommand=%s\n", strCommand);
+//    LogPrint("indexnode", "CZnodeMan::ProcessMessage, strCommand=%s\n", strCommand);
     if(fLiteMode) return; // disable all Zcoin specific functionality
-    if(!znodeSync.IsBlockchainSynced()) return;
+    if(!indexnodeSync.IsBlockchainSynced()) return;
 
     if (strCommand == NetMsgType::MNANNOUNCE) { //Znode Broadcast
         CZnodeBroadcast mnb;
@@ -956,7 +956,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
 
         pfrom->setAskFor.erase(mnb.GetHash());
 
-        LogPrintf("MNANNOUNCE -- Znode announce, znode=%s\n", mnb.vin.prevout.ToStringShort());
+        LogPrintf("MNANNOUNCE -- Znode announce, indexnode=%s\n", mnb.vin.prevout.ToStringShort());
 
         int nDos = 0;
 
@@ -979,7 +979,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
 
         pfrom->setAskFor.erase(nHash);
 
-        LogPrint("znode", "MNPING -- Znode ping, znode=%s\n", mnp.vin.prevout.ToStringShort());
+        LogPrint("indexnode", "MNPING -- Znode ping, indexnode=%s\n", mnp.vin.prevout.ToStringShort());
 
         // Need LOCK2 here to ensure consistent locking order because the CheckAndUpdate call below locks cs_main
         LOCK2(cs_main, cs);
@@ -987,7 +987,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
         if(mapSeenZnodePing.count(nHash)) return; //seen
         mapSeenZnodePing.insert(std::make_pair(nHash, mnp));
 
-        LogPrint("znode", "MNPING -- Znode ping, znode=%s new\n", mnp.vin.prevout.ToStringShort());
+        LogPrint("indexnode", "MNPING -- Znode ping, indexnode=%s new\n", mnp.vin.prevout.ToStringShort());
 
         // see if we have this Znode
         CZnode* pmn = mnodeman.Find(mnp.vin);
@@ -1007,19 +1007,19 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
         }
 
         // something significant is broken or mn is unknown,
-        // we might have to ask for a znode entry once
+        // we might have to ask for a indexnode entry once
         AskForMN(pfrom, mnp.vin);
 
     } else if (strCommand == NetMsgType::DSEG) { //Get Znode list or specific entry
         // Ignore such requests until we are fully synced.
-        // We could start processing this after znode list is synced
+        // We could start processing this after indexnode list is synced
         // but this is a heavy one so it's better to finish sync first.
-        if (!znodeSync.IsSynced()) return;
+        if (!indexnodeSync.IsSynced()) return;
 
         CTxIn vin;
         vRecv >> vin;
 
-        LogPrint("znode", "DSEG -- Znode list, znode=%s\n", vin.prevout.ToStringShort());
+        LogPrint("indexnode", "DSEG -- Znode list, indexnode=%s\n", vin.prevout.ToStringShort());
 
         LOCK(cs);
 
@@ -1047,14 +1047,14 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
         BOOST_FOREACH(CZnode& mn, vZnodes) {
             if (vin != CTxIn() && vin != mn.vin) continue; // asked for specific vin but we are not there yet
             if (Params().NetworkIDString() != CBaseChainParams::REGTEST)
-                if (mn.addr.IsRFC1918() || mn.addr.IsLocal()) continue; // do not send local network znode
-            if (mn.IsUpdateRequired()) continue; // do not send outdated znodes
+                if (mn.addr.IsRFC1918() || mn.addr.IsLocal()) continue; // do not send local network indexnode
+            if (mn.IsUpdateRequired()) continue; // do not send outdated indexnodes
 
-            LogPrint("znode", "DSEG -- Sending Znode entry: znode=%s  addr=%s\n", mn.vin.prevout.ToStringShort(), mn.addr.ToString());
+            LogPrint("indexnode", "DSEG -- Sending Znode entry: indexnode=%s  addr=%s\n", mn.vin.prevout.ToStringShort(), mn.addr.ToString());
             CZnodeBroadcast mnb = CZnodeBroadcast(mn);
             uint256 hash = mnb.GetHash();
-            pfrom->PushInventory(CInv(MSG_ZNODE_ANNOUNCE, hash));
-            pfrom->PushInventory(CInv(MSG_ZNODE_PING, mn.lastPing.GetHash()));
+            pfrom->PushInventory(CInv(MSG_INDEXNODE_ANNOUNCE, hash));
+            pfrom->PushInventory(CInv(MSG_INDEXNODE_PING, mn.lastPing.GetHash()));
             nInvCount++;
 
             if (!mapSeenZnodeBroadcast.count(hash)) {
@@ -1068,12 +1068,12 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
         }
 
         if(vin == CTxIn()) {
-            g_connman->PushMessage(pfrom, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::SYNCSTATUSCOUNT, ZNODE_SYNC_LIST, nInvCount));
+            g_connman->PushMessage(pfrom, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::SYNCSTATUSCOUNT, INDEXNODE_SYNC_LIST, nInvCount));
             LogPrintf("DSEG -- Sent %d Znode invs to peer %d\n", nInvCount, pfrom->id);
             return;
         }
         // smth weird happen - someone asked us for vin we have no idea about?
-        LogPrint("znode", "DSEG -- No invs sent to peer %d\n", pfrom->id);
+        LogPrint("indexnode", "DSEG -- No invs sent to peer %d\n", pfrom->id);
 
     } else if (strCommand == NetMsgType::MNVERIFY) { // Znode Verify
 
@@ -1087,21 +1087,21 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
             // CASE 1: someone asked me to verify myself /IP we are using/
             SendVerifyReply(pfrom, mnv);
         } else if (mnv.vchSig2.empty()) {
-            // CASE 2: we _probably_ got verification we requested from some znode
+            // CASE 2: we _probably_ got verification we requested from some indexnode
             ProcessVerifyReply(pfrom, mnv);
         } else {
-            // CASE 3: we _probably_ got verification broadcast signed by some znode which verified another one
+            // CASE 3: we _probably_ got verification broadcast signed by some indexnode which verified another one
             ProcessVerifyBroadcast(pfrom, mnv);
         }
     }
 }
 
-// Verification of znodes via unique direct requests.
+// Verification of indexnodes via unique direct requests.
 
 void CZnodeMan::DoFullVerificationStep()
 {
     if(activeZnode.vin == CTxIn()) return;
-    if(!znodeSync.IsSynced()) return;
+    if(!indexnodeSync.IsSynced()) return;
 
     std::vector<std::pair<int, CZnode> > vecZnodeRanks = GetZnodeRanks(pCurrentBlockIndex->nHeight - 1, MIN_POSE_PROTO_VERSION);
 
@@ -1118,23 +1118,23 @@ void CZnodeMan::DoFullVerificationStep()
     std::vector<std::pair<int, CZnode> >::iterator it = vecZnodeRanks.begin();
     while(it != vecZnodeRanks.end()) {
         if(it->first > MAX_POSE_RANK) {
-            LogPrint("znode", "CZnodeMan::DoFullVerificationStep -- Must be in top %d to send verify request\n",
+            LogPrint("indexnode", "CZnodeMan::DoFullVerificationStep -- Must be in top %d to send verify request\n",
                         (int)MAX_POSE_RANK);
             return;
         }
         if(it->second.vin == activeZnode.vin) {
             nMyRank = it->first;
-            LogPrint("znode", "CZnodeMan::DoFullVerificationStep -- Found self at rank %d/%d, verifying up to %d znodes\n",
+            LogPrint("indexnode", "CZnodeMan::DoFullVerificationStep -- Found self at rank %d/%d, verifying up to %d indexnodes\n",
                         nMyRank, nRanksTotal, (int)MAX_POSE_CONNECTIONS);
             break;
         }
         ++it;
     }
 
-    // edge case: list is too short and this znode is not enabled
+    // edge case: list is too short and this indexnode is not enabled
     if(nMyRank == -1) return;
 
-    // send verify requests to up to MAX_POSE_CONNECTIONS znodes
+    // send verify requests to up to MAX_POSE_CONNECTIONS indexnodes
     // starting from MAX_POSE_RANK + nMyRank and using MAX_POSE_CONNECTIONS as a step
     int nOffset = MAX_POSE_RANK + nMyRank - 1;
     if(nOffset >= (int)vecZnodeRanks.size()) return;
@@ -1149,7 +1149,7 @@ void CZnodeMan::DoFullVerificationStep()
     it = vecZnodeRanks.begin() + nOffset;
     while(it != vecZnodeRanks.end()) {
         if(it->second.IsPoSeVerified() || it->second.IsPoSeBanned()) {
-            LogPrint("znode", "CZnodeMan::DoFullVerificationStep -- Already %s%s%s znode %s address %s, skipping...\n",
+            LogPrint("indexnode", "CZnodeMan::DoFullVerificationStep -- Already %s%s%s indexnode %s address %s, skipping...\n",
                         it->second.IsPoSeVerified() ? "verified" : "",
                         it->second.IsPoSeVerified() && it->second.IsPoSeBanned() ? " and " : "",
                         it->second.IsPoSeBanned() ? "banned" : "",
@@ -1159,7 +1159,7 @@ void CZnodeMan::DoFullVerificationStep()
             it += MAX_POSE_CONNECTIONS;
             continue;
         }
-        LogPrint("znode", "CZnodeMan::DoFullVerificationStep -- Verifying znode %s rank %d/%d address %s\n",
+        LogPrint("indexnode", "CZnodeMan::DoFullVerificationStep -- Verifying indexnode %s rank %d/%d address %s\n",
                     it->second.vin.prevout.ToStringShort(), it->first, nRanksTotal, it->second.addr.ToString());
         CAddress addr = CAddress(it->second.addr, NODE_NETWORK);
         if(CheckVerifyRequestAddr(addr, *g_connman)) {
@@ -1177,17 +1177,17 @@ void CZnodeMan::DoFullVerificationStep()
         PrepareVerifyRequest(addr, *g_connman);
     }
 
-    LogPrint("znode", "CZnodeMan::DoFullVerificationStep -- Sent verification requests to %d znodes\n", nCount);
+    LogPrint("indexnode", "CZnodeMan::DoFullVerificationStep -- Sent verification requests to %d indexnodes\n", nCount);
 }
 
-// This function tries to find znodes with the same addr,
+// This function tries to find indexnodes with the same addr,
 // find a verified one and ban all the other. If there are many nodes
 // with the same addr but none of them is verified yet, then none of them are banned.
 // It could take many times to run this before most of the duplicate nodes are banned.
 
 void CZnodeMan::CheckSameAddr()
 {
-    if(!znodeSync.IsSynced() || vZnodes.empty()) return;
+    if(!indexnodeSync.IsSynced() || vZnodes.empty()) return;
 
     std::vector<CZnode*> vBan;
     std::vector<CZnode*> vSortedByAddr;
@@ -1205,7 +1205,7 @@ void CZnodeMan::CheckSameAddr()
         sort(vSortedByAddr.begin(), vSortedByAddr.end(), CompareByAddr());
 
         BOOST_FOREACH(CZnode* pmn, vSortedByAddr) {
-            // check only (pre)enabled znodes
+            // check only (pre)enabled indexnodes
             if(!pmn->IsEnabled() && !pmn->IsPreEnabled()) continue;
             // initial step
             if(!pprevZnode) {
@@ -1216,12 +1216,12 @@ void CZnodeMan::CheckSameAddr()
             // second+ step
             if(pmn->addr == pprevZnode->addr) {
                 if(pverifiedZnode) {
-                    // another znode with the same ip is verified, ban this one
+                    // another indexnode with the same ip is verified, ban this one
                     vBan.push_back(pmn);
                 } else if(pmn->IsPoSeVerified()) {
-                    // this znode with the same ip is verified, ban previous one
+                    // this indexnode with the same ip is verified, ban previous one
                     vBan.push_back(pprevZnode);
-                    // and keep a reference to be able to ban following znodes with the same ip
+                    // and keep a reference to be able to ban following indexnodes with the same ip
                     pverifiedZnode = pmn;
                 }
             } else {
@@ -1233,7 +1233,7 @@ void CZnodeMan::CheckSameAddr()
 
     // ban duplicates
     BOOST_FOREACH(CZnode* pmn, vBan) {
-        LogPrintf("CZnodeMan::CheckSameAddr -- increasing PoSe ban score for znode %s\n", pmn->vin.prevout.ToStringShort());
+        LogPrintf("CZnodeMan::CheckSameAddr -- increasing PoSe ban score for indexnode %s\n", pmn->vin.prevout.ToStringShort());
         pmn->IncreasePoSeBanScore();
     }
 }
@@ -1242,7 +1242,7 @@ bool CZnodeMan::CheckVerifyRequestAddr(const CAddress& addr, CConnman& connman)
 {
     if(netfulfilledman.HasFulfilledRequest(addr, strprintf("%s", NetMsgType::MNVERIFY)+"-request")) {
         // we already asked for verification, not a good idea to do this too often, skip it
-        LogPrint("znode", "CZnodeMan::%s -- too many requests, skipping... addr=%s\n", __func__, addr.ToString());
+        LogPrint("indexnode", "CZnodeMan::%s -- too many requests, skipping... addr=%s\n", __func__, addr.ToString());
         return false;
     }
 
@@ -1276,8 +1276,8 @@ void CZnodeMan::ProcessPendingMnvRequests(CConnman& connman)
             netfulfilledman.AddFulfilledRequest(pnode->addr, strprintf("%s", NetMsgType::MNVERIFY)+"-request");
             // use random nonce, store it and require node to reply with correct one later
             mWeAskedForVerification[pnode->addr] = itPendingMNV->second.second;
-            LogPrint("znode", "-- verifying node using nonce %d addr=%s\n", itPendingMNV->second.second.nonce, pnode->addr.ToString());
-            CNetMsgMaker msgMaker(LEGACY_ZNODES_PROTOCOL_VERSION);
+            LogPrint("indexnode", "-- verifying node using nonce %d addr=%s\n", itPendingMNV->second.second.nonce, pnode->addr.ToString());
+            CNetMsgMaker msgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION);
             connman.PushMessage(pnode, msgMaker.Make(NetMsgType::MNVERIFY, itPendingMNV->second.second));
             return true;
         });
@@ -1285,7 +1285,7 @@ void CZnodeMan::ProcessPendingMnvRequests(CConnman& connman)
         int64_t nTimeAdded = itPendingMNV->second.first;
         if (fDone || (GetTime() - nTimeAdded > 15)) {
             if (!fDone) {
-                LogPrint("znode", "CZnodeMan::%s -- failed to connect to %s\n", __func__, itPendingMNV->first.ToString());
+                LogPrint("indexnode", "CZnodeMan::%s -- failed to connect to %s\n", __func__, itPendingMNV->first.ToString());
             }
             mapPendingMNV.erase(itPendingMNV++);
         } else {
@@ -1296,7 +1296,7 @@ void CZnodeMan::ProcessPendingMnvRequests(CConnman& connman)
 
 void CZnodeMan::SendVerifyReply(CNode* pnode, CZnodeVerification& mnv)
 {
-    // only znodes can sign this, why would someone ask regular node?
+    // only indexnodes can sign this, why would someone ask regular node?
     if(!fMasternodeMode) {
         // do not ban, malicious node might be using my IP
         // and trying to confuse the node which tries to verify it
@@ -1330,7 +1330,7 @@ void CZnodeMan::SendVerifyReply(CNode* pnode, CZnodeVerification& mnv)
         return;
     }
 
-    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::MNVERIFY, mnv));
+    g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::MNVERIFY, mnv));
     netfulfilledman.AddFulfilledRequest(pnode->addr, strprintf("%s", NetMsgType::MNVERIFY)+"-reply");
 }
 
@@ -1392,7 +1392,7 @@ void CZnodeMan::ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv)
                     }
                     netfulfilledman.AddFulfilledRequest(pnode->addr, strprintf("%s", NetMsgType::MNVERIFY)+"-done");
 
-                    // we can only broadcast it if we are an activated znode
+                    // we can only broadcast it if we are an activated indexnode
                     if(activeZnode.vin == CTxIn()) continue;
                     // update ...
                     mnv.addr = it->addr;
@@ -1422,23 +1422,23 @@ void CZnodeMan::ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv)
             }
             ++it;
         }
-        // no real znode found?...
+        // no real indexnode found?...
         if(!prealZnode) {
             // this should never be the case normally,
             // only if someone is trying to game the system in some way or smth like that
-            LogPrintf("CZnodeMan::ProcessVerifyReply -- ERROR: no real znode found for addr %s\n", pnode->addr.ToString());
+            LogPrintf("CZnodeMan::ProcessVerifyReply -- ERROR: no real indexnode found for addr %s\n", pnode->addr.ToString());
             Misbehaving(pnode->id, 20);
             return;
         }
-        LogPrintf("CZnodeMan::ProcessVerifyReply -- verified real znode %s for addr %s\n",
+        LogPrintf("CZnodeMan::ProcessVerifyReply -- verified real indexnode %s for addr %s\n",
                     prealZnode->vin.prevout.ToStringShort(), pnode->addr.ToString());
         // increase ban score for everyone else
         BOOST_FOREACH(CZnode* pmn, vpZnodesToBan) {
             pmn->IncreasePoSeBanScore();
-            LogPrint("znode", "CZnodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
+            LogPrint("indexnode", "CZnodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
                         prealZnode->vin.prevout.ToStringShort(), pnode->addr.ToString(), pmn->nPoSeBanScore);
         }
-        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- PoSe score increased for %d fake znodes, addr %s\n",
+        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- PoSe score increased for %d fake indexnodes, addr %s\n",
                     (int)vpZnodesToBan.size(), pnode->addr.ToString());
     }
 }
@@ -1455,13 +1455,13 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
 
     // we don't care about history
     if(mnv.nBlockHeight < pCurrentBlockIndex->nHeight - MAX_POSE_BLOCKS) {
-        LogPrint("znode", "ZnodeMan::ProcessVerifyBroadcast -- Outdated: current block %d, verification block %d, peer=%d\n",
+        LogPrint("indexnode", "ZnodeMan::ProcessVerifyBroadcast -- Outdated: current block %d, verification block %d, peer=%d\n",
                     pCurrentBlockIndex->nHeight, mnv.nBlockHeight, pnode->id);
         return;
     }
 
     if(mnv.vin1.prevout == mnv.vin2.prevout) {
-        LogPrint("znode", "ZnodeMan::ProcessVerifyBroadcast -- ERROR: same vins %s, peer=%d\n",
+        LogPrint("indexnode", "ZnodeMan::ProcessVerifyBroadcast -- ERROR: same vins %s, peer=%d\n",
                     mnv.vin1.prevout.ToStringShort(), pnode->id);
         // that was NOT a good idea to cheat and verify itself,
         // ban the node we received such message from
@@ -1479,13 +1479,13 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
     int nRank = GetZnodeRank(mnv.vin2, mnv.nBlockHeight, MIN_POSE_PROTO_VERSION);
 
     if (nRank == -1) {
-        LogPrint("znode", "CZnodeMan::ProcessVerifyBroadcast -- Can't calculate rank for znode %s\n",
+        LogPrint("indexnode", "CZnodeMan::ProcessVerifyBroadcast -- Can't calculate rank for indexnode %s\n",
                     mnv.vin2.prevout.ToStringShort());
         return;
     }
 
     if(nRank > MAX_POSE_RANK) {
-        LogPrint("znode", "CZnodeMan::ProcessVerifyBroadcast -- Mastrernode %s is not in top %d, current rank %d, peer=%d\n",
+        LogPrint("indexnode", "CZnodeMan::ProcessVerifyBroadcast -- Mastrernode %s is not in top %d, current rank %d, peer=%d\n",
                     mnv.vin2.prevout.ToStringShort(), (int)MAX_POSE_RANK, nRank, pnode->id);
         return;
     }
@@ -1499,13 +1499,13 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
 
         CZnode* pmn1 = Find(mnv.vin1);
         if(!pmn1) {
-            LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- can't find znode1 %s\n", mnv.vin1.prevout.ToStringShort());
+            LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- can't find indexnode1 %s\n", mnv.vin1.prevout.ToStringShort());
             return;
         }
 
         CZnode* pmn2 = Find(mnv.vin2);
         if(!pmn2) {
-            LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- can't find znode2 %s\n", mnv.vin2.prevout.ToStringShort());
+            LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- can't find indexnode2 %s\n", mnv.vin2.prevout.ToStringShort());
             return;
         }
 
@@ -1515,12 +1515,12 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
         }
 
         if(darkSendSigner.VerifyMessage(pmn1->pubKeyZnode, mnv.vchSig1, strMessage1, strError)) {
-            LogPrintf("ZnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for znode1 failed, error: %s\n", strError);
+            LogPrintf("ZnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for indexnode1 failed, error: %s\n", strError);
             return;
         }
 
         if(darkSendSigner.VerifyMessage(pmn2->pubKeyZnode, mnv.vchSig2, strMessage2, strError)) {
-            LogPrintf("ZnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for znode2 failed, error: %s\n", strError);
+            LogPrintf("ZnodeMan::ProcessVerifyBroadcast -- VerifyMessage() for indexnode2 failed, error: %s\n", strError);
             return;
         }
 
@@ -1529,7 +1529,7 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
         }
         mnv.Relay();
 
-        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- verified znode %s for addr %s\n",
+        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- verified indexnode %s for addr %s\n",
                     pmn1->vin.prevout.ToStringShort(), pnode->addr.ToString());
 
         // increase ban score for everyone else with the same addr
@@ -1538,10 +1538,10 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
             if(mn.addr != mnv.addr || mn.vin.prevout == mnv.vin1.prevout) continue;
             mn.IncreasePoSeBanScore();
             nCount++;
-            LogPrint("znode", "CZnodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
+            LogPrint("indexnode", "CZnodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
                         mn.vin.prevout.ToStringShort(), mn.addr.ToString(), mn.nPoSeBanScore);
         }
-        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- PoSe score incresed for %d fake znodes, addr %s\n",
+        LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- PoSe score incresed for %d fake indexnodes, addr %s\n",
                     nCount, pnode->addr.ToString());
     }
 }
@@ -1554,7 +1554,7 @@ std::string CZnodeMan::ToString() const
             ", peers who asked us for Znode list: " << (int)mAskedUsForZnodeList.size() <<
             ", peers we asked for Znode list: " << (int)mWeAskedForZnodeList.size() <<
             ", entries in Znode list we asked for: " << (int)mWeAskedForZnodeListEntry.size() <<
-            ", znode index size: " << indexZnodes.GetSize() <<
+            ", indexnode index size: " << indexZnodes.GetSize() <<
             ", nDsqCount: " << (int)nDsqCount;
 
     return info.str();
@@ -1568,18 +1568,18 @@ void CZnodeMan::UpdateZnodeList(CZnodeBroadcast mnb)
         mapSeenZnodePing.insert(std::make_pair(mnb.lastPing.GetHash(), mnb.lastPing));
         mapSeenZnodeBroadcast.insert(std::make_pair(mnb.GetHash(), std::make_pair(GetTime(), mnb)));
 
-        LogPrintf("CZnodeMan::UpdateZnodeList -- znode=%s  addr=%s\n", mnb.vin.prevout.ToStringShort(), mnb.addr.ToString());
+        LogPrintf("CZnodeMan::UpdateZnodeList -- indexnode=%s  addr=%s\n", mnb.vin.prevout.ToStringShort(), mnb.addr.ToString());
 
         CZnode *pmn = Find(mnb.vin);
         if (pmn == NULL) {
             CZnode mn(mnb);
             if (Add(mn)) {
-                znodeSync.AddedZnodeList();
+                indexnodeSync.AddedZnodeList();
             }
         } else {
             CZnodeBroadcast mnbOld = mapSeenZnodeBroadcast[CZnodeBroadcast(*pmn).GetHash()].second;
             if (pmn->UpdateFromNewBroadcast(mnb)) {
-                znodeSync.AddedZnodeList();
+                indexnodeSync.AddedZnodeList();
                 mapSeenZnodeBroadcast.erase(mnbOld.GetHash());
             }
         }
@@ -1596,22 +1596,22 @@ bool CZnodeMan::CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, in
     {
         LOCK(cs);
         nDos = 0;
-        LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- znode=%s\n", mnb.vin.prevout.ToStringShort());
+        LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- indexnode=%s\n", mnb.vin.prevout.ToStringShort());
 
         uint256 hash = mnb.GetHash();
         if (mapSeenZnodeBroadcast.count(hash) && !mnb.fRecovery) { //seen
-            LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- znode=%s seen\n", mnb.vin.prevout.ToStringShort());
+            LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- indexnode=%s seen\n", mnb.vin.prevout.ToStringShort());
             // less then 2 pings left before this MN goes into non-recoverable state, bump sync timeout
-            if (GetTime() - mapSeenZnodeBroadcast[hash].first > ZNODE_NEW_START_REQUIRED_SECONDS - ZNODE_MIN_MNP_SECONDS * 2) {
-                LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- znode=%s seen update\n", mnb.vin.prevout.ToStringShort());
+            if (GetTime() - mapSeenZnodeBroadcast[hash].first > INDEXNODE_NEW_START_REQUIRED_SECONDS - INDEXNODE_MIN_MNP_SECONDS * 2) {
+                LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- indexnode=%s seen update\n", mnb.vin.prevout.ToStringShort());
                 mapSeenZnodeBroadcast[hash].first = GetTime();
-                znodeSync.AddedZnodeList();
+                indexnodeSync.AddedZnodeList();
             }
             // did we ask this node for it?
             if (pfrom && IsMnbRecoveryRequested(hash) && GetTime() < mMnbRecoveryRequests[hash].first) {
-                LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request\n", hash.ToString());
+                LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request\n", hash.ToString());
                 if (mMnbRecoveryRequests[hash].second.count(pfrom->addr)) {
-                    LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request, addr=%s\n", hash.ToString(), pfrom->addr.ToString());
+                    LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request, addr=%s\n", hash.ToString(), pfrom->addr.ToString());
                     // do not allow node to send same mnb multiple times in recovery mode
                     mMnbRecoveryRequests[hash].second.erase(pfrom->addr);
                     // does it have newer lastPing?
@@ -1619,10 +1619,10 @@ bool CZnodeMan::CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, in
                         // simulate Check
                         CZnode mnTemp = CZnode(mnb);
                         mnTemp.Check();
-                        LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request, addr=%s, better lastPing: %d min ago, projected mn state: %s\n", hash.ToString(), pfrom->addr.ToString(), (GetTime() - mnb.lastPing.sigTime) / 60, mnTemp.GetStateString());
+                        LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- mnb=%s seen request, addr=%s, better lastPing: %d min ago, projected mn state: %s\n", hash.ToString(), pfrom->addr.ToString(), (GetTime() - mnb.lastPing.sigTime) / 60, mnTemp.GetStateString());
                         if (mnTemp.IsValidStateForAutoStart(mnTemp.nActiveState)) {
                             // this node thinks it's a good one
-                            LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- znode=%s seen good\n", mnb.vin.prevout.ToStringShort());
+                            LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- indexnode=%s seen good\n", mnb.vin.prevout.ToStringShort());
                             mMnbRecoveryGoodReplies[hash].push_back(mnb);
                         }
                     }
@@ -1632,10 +1632,10 @@ bool CZnodeMan::CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, in
         }
         mapSeenZnodeBroadcast.insert(std::make_pair(hash, std::make_pair(GetTime(), mnb)));
 
-        LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- znode=%s new\n", mnb.vin.prevout.ToStringShort());
+        LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- indexnode=%s new\n", mnb.vin.prevout.ToStringShort());
 
         if (!mnb.SimpleCheck(nDos)) {
-            LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- SimpleCheck() failed, znode=%s\n", mnb.vin.prevout.ToStringShort());
+            LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- SimpleCheck() failed, indexnode=%s\n", mnb.vin.prevout.ToStringShort());
             return false;
         }
 
@@ -1644,7 +1644,7 @@ bool CZnodeMan::CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, in
         if (pmn) {
             CZnodeBroadcast mnbOld = mapSeenZnodeBroadcast[CZnodeBroadcast(*pmn).GetHash()].second;
             if (!mnb.Update(pmn, nDos)) {
-                LogPrint("znode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- Update() failed, znode=%s\n", mnb.vin.prevout.ToStringShort());
+                LogPrint("indexnode", "CZnodeMan::CheckMnbAndUpdateZnodeList -- Update() failed, indexnode=%s\n", mnb.vin.prevout.ToStringShort());
                 return false;
             }
             if (hash != mnbOld.GetHash()) {
@@ -1655,19 +1655,19 @@ bool CZnodeMan::CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, in
 
     if(mnb.CheckOutpoint(nDos)) {
         Add(mnb);
-        znodeSync.AddedZnodeList();
+        indexnodeSync.AddedZnodeList();
         // if it matches our Znode privkey...
         if(fMasternodeMode && mnb.pubKeyZnode == activeZnode.pubKeyZnode) {
-            mnb.nPoSeBanScore = -ZNODE_POSE_BAN_MAX_SCORE;
-            if(mnb.nProtocolVersion == LEGACY_ZNODES_PROTOCOL_VERSION) {
+            mnb.nPoSeBanScore = -INDEXNODE_POSE_BAN_MAX_SCORE;
+            if(mnb.nProtocolVersion == LEGACY_INDEXNODES_PROTOCOL_VERSION) {
                 // ... and PROTOCOL_VERSION, then we've been remotely activated ...
-                LogPrintf("CZnodeMan::CheckMnbAndUpdateZnodeList -- Got NEW Znode entry: znode=%s  sigTime=%lld  addr=%s\n",
+                LogPrintf("CZnodeMan::CheckMnbAndUpdateZnodeList -- Got NEW Znode entry: indexnode=%s  sigTime=%lld  addr=%s\n",
                             mnb.vin.prevout.ToStringShort(), mnb.sigTime, mnb.addr.ToString());
                 activeZnode.ManageState();
             } else {
                 // ... otherwise we need to reactivate our node, do not add it to the list and do not relay
                 // but also do not ban the node we get this message from
-                LogPrintf("CZnodeMan::CheckMnbAndUpdateZnodeList -- wrong PROTOCOL_VERSION, re-activate your MN: message nProtocolVersion=%d  PROTOCOL_VERSION=%d\n", mnb.nProtocolVersion, LEGACY_ZNODES_PROTOCOL_VERSION);
+                LogPrintf("CZnodeMan::CheckMnbAndUpdateZnodeList -- wrong PROTOCOL_VERSION, re-activate your MN: message nProtocolVersion=%d  PROTOCOL_VERSION=%d\n", mnb.nProtocolVersion, LEGACY_INDEXNODES_PROTOCOL_VERSION);
                 return false;
             }
         }
@@ -1690,7 +1690,7 @@ void CZnodeMan::UpdateLastPaid()
     }
 
     static bool IsFirstRun = true;
-    // Do full scan on first run or if we are not a znode
+    // Do full scan on first run or if we are not a indexnode
     // (MNs should update this info on every block, so limited scan should be enough for them)
     int nMaxBlocksToScanBack = (IsFirstRun || !fMasternodeMode) ? znpayments.GetStorageLimit() : LAST_PAID_SCAN_BLOCKS;
 
@@ -1702,7 +1702,7 @@ void CZnodeMan::UpdateLastPaid()
     }
 
     // every time is like the first time if winners list is not synced
-    IsFirstRun = !znodeSync.IsWinnersListSynced();
+    IsFirstRun = !indexnodeSync.IsWinnersListSynced();
 }
 
 void CZnodeMan::CheckAndRebuildZnodeIndex()
@@ -1745,8 +1745,8 @@ void CZnodeMan::UpdateWatchdogVoteTime(const CTxIn& vin)
 bool CZnodeMan::IsWatchdogActive()
 {
     LOCK(cs);
-    // Check if any znodes have voted recently, otherwise return false
-    return (GetTime() - nLastWatchdogVoteTime) <= ZNODE_WATCHDOG_MAX_SECONDS;
+    // Check if any indexnodes have voted recently, otherwise return false
+    return (GetTime() - nLastWatchdogVoteTime) <= INDEXNODE_WATCHDOG_MAX_SECONDS;
 }
 
 void CZnodeMan::CheckZnode(const CTxIn& vin, bool fForce)
@@ -1774,7 +1774,7 @@ int CZnodeMan::GetZnodeState(const CTxIn& vin)
     LOCK(cs);
     CZnode* pMN = Find(vin);
     if(!pMN)  {
-        return CZnode::ZNODE_NEW_START_REQUIRED;
+        return CZnode::INDEXNODE_NEW_START_REQUIRED;
     }
     return pMN->nActiveState;
 }
@@ -1784,7 +1784,7 @@ int CZnodeMan::GetZnodeState(const CPubKey& pubKeyZnode)
     LOCK(cs);
     CZnode* pMN = Find(pubKeyZnode);
     if(!pMN)  {
-        return CZnode::ZNODE_NEW_START_REQUIRED;
+        return CZnode::INDEXNODE_NEW_START_REQUIRED;
     }
     return pMN->nActiveState;
 }
@@ -1819,7 +1819,7 @@ void CZnodeMan::SetZnodeLastPing(const CTxIn& vin, const CZnodePing& mnp)
 void CZnodeMan::UpdatedBlockTip(const CBlockIndex *pindex)
 {
     pCurrentBlockIndex = pindex;
-    LogPrint("znode", "CZnodeMan::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
+    LogPrint("indexnode", "CZnodeMan::UpdatedBlockTip -- pCurrentBlockIndex->nHeight=%d\n", pCurrentBlockIndex->nHeight);
 
     CheckSameAddr();
 

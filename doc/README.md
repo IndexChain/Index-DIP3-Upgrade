@@ -3,7 +3,7 @@ Zcoin Core 0.14.8.x
 
 Setup
 ---------------------
-[Zcoin Core] (https://zcoin.io/get-zcoin/) is the original Zcoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Zcoin transactions (which is currently several hundreds MBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+[Zcoin Core] (https://index.io/get-index/) is the original Zcoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Zcoin transactions (which is currently several hundreds MBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
 Running
 ---------------------
@@ -13,12 +13,12 @@ The following are some helpful notes on how to run Zcoin on your native platform
 
 Unpack the files into a directory and run:
 
-- `bin/zcoin-qt` (GUI) or
-- `bin/zcoind` (headless)
+- `bin/index-qt` (GUI) or
+- `bin/indexd` (headless)
 
 ### Windows
 
-Unpack the files into a directory, and then run zcoin-qt.exe.
+Unpack the files into a directory, and then run index-qt.exe.
 
 ### OS X
 

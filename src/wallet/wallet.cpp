@@ -37,8 +37,8 @@
 #include "utilmoneystr.h"
 #include "validation.h"
 #include "instantx.h"
-#include "znode.h"
-#include "znodesync-interface.h"
+#include "indexnode.h"
+#include "indexnodesync-interface.h"
 #include "random.h"
 #include "init.h"
 #include "hdmint/wallet.h"
@@ -865,7 +865,7 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
          //We dont allow sigma inputs to stake yet
         if(pcoin->tx->IsSigmaMint())
             continue;
-        if (n == ZNODE_COIN_REQUIRED * COIN)
+        if (n == INDEXNODE_COIN_REQUIRED * COIN)
             continue;
 
         pair<int64_t,pair<const CWalletTx*,unsigned int> > coin = make_pair(n,make_pair(pcoin, i));
@@ -3081,7 +3081,7 @@ bool CWallet::GetCoinsToSpend(
     // Sanity check to make sure this function is never called with a too large
     // amount to spend, resulting to a possible crash due to out of memory condition.
     if (!MoneyRange(required)) {
-        throw std::invalid_argument("Request to spend more than 21 MLN zcoins.\n");
+        throw std::invalid_argument("Request to spend more than 21 MLN indexs.\n");
     }
 
     if (!MoneyRange(amountToSpendLimit)) {
@@ -3348,11 +3348,11 @@ void CWallet::AvailableCoins(vector <COutput> &vCoins, bool fOnlyConfirmed, cons
                     // Do not consider anything other than mints
                     found = (pcoin->tx->vout[i].scriptPubKey.IsZerocoinMint() || pcoin->tx->vout[i].scriptPubKey.IsSigmaMint() || pcoin->tx->vout[i].scriptPubKey.IsZerocoinRemint());
                 } else if (nCoinType == ONLY_NOT1000IFMN) {
-                    found = !(fMasternodeMode && pcoin->tx->vout[i].nValue == ZNODE_COIN_REQUIRED * COIN);
+                    found = !(fMasternodeMode && pcoin->tx->vout[i].nValue == INDEXNODE_COIN_REQUIRED * COIN);
                 } else if (nCoinType == ONLY_NONDENOMINATED_NOT1000IFMN) {
-                    if (fMasternodeMode) found = pcoin->tx->vout[i].nValue != ZNODE_COIN_REQUIRED * COIN; // do not use Hot MN funds
+                    if (fMasternodeMode) found = pcoin->tx->vout[i].nValue != INDEXNODE_COIN_REQUIRED * COIN; // do not use Hot MN funds
                 } else if (nCoinType == ONLY_1000) {
-                    found = pcoin->tx->vout[i].nValue == ZNODE_COIN_REQUIRED * COIN;
+                    found = pcoin->tx->vout[i].nValue == INDEXNODE_COIN_REQUIRED * COIN;
                 } else {
                     found = true;
                 }
@@ -3384,7 +3384,7 @@ bool CWallet::GetZnodeVinAndKeys(CTxIn &txinRet, CPubKey &pubKeyRet, CKey &keyRe
     std::vector <COutput> vPossibleCoins;
     AvailableCoins(vPossibleCoins, true, NULL, false, ONLY_1000);
     if (vPossibleCoins.empty()) {
-        LogPrintf("CWallet::GetZnodeVinAndKeys -- Could not locate any valid znode vin\n");
+        LogPrintf("CWallet::GetZnodeVinAndKeys -- Could not locate any valid indexnode vin\n");
         return false;
     }
 
@@ -3399,7 +3399,7 @@ bool CWallet::GetZnodeVinAndKeys(CTxIn &txinRet, CPubKey &pubKeyRet, CKey &keyRe
     if (out.tx->GetHash() == txHash && out.i == nOutputIndex) // found it!
         return GetVinAndKeysFromOutput(out, txinRet, pubKeyRet, keyRet);
 
-    LogPrintf("CWallet::GetZnodeVinAndKeys -- Could not locate specified znode vin\n");
+    LogPrintf("CWallet::GetZnodeVinAndKeys -- Could not locate specified indexnode vin\n");
     return false;
 }
 
@@ -3431,7 +3431,7 @@ bool CWallet::GetVinAndKeysFromOutput(COutput out, CTxIn &txinRet, CPubKey &pubK
     return true;
 }
 
-//[zcoin]
+//[index]
 void CWallet::ListAvailableCoinsMintCoins(vector <COutput> &vCoins, bool fOnlyConfirmed) const {
     vCoins.clear();
     {
@@ -4337,7 +4337,7 @@ bool CWallet::CreateZerocoinMintModel(
                 break;
             default:
                 throw runtime_error(
-                    "mintzerocoin <amount>(1,10,25,50,100) (\"zcoinaddress\")\n");
+                    "mintzerocoin <amount>(1,10,25,50,100) (\"indexaddress\")\n");
         }
 
         int64_t amount = denominationPair.second;
@@ -4346,7 +4346,7 @@ bool CWallet::CreateZerocoinMintModel(
 
         if(amount < 0){
                 throw runtime_error(
-                    "mintzerocoin <amount>(1,10,25,50,100) (\"zcoinaddress\")\n");
+                    "mintzerocoin <amount>(1,10,25,50,100) (\"indexaddress\")\n");
         }
 
         for(int64_t i=0; i<amount; i++){
@@ -4553,7 +4553,7 @@ bool CWallet::CreateZerocoinToSigmaRemintModel(string &stringError, int version,
         return false;
     }
 
-    if (!params.IsRegtest() && !znodeSyncInterface.IsBlockchainSynced()) {
+    if (!params.IsRegtest() && !indexnodeSyncInterface.IsBlockchainSynced()) {
         stringError = "Blockchain is not synced";
         return false;
     }

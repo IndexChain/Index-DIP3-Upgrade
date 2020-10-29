@@ -25,11 +25,11 @@
 #include "wallet.h"
 #include "walletdb.h"
 #include "hdmint/tracker.h"
-#include "znode-sync.h"
+#include "indexnode-sync.h"
 #include "zerocoin.h"
 #include "walletexcept.h"
 
-#include <znode-payments.h>
+#include <indexnode-payments.h>
 
 #include <stdint.h>
 
@@ -177,7 +177,7 @@ UniValue getnewaddress(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"account\"        (string, optional) DEPRECATED. The account name for the address to be linked to. If not provided, the default account \"\" is used. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created if there is no account by the given name.\n"
             "\nResult:\n"
-            "\"zcoinaddress\"    (string) The new Zcoin address\n"
+            "\"indexaddress\"    (string) The new Zcoin address\n"
             "\nExamples:\n"
             + HelpExampleCli("getnewaddress", "")
             + HelpExampleRpc("getnewaddress", "")
@@ -231,7 +231,7 @@ UniValue getaccountaddress(const JSONRPCRequest& request)
             "\nArguments:\n"
             "1. \"account\"       (string, required) The account name for the address. It can also be set to the empty string \"\" to represent the default account. The account does not need to exist, it will be created and a new address created  if there is no account by the given name.\n"
             "\nResult:\n"
-            "\"zcoinaddress\"   (string) The account Zcoin address\n"
+            "\"indexaddress\"   (string) The account Zcoin address\n"
             "\nExamples:\n"
             + HelpExampleCli("getaccountaddress", "")
             + HelpExampleCli("getaccountaddress", "\"\"")
@@ -298,10 +298,10 @@ UniValue setaccount(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-            "setaccount \"zcoinaddress\" \"account\"\n"
+            "setaccount \"indexaddress\" \"account\"\n"
             "\nDEPRECATED. Sets the account associated with the given address.\n"
             "\nArguments:\n"
-            "1. \"zcoinaddress\"  (string, required) The Zcoin address to be associated with an account.\n"
+            "1. \"indexaddress\"  (string, required) The Zcoin address to be associated with an account.\n"
             "2. \"account\"         (string, required) The account to assign the address to.\n"
             "\nExamples:\n"
             + HelpExampleCli("setaccount", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XX\" \"tabby\"")
@@ -345,10 +345,10 @@ UniValue getaccount(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() != 1)
         throw runtime_error(
-            "getaccount \"zcoinaddress\"\n"
+            "getaccount \"indexaddress\"\n"
             "\nDEPRECATED. Returns the account associated with the given address.\n"
             "\nArguments:\n"
-            "1. \"zcoinaddress\"  (string, required) The Zcoin address for account lookup.\n"
+            "1. \"indexaddress\"  (string, required) The Zcoin address for account lookup.\n"
             "\nResult:\n"
             "\"accountname\"        (string) the account address\n"
             "\nExamples:\n"
@@ -402,7 +402,7 @@ UniValue getaddressesbyaccount(const JSONRPCRequest& request)
             "1. \"account\"        (string, required) The account name.\n"
             "\nResult:\n"
             "[                     (json array of string)\n"
-            "  \"zcoinaddress\"  (string) a Zcoin address associated with the given account\n"
+            "  \"indexaddress\"  (string) a Zcoin address associated with the given account\n"
             "  ,...\n"
             "]\n"
             "\nExamples:\n"
@@ -472,11 +472,11 @@ UniValue sendtoaddress(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 2 || request.params.size() > 5)
         throw runtime_error(
-            "sendtoaddress \"zcoinaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
+            "sendtoaddress \"indexaddress\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
             "\nSend an amount to a given address.\n"
             + HelpRequiringPassphrase(pwallet) +
             "\nArguments:\n"
-            "1. \"zcoinaddress\"  (string, required) The Zcoin address to send to.\n"
+            "1. \"indexaddress\"  (string, required) The Zcoin address to send to.\n"
             "2. \"amount\"      (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. eg 0.1\n"
             "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
             "                             This is not part of the transaction, just kept in your wallet.\n"
@@ -540,7 +540,7 @@ UniValue listaddressgroupings(const JSONRPCRequest& request)
             "[\n"
             "  [\n"
             "    [\n"
-            "      \"zcoinaddress\",     (string) The Zcoin address\n"
+            "      \"indexaddress\",     (string) The Zcoin address\n"
             "      amount,                 (numeric) The amount in " + CURRENCY_UNIT + "\n"
             "      \"account\"             (string, optional) DEPRECATED. The account\n"
             "    ]\n"
@@ -627,11 +627,11 @@ UniValue signmessage(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() != 2)
         throw runtime_error(
-            "signmessage \"zcoinaddress\" \"message\"\n"
+            "signmessage \"indexaddress\" \"message\"\n"
             "\nSign a message with the private key of an address"
             + HelpRequiringPassphrase(pwallet) + "\n"
             "\nArguments:\n"
-            "1. \"zcoinaddress\"  (string, required) The Zcoin address to use for the private key.\n"
+            "1. \"indexaddress\"  (string, required) The Zcoin address to use for the private key.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
@@ -686,10 +686,10 @@ UniValue getreceivedbyaddress(const JSONRPCRequest& request)
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-            "getreceivedbyaddress \"zcoinaddress\" ( minconf )\n"
-            "\nReturns the total amount received by the given zcoinaddress in transactions with at least minconf confirmations.\n"
+            "getreceivedbyaddress \"indexaddress\" ( minconf )\n"
+            "\nReturns the total amount received by the given indexaddress in transactions with at least minconf confirmations.\n"
             "\nArguments:\n"
-            "1. \"zcoinaddress\"  (string, required) The Zcoin address for transactions.\n"
+            "1. \"indexaddress\"  (string, required) The Zcoin address for transactions.\n"
             "2. minconf             (numeric, optional, default=1) Only include transactions confirmed at least this many times.\n"
             "\nResult:\n"
             "amount   (numeric) The total amount in " + CURRENCY_UNIT + " received at this address.\n"
@@ -1585,7 +1585,7 @@ void ListTransactions(CWallet * const pwallet, const CWalletTx& wtx, const strin
                     ExtractDestination(payee, payeeDest);
                     CBitcoinAddress payeeAddr(payeeDest);
                     if(addr.ToString() == payeeAddr.ToString()){
-                        entry.push_back(Pair("category", "znode"));
+                        entry.push_back(Pair("category", "indexnode"));
                     }
                     else if (wtx.GetDepthInMainChain() < 1)
                         entry.push_back(Pair("category", "orphan"));
@@ -1648,7 +1648,7 @@ UniValue listtransactions(const JSONRPCRequest& request)
             "  {\n"
             "    \"account\":\"accountname\",       (string) DEPRECATED. The account name associated with the transaction. \n"
             "                                                It will be \"\" for the default account.\n"
-            "    \"address\":\"zcoinaddress\",    (string) The Zcoin address of the transaction. Not present for \n"
+            "    \"address\":\"indexaddress\",    (string) The Zcoin address of the transaction. Not present for \n"
             "                                                move transactions (category = move).\n"
             "    \"category\":\"send|receive|move\", (string) The transaction category. 'move' is a local (off blockchain)\n"
             "                                                transaction between accounts, and not associated with an address,\n"
@@ -1858,7 +1858,7 @@ UniValue listsinceblock(const JSONRPCRequest& request)
             "{\n"
             "  \"transactions\": [\n"
             "    \"account\":\"accountname\",       (string) DEPRECATED. The account name associated with the transaction. Will be \"\" for the default account.\n"
-            "    \"address\":\"zcoinaddress\",    (string) The Zcoin address of the transaction. Not present for move transactions (category = move).\n"
+            "    \"address\":\"indexaddress\",    (string) The Zcoin address of the transaction. Not present for move transactions (category = move).\n"
             "    \"category\":\"send|receive\",     (string) The transaction category. 'send' has negative amounts, 'receive' has positive amounts.\n"
             "    \"amount\": x.xxx,          (numeric) The amount in " + CURRENCY_UNIT + ". This is negative for the 'send' category, and for the 'move' category for moves \n"
             "                                          outbound. It is positive for the 'receive' category, and for the 'move' category for inbound funds.\n"
@@ -1977,7 +1977,7 @@ UniValue gettransaction(const JSONRPCRequest& request)
             "  \"details\" : [\n"
             "    {\n"
             "      \"account\" : \"accountname\",  (string) DEPRECATED. The account name involved in the transaction, can be \"\" for the default account.\n"
-            "      \"address\" : \"zcoinaddress\",   (string) The Zcoin address involved in the transaction\n"
+            "      \"address\" : \"indexaddress\",   (string) The Zcoin address involved in the transaction\n"
             "      \"category\" : \"send|receive\",    (string) The category, either 'send' or 'receive'\n"
             "      \"amount\" : x.xxx,                 (numeric) The amount in " + CURRENCY_UNIT + "\n"
             "      \"label\" : \"label\",              (string) A comment for the address/transaction, if any\n"
@@ -2171,7 +2171,7 @@ UniValue walletpassphrase(const JSONRPCRequest& request)
         throw runtime_error(
             "walletpassphrase \"passphrase\" timeout\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
-            "This is needed prior to performing transactions related to private keys such as sending zcoins\n"
+            "This is needed prior to performing transactions related to private keys such as sending indexs\n"
             "\nArguments:\n"
             "1. \"passphrase\"     (string, required) The wallet passphrase\n"
             "2. timeout            (numeric, required) The time to keep the decryption key in seconds.\n"
@@ -2350,7 +2350,7 @@ UniValue encryptwallet(const JSONRPCRequest& request)
             "\nNow set the passphrase to use the wallet, such as for signing or sending bitcoin\n"
             + HelpExampleCli("walletpassphrase", "\"my pass phrase\"") +
             "\nNow we can so something like sign\n"
-            + HelpExampleCli("signmessage", "\"zcoinaddress\" \"test message\"") +
+            + HelpExampleCli("signmessage", "\"indexaddress\" \"test message\"") +
             "\nNow lock the wallet again by removing the passphrase\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs a json rpc call\n"
@@ -2984,12 +2984,12 @@ UniValue regeneratemintpool(const JSONRPCRequest& request) {
     }
 
     if(reindexRequired)
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Mintpool issue corrected. Please shutdown zcoin and restart with -reindex flag.");
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Mintpool issue corrected. Please shutdown index and restart with -reindex flag.");
 
     return true;
 }
 
-//[zcoin]: zerocoin section
+//[index]: zerocoin section
 // zerocoin section
 
 UniValue listunspentmintzerocoins(const JSONRPCRequest& request) {
@@ -3402,11 +3402,11 @@ UniValue spendzerocoin(const JSONRPCRequest& request) {
 
     if (request.fHelp || request.params.size() < 1 || request.params.size() > 2)
         throw runtime_error(
-                "spendzerocoin <amount>(1,10,25,50,100) (\"zcoinaddress\")\n"
+                "spendzerocoin <amount>(1,10,25,50,100) (\"indexaddress\")\n"
                 + HelpRequiringPassphrase(pwallet) +
 				"\nArguments:\n"
 				"1. \"amount\"      (numeric or string, required) The amount in " + CURRENCY_UNIT + " to send. currently options are following 1, 10, 25, 50 and 100 only\n"
-				"2. \"zcoinaddress\"  (string, optional) The Zcoin address to send to third party.\n"
+				"2. \"indexaddress\"  (string, optional) The Zcoin address to send to third party.\n"
 				"\nExamples:\n"
 				            + HelpExampleCli("spendzerocoin", "10 \"a1kCCGddf5pMXSipLVD9hBG2MGGVNaJ15U\"")
         );
@@ -3433,7 +3433,7 @@ UniValue spendzerocoin(const JSONRPCRequest& request) {
         nAmount = AmountFromValue(request.params[0]);
     } else {
         throw runtime_error(
-                "spendzerocoin <amount>(1,10,25,50,100) (\"zcoinaddress\")\n");
+                "spendzerocoin <amount>(1,10,25,50,100) (\"indexaddress\")\n");
     }
 
     CBitcoinAddress address;
@@ -3538,7 +3538,7 @@ UniValue spendmanyzerocoin(const JSONRPCRequest& request) {
                 break;
             default:
                 throw runtime_error(
-                    "spendmanyzerocoin <amount>(1,10,25,50,100) (\"zcoinaddress\")\n");
+                    "spendmanyzerocoin <amount>(1,10,25,50,100) (\"indexaddress\")\n");
         }
         for(int64_t j=0; j<amount; j++){
             denominations.push_back(std::make_pair(value * COIN, denomination));
@@ -3600,7 +3600,7 @@ UniValue spendmany(const JSONRPCRequest& request) {
                 "4. \"comment\"             (string, optional) A comment\n"
                 "5. subtractfeefromamount   (string, optional) A json array with addresses.\n"
                 "                           The fee will be equally deducted from the amount of each selected address.\n"
-                "                           Those recipients will receive less zcoins than you enter in their corresponding amount field.\n"
+                "                           Those recipients will receive less indexs than you enter in their corresponding amount field.\n"
                 "                           If no addresses are specified here, the sender pays the fee.\n"
                 "    [\n"
                 "      \"address\"            (string) Subtract fee from this address\n"
@@ -4381,11 +4381,11 @@ UniValue removetxwallet(const JSONRPCRequest& request) {
 
 
 
-extern UniValue dumpprivkey_zcoin(const JSONRPCRequest& request); // in rpcdump.cpp
+extern UniValue dumpprivkey_index(const JSONRPCRequest& request); // in rpcdump.cpp
 extern UniValue importprivkey(const JSONRPCRequest& request);
 extern UniValue importaddress(const JSONRPCRequest& request);
 extern UniValue importpubkey(const JSONRPCRequest& request);
-extern UniValue dumpwallet_zcoin(const JSONRPCRequest& request);
+extern UniValue dumpwallet_index(const JSONRPCRequest& request);
 extern UniValue importwallet(const JSONRPCRequest& request);
 extern UniValue importprunedfunds(const JSONRPCRequest& request);
 extern UniValue removeprunedfunds(const JSONRPCRequest& request);
@@ -4728,8 +4728,8 @@ static const CRPCCommand commands[] =
     { "wallet",             "addwitnessaddress",        &addwitnessaddress,        true,   {"address"} },
     { "wallet",             "backupwallet",             &backupwallet,             true,   {"destination"} },
     { "wallet",             "bumpfee",                  &bumpfee,                  true,   {"txid", "options"} },
-    { "wallet",             "dumpprivkey",              &dumpprivkey_zcoin,        true,   {"address"}  },
-    { "wallet",             "dumpwallet",               &dumpwallet_zcoin,         true,   {"filename"} },
+    { "wallet",             "dumpprivkey",              &dumpprivkey_index,        true,   {"address"}  },
+    { "wallet",             "dumpwallet",               &dumpwallet_index,         true,   {"filename"} },
     { "wallet",             "encryptwallet",            &encryptwallet,            true,   {"passphrase"} },
     { "wallet",             "getaccountaddress",        &getaccountaddress,        true,   {"account"} },
     { "wallet",             "getaccount",               &getaccount,               true,   {"address"} },

@@ -706,7 +706,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Zcoin Core</source>
         <translation>Zcoin மையம்</translation>

@@ -366,12 +366,12 @@
         <translation>Vahelehe tööriistariba</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
-        <translation>Loo maksepäring (genereerib QR koodid ja zcoini: URId)</translation>
+        <source>Request payments (generates QR codes and index: URIs)</source>
+        <translation>Loo maksepäring (genereerib QR koodid ja indexi: URId)</translation>
     </message>
     <message>
-        <source>Open a zcoin: URI or payment request</source>
-        <translation>Ava zcoini: URI või maksepäring</translation>
+        <source>Open a index: URI or payment request</source>
+        <translation>Ava indexi: URI või maksepäring</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1732,7 +1732,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Options:</source>
         <translation>Valikud:</translation>

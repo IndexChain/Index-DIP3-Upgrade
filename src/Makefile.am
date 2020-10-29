@@ -114,7 +114,7 @@ LIBBITCOIN_CONSENSUS=libbitcoin_consensus.a
 LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
-LIBBITCOINQT=qt/libzcoinqt.a
+LIBBITCOINQT=qt/libindexqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
 
 LIBZCOIN_SIGMA=libsigma.a
@@ -153,17 +153,17 @@ TESTS =
 BENCHMARKS =
 
 if BUILD_BITCOIND
-  bin_PROGRAMS += zcoind
+  bin_PROGRAMS += indexd
 endif
 
 if BUILD_BITCOIN_UTILS
-  bin_PROGRAMS += zcoin-cli zcoin-tx
+  bin_PROGRAMS += index-cli index-tx
 endif
 
 .PHONY: FORCE check-symbols check-security
 # bitcoin core #
 BITCOIN_CORE_H = \
-  activeznode.h \
+  activeindexnode.h \
   activemasternode.h \
   addressindex.h \
   spentindex.h \
@@ -215,12 +215,12 @@ BITCOIN_CORE_H = \
   dbwrapper.h \
   limitedmap.h \
   threadinterrupt.h \
-  znode.h \
-  znode-payments.h \
-  znode-sync.h \
+  indexnode.h \
+  indexnode-payments.h \
+  indexnode-sync.h \
   masternode-utils.h \
-  znodeman.h \
-  znodeconfig.h \
+  indexnodeman.h \
+  indexnodeconfig.h \
   mbstring.h \
   memusage.h \
   merkleblock.h \
@@ -306,7 +306,7 @@ BITCOIN_CORE_H = \
   masternode-meta.h \
   masternode-payments.h \
   masternode-sync.h \
-  znodesync-interface.h \
+  indexnodesync-interface.h \
   saltedhasher.h \
   unordered_lru_cache.h \
   llmq/quorums.h \
@@ -386,7 +386,7 @@ obj/build.h: FORCE
 	  $(abs_top_srcdir)
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
-# server: shared between zcoind and zcoin-qt
+# server: shared between indexd and index-qt
 libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(LIBBLSSIG_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
@@ -423,7 +423,7 @@ libbitcoin_server_a_SOURCES = \
   masternode-meta.cpp \
   masternode-payments.cpp \
   masternode-sync.cpp \
-  znodesync-interface.cpp \
+  indexnodesync-interface.cpp \
   masternode-utils.cpp \
   httprpc.cpp \
   httpserver.cpp \
@@ -450,7 +450,7 @@ libbitcoin_server_a_SOURCES = \
   rpc/misc.cpp \
   rpc/net.cpp \
   rpc/rawtransaction.cpp \
-  rpc/rpcznode.cpp \
+  rpc/rpcindexnode.cpp \
   rpc/server.cpp \
   rpc/rpcevo.cpp \
   rpc/rpcquorums.cpp \
@@ -479,22 +479,22 @@ libbitcoin_zmq_a_SOURCES = \
 endif
 
 
-# wallet: shared between zcoind and zcoin-qt, but only linked
+# wallet: shared between indexd and index-qt, but only linked
 # when wallet enabled
 libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(LIBBLSSIG_INCLUDES)
 libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
-  activeznode.cpp \
+  activeindexnode.cpp \
   activemasternode.cpp \
   darksend.cpp \
   hdmint/hdmint.cpp \
-  znode.cpp \
-  znode-payments.cpp \
-  znode-sync.cpp \
+  indexnode.cpp \
+  indexnode-payments.cpp \
+  indexnode-sync.cpp \
   masternode-sync.cpp \
-  znodesync-interface.cpp \
-  znodeconfig.cpp \
-  znodeman.cpp \
+  indexnodesync-interface.cpp \
+  indexnodeconfig.cpp \
+  indexnodeman.cpp \
   hdmint/mintpool.cpp \
   hdmint/wallet.cpp \
   sigma.cpp \
@@ -624,7 +624,7 @@ libbitcoin_consensus_a_SOURCES = \
   utilstrencodings.h \
   version.h
 
-# common: shared between zcoind, and zcoin-qt and non-server tools
+# common: shared between indexd, and index-qt and non-server tools
 libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
@@ -745,7 +745,7 @@ libbitcoin_util_a_SOURCES += stacktraces.cpp
 libbitcoin_consensus_a_SOURCES += stacktraces.h
 endif
 
-# cli: shared between zcoin-cli and zcoin-qt
+# cli: shared between index-cli and index-qt
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
@@ -756,17 +756,17 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
-zcoind_SOURCES = bitcoind.cpp
-zcoind_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-zcoind_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcoind_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-EXTRA_zcoind_DEPENDENCIES = $(LIBBLSSIG_LIBS)
+indexd_SOURCES = bitcoind.cpp
+indexd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+indexd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+indexd_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+EXTRA_indexd_DEPENDENCIES = $(LIBBLSSIG_LIBS)
 
 if TARGET_WINDOWS
-zcoind_SOURCES += bitcoind-res.rc
+indexd_SOURCES += bitcoind-res.rc
 endif
 
-zcoind_LDADD = \
+indexd_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
@@ -782,38 +782,38 @@ zcoind_LDADD = \
   $(LIBSECP256K1) \
   $(LIBBLSSIG_LIBS)
 
-zcoind_LDADD += $(BACKTRACE_LIB) $(TOR_LIBS) $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(LIBBLSSIG_DEPENDS) -lz
+indexd_LDADD += $(BACKTRACE_LIB) $(TOR_LIBS) $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS) $(ZMQ_LIBS) $(LIBBLSSIG_DEPENDS) -lz
 
 # bitcoin-cli binary #
-zcoin_cli_SOURCES = bitcoin-cli.cpp
-zcoin_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
-zcoin_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcoin_cli_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+index_cli_SOURCES = bitcoin-cli.cpp
+index_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+index_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+index_cli_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-zcoin_cli_SOURCES += bitcoin-cli-res.rc
+index_cli_SOURCES += bitcoin-cli-res.rc
 endif
 
-zcoin_cli_LDADD = \
+index_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO)
 
-zcoin_cli_LDADD += $(BACKTRACE_LIB) $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
+index_cli_LDADD += $(BACKTRACE_LIB) $(BOOST_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(EVENT_LIBS)
 #
 
 # bitcoin-tx binary #
-zcoin_tx_SOURCES = bitcoin-tx.cpp
-zcoin_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
-zcoin_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
-zcoin_tx_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+index_tx_SOURCES = bitcoin-tx.cpp
+index_tx_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+index_tx_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+index_tx_LDFLAGS = $(LDFLAGS_WRAP_EXCEPTIONS) $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
-zcoin_tx_SOURCES += bitcoin-tx-res.rc
+index_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
-zcoin_tx_LDADD = \
+index_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
@@ -821,7 +821,7 @@ zcoin_tx_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBSECP256K1)
 
-zcoin_tx_LDADD += $(BACKTRACE_LIB) $(BOOST_LIBS) $(CRYPTO_LIBS)
+index_tx_LDADD += $(BACKTRACE_LIB) $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
 # bitcoinconsensus library #

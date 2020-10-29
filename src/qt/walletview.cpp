@@ -65,7 +65,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     sigmaView(0),
     blankSigmaView(0),
     zc2SigmaPage(0),
-    zcoinTransactionsView(0),
+    indexTransactionsView(0),
     platformStyle(_platformStyle)
 {
     overviewPage = new OverviewPage(platformStyle);
@@ -83,7 +83,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #ifdef ENABLE_ELYSIUM
     toolboxPage = new QWidget(this);
 #endif
-    znodeListPage = new ZnodeList(platformStyle);
+    indexnodeListPage = new ZnodeList(platformStyle);
     masternodeListPage = new MasternodeList(platformStyle);
     stakePage = new StakePage(platformStyle);
 
@@ -107,7 +107,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #ifdef ENABLE_ELYSIUM
     addWidget(toolboxPage);
 #endif
-    addWidget(znodeListPage);
+    addWidget(indexnodeListPage);
     addWidget(masternodeListPage);
     addWidget(stakePage);
 
@@ -125,10 +125,10 @@ WalletView::~WalletView()
 void WalletView::setupTransactionPage()
 {
     // Create Zcoin transactions list
-    zcoinTransactionList = new TransactionView(platformStyle);
+    indexTransactionList = new TransactionView(platformStyle);
 
-    connect(zcoinTransactionList, SIGNAL(doubleClicked(QModelIndex)), zcoinTransactionList, SLOT(showDetails()));
-    connect(zcoinTransactionList, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    connect(indexTransactionList, SIGNAL(doubleClicked(QModelIndex)), indexTransactionList, SLOT(showDetails()));
+    connect(indexTransactionList, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
     // Create export panel for Zcoin transactions
     auto exportButton = new QPushButton(tr("&Export"));
@@ -139,22 +139,22 @@ void WalletView::setupTransactionPage()
         exportButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
     }
 
-    connect(exportButton, SIGNAL(clicked()), zcoinTransactionList, SLOT(exportClicked()));
+    connect(exportButton, SIGNAL(clicked()), indexTransactionList, SLOT(exportClicked()));
 
     auto exportLayout = new QHBoxLayout();
     exportLayout->addStretch();
     exportLayout->addWidget(exportButton);
 
     // Compose transaction list and export panel together
-    auto zcoinLayout = new QVBoxLayout();
-    zcoinLayout->addWidget(zcoinTransactionList);
-    zcoinLayout->addLayout(exportLayout);
+    auto indexLayout = new QVBoxLayout();
+    indexLayout->addWidget(indexTransactionList);
+    indexLayout->addLayout(exportLayout);
     // TODO: fix this
     //connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
     connect(overviewPage, SIGNAL(outOfSyncWarningClicked()), this, SLOT(requestedSyncWarningInfo()));
 
-    zcoinTransactionsView = new QWidget();
-    zcoinTransactionsView->setLayout(zcoinLayout);
+    indexTransactionsView = new QWidget();
+    indexTransactionsView->setLayout(indexLayout);
 
 #ifdef ENABLE_ELYSIUM
     // Create tabs for transaction categories
@@ -162,7 +162,7 @@ void WalletView::setupTransactionPage()
         elysiumTransactionsView = new TXHistoryDialog();
 
         transactionTabs = new QTabWidget();
-        transactionTabs->addTab(zcoinTransactionsView, tr("Zcoin"));
+        transactionTabs->addTab(indexTransactionsView, tr("Zcoin"));
         transactionTabs->addTab(elysiumTransactionsView, tr("Elysium"));
     }
 #endif
@@ -175,7 +175,7 @@ void WalletView::setupTransactionPage()
         pageLayout->addWidget(transactionTabs);
     } else
 #endif
-        pageLayout->addWidget(zcoinTransactionsView);
+        pageLayout->addWidget(indexTransactionsView);
 
     transactionsPage->setLayout(pageLayout);
 }
@@ -280,7 +280,7 @@ void WalletView::setClientModel(ClientModel *_clientModel)
 
     overviewPage->setClientModel(clientModel);
     sendZcoinView->setClientModel(clientModel);
-    znodeListPage->setClientModel(clientModel);
+    indexnodeListPage->setClientModel(clientModel);
     masternodeListPage->setClientModel(clientModel);
     stakePage->setClientModel(_clientModel);
 
@@ -308,7 +308,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     this->walletModel = _walletModel;
 
     // Put transaction list in tabs
-    zcoinTransactionList->setModel(_walletModel);
+    indexTransactionList->setModel(_walletModel);
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     // TODO: fix this
@@ -320,7 +320,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     zc2SigmaPage->createModel();
     usedReceivingAddressesPage->setModel(_walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(_walletModel->getAddressTableModel());
-    znodeListPage->setWalletModel(_walletModel);
+    indexnodeListPage->setWalletModel(_walletModel);
     masternodeListPage->setWalletModel(_walletModel);
     stakePage->setWalletModel(_walletModel);
     sendZcoinView->setModel(_walletModel);
@@ -437,12 +437,12 @@ void WalletView::focusElysiumTransaction(const uint256& txid)
 void WalletView::focusBitcoinHistoryTab(const QModelIndex &idx)
 {
     gotoBitcoinHistoryTab();
-    zcoinTransactionList->focusTransaction(idx);
+    indexTransactionList->focusTransaction(idx);
 }
 
 void WalletView::gotoZnodePage()
 {
-    setCurrentWidget(znodeListPage);
+    setCurrentWidget(indexnodeListPage);
 }
 
 void WalletView::gotoMasternodePage()

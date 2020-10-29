@@ -51,9 +51,9 @@
 #include "utiltime.h"
 
 #include "instantx.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 #include "coins.h"
 
 #include "sigma/coinspend.h"
@@ -131,7 +131,7 @@ CTxMemPool mempool(::minRelayTxFee);
 FeeFilterRounder filterRounder(::minRelayTxFee);
 CTxPoolAggregate txpools(::minRelayTxFee);
 
-// Zcoin znode
+// Zcoin indexnode
 map <uint256, int64_t> mapRejectedBlocks GUARDED_BY(cs_main);
 
 
@@ -2572,7 +2572,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
         uint256 txHash = tx.GetHash();
         bool hasDuplicateInTheSameBlock = txIds.count(txHash) > 0;
-        if (hasDuplicateInTheSameBlock && (!isMainNet || pindex->nHeight >= HF_ZNODE_HEIGHT))
+        if (hasDuplicateInTheSameBlock && (!isMainNet || pindex->nHeight >= HF_INDEXNODE_HEIGHT))
             return state.DoS(100, error("ConnectBlock(): duplicate transactions in the same block"),
                              REJECT_INVALID, "bad-txns-duplicatetxid");
         txIds.insert(txHash);
@@ -2677,25 +2677,25 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
 
     std::string strError = "";
     if (deterministicMNManager->IsDIP3Enforced(pindex->nHeight)) {
-        // evo znodes
+        // evo indexnodes
         if (!IsBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
-            return state.DoS(0, error("ConnectBlock(EVOZNODES): %s", strError), REJECT_INVALID, "bad-cb-amount");
+            return state.DoS(0, error("ConnectBlock(EVOINDEXNODES): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
 
         if (!IsBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockSubsidy)) {
             mapRejectedBlocks.insert(std::make_pair(block.GetHash(), GetTime()));
-            return state.DoS(0, error("ConnectBlock(EVPZNODES): couldn't find evo znode payments"),
+            return state.DoS(0, error("ConnectBlock(EVPINDEXNODES): couldn't find evo indexnode payments"),
                                     REJECT_INVALID, "bad-cb-payee");
         }
     }
     else {
-        // legacy znodes
+        // legacy indexnodes
         if (!IsZnodeBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
             return state.DoS(0, error("ConnectBlock(): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
         if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward)) {
             mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
-            return state.DoS(0, error("ConnectBlock(): couldn't find znode or superblock payments"),
+            return state.DoS(0, error("ConnectBlock(): couldn't find indexnode or superblock payments"),
                             REJECT_INVALID, "bad-cb-payee");
         }
 
@@ -2705,7 +2705,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         return error("ConnectBlock(): ProcessSpecialTxsInBlock for block %s failed with %s",
                     pindex->GetBlockHash().ToString(), FormatStateMessage(state));
     }
-    // END ZNODE
+    // END INDEXNODE
 
     if (!ConnectBlockZC(state, chainparams, pindex, &block, fJustCheck) ||
         !sigma::ConnectBlockSigma(state, chainparams, pindex, &block, fJustCheck))
@@ -2971,7 +2971,7 @@ void static UpdateTip(CBlockIndex *pindexNew, const CChainParams &chainParams) {
     if (pindexNew->nHeight < chainParams.GetConsensus().DIP0003EnforcementHeight) {
         mnodeman.UpdatedBlockTip(chainActive.Tip());
         znpayments.UpdatedBlockTip(chainActive.Tip());
-        znodeSync.UpdatedBlockTip(chainActive.Tip());
+        indexnodeSync.UpdatedBlockTip(chainActive.Tip());
     }
 
     // New best block
@@ -4588,7 +4588,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         return error("%s: ActivateBestChain failed", __func__);
 
     if (pindex->nHeight < chainparams.GetConsensus().DIP0003EnforcementHeight)
-        znodeSync.IsBlockchainSynced(true);
+        indexnodeSync.IsBlockchainSynced(true);
 
     return true;
 }

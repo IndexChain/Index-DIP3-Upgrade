@@ -24,7 +24,7 @@ make
 make install # optional
 ```
 
-This will build zcoin-qt as well if the dependencies are met.
+This will build index-qt as well if the dependencies are met.
 
 Dependencies
 ---------------------
@@ -124,7 +124,7 @@ libqrencode (optional) can be installed with:
 
     sudo apt-get install libqrencode-dev
 
-Once these are installed, they will be found by configure and a zcoin-qt executable will be
+Once these are installed, they will be found by configure and a index-qt executable will be
 built by default.
 
 Dependency Build Instructions: Fedora
@@ -147,7 +147,7 @@ libqrencode (optional) can be installed with:
 
 Notes
 -----
-The release is built with GCC and then "strip zcoind" to strip the debug
+The release is built with GCC and then "strip indexd" to strip the debug
 symbols, which reduces the executable size by about 90%.
 
 
@@ -229,7 +229,7 @@ Hardening enables the following features:
 
     To test that you have built PIE executable, install scanelf, part of paxutils, and use:
 
-        scanelf -e ./zcoin
+        scanelf -e ./index
 
     The output should contain:
 

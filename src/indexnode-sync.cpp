@@ -2,13 +2,13 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "checkpoints.h"
 #include "validation.h"
-#include "znode.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 #include "netfulfilledman.h"
 #include "spork.h"
 #include "darksend.h"
@@ -22,7 +22,7 @@
 
 class CZnodeSync;
 
-CZnodeSync znodeSync;
+CZnodeSync indexnodeSync;
 
 bool CZnodeSync::CheckNodeHeight(CNode *pnode, bool fDisconnectStuckNodes) {
     CNodeStateStats stats;
@@ -43,7 +43,7 @@ bool CZnodeSync::CheckNodeHeight(CNode *pnode, bool fDisconnectStuckNodes) {
         return false;
     } else if (pCurrentBlockIndex->nHeight < stats.nSyncHeight - 1) {
         // This peer announced more headers than we have blocks currently
-        LogPrint("znode", "CZnodeSync::CheckNodeHeight -- skipping peer, who announced more headers than we have blocks currently, nHeight=%d, nSyncHeight=%d, peer=%d\n",
+        LogPrint("indexnode", "CZnodeSync::CheckNodeHeight -- skipping peer, who announced more headers than we have blocks currently, nHeight=%d, nSyncHeight=%d, peer=%d\n",
                   pCurrentBlockIndex->nHeight, stats.nSyncHeight, pnode->id);
         return false;
     }
@@ -82,14 +82,14 @@ bool CZnodeSync::IsBlockchainSynced(bool fBlockAccepted) {
         // Dont skip on REGTEST to make the tests run faster.
         if(Params().NetworkIDString() != CBaseChainParams::REGTEST) {
             // skip if we already checked less than 1 tick ago.
-            if (GetTime() - nTimeLastProcess < ZNODE_SYNC_TICK_SECONDS) {
+            if (GetTime() - nTimeLastProcess < INDEXNODE_SYNC_TICK_SECONDS) {
                 nSkipped++;
                 return fBlockchainSynced;
             }
         }
     }
 
-    LogPrint("znode-sync", 
+    LogPrint("indexnode-sync", 
              "CZnodeSync::IsBlockchainSynced -- state before check: %ssynced, skipped %d times\n", 
              fBlockchainSynced ? "" : "not ", 
              nSkipped);
@@ -103,7 +103,7 @@ bool CZnodeSync::IsBlockchainSynced(bool fBlockAccepted) {
 
     std::vector < CNode * > vNodesCopy = g_connman->CopyNodeVector();
     // We have enough peers and assume most of them are synced
-    if (vNodesCopy.size() >= ZNODE_SYNC_ENOUGH_PEERS) {
+    if (vNodesCopy.size() >= INDEXNODE_SYNC_ENOUGH_PEERS) {
         // Check to see how many of our peers are (almost) at the same height as we are
         int nNodesAtSameHeight = 0;
         BOOST_FOREACH(CNode * pnode, vNodesCopy)
@@ -114,7 +114,7 @@ bool CZnodeSync::IsBlockchainSynced(bool fBlockAccepted) {
             }
             nNodesAtSameHeight++;
             // if we have decent number of such peers, most likely we are synced now
-            if (nNodesAtSameHeight >= ZNODE_SYNC_ENOUGH_PEERS) {
+            if (nNodesAtSameHeight >= INDEXNODE_SYNC_ENOUGH_PEERS) {
                 LogPrintf("CZnodeSync::IsBlockchainSynced -- found enough peers on the same height as we are, done\n");
                 fBlockchainSynced = true;
                 g_connman->ReleaseNodeVector(vNodesCopy);
@@ -136,11 +136,11 @@ bool CZnodeSync::IsBlockchainSynced(bool fBlockAccepted) {
 
 void CZnodeSync::Fail() {
     nTimeLastFailure = GetTime();
-    nRequestedZnodeAssets = ZNODE_SYNC_FAILED;
+    nRequestedZnodeAssets = INDEXNODE_SYNC_FAILED;
 }
 
 void CZnodeSync::Reset() {
-    nRequestedZnodeAssets = ZNODE_SYNC_INITIAL;
+    nRequestedZnodeAssets = INDEXNODE_SYNC_INITIAL;
     nRequestedZnodeAttempt = 0;
     nTimeAssetSyncStarted = GetTime();
     nTimeLastZnodeList = GetTime();
@@ -152,18 +152,18 @@ void CZnodeSync::Reset() {
 
 std::string CZnodeSync::GetAssetName() {
     switch (nRequestedZnodeAssets) {
-        case (ZNODE_SYNC_INITIAL):
-            return "ZNODE_SYNC_INITIAL";
-        case (ZNODE_SYNC_SPORKS):
-            return "ZNODE_SYNC_SPORKS";
-        case (ZNODE_SYNC_LIST):
-            return "ZNODE_SYNC_LIST";
-        case (ZNODE_SYNC_MNW):
-            return "ZNODE_SYNC_MNW";
-        case (ZNODE_SYNC_FAILED):
-            return "ZNODE_SYNC_FAILED";
-        case ZNODE_SYNC_FINISHED:
-            return "ZNODE_SYNC_FINISHED";
+        case (INDEXNODE_SYNC_INITIAL):
+            return "INDEXNODE_SYNC_INITIAL";
+        case (INDEXNODE_SYNC_SPORKS):
+            return "INDEXNODE_SYNC_SPORKS";
+        case (INDEXNODE_SYNC_LIST):
+            return "INDEXNODE_SYNC_LIST";
+        case (INDEXNODE_SYNC_MNW):
+            return "INDEXNODE_SYNC_MNW";
+        case (INDEXNODE_SYNC_FAILED):
+            return "INDEXNODE_SYNC_FAILED";
+        case INDEXNODE_SYNC_FINISHED:
+            return "INDEXNODE_SYNC_FINISHED";
         default:
             return "UNKNOWN";
     }
@@ -171,29 +171,29 @@ std::string CZnodeSync::GetAssetName() {
 
 void CZnodeSync::SwitchToNextAsset() {
     switch (nRequestedZnodeAssets) {
-        case (ZNODE_SYNC_FAILED):
+        case (INDEXNODE_SYNC_FAILED):
             throw std::runtime_error("Can't switch to next asset from failed, should use Reset() first!");
             break;
-        case (ZNODE_SYNC_INITIAL):
+        case (INDEXNODE_SYNC_INITIAL):
             ClearFulfilledRequests();
-            nRequestedZnodeAssets = ZNODE_SYNC_SPORKS;
+            nRequestedZnodeAssets = INDEXNODE_SYNC_SPORKS;
             LogPrintf("CZnodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
             break;
-        case (ZNODE_SYNC_SPORKS):
+        case (INDEXNODE_SYNC_SPORKS):
             nTimeLastZnodeList = GetTime();
-            nRequestedZnodeAssets = ZNODE_SYNC_LIST;
+            nRequestedZnodeAssets = INDEXNODE_SYNC_LIST;
             LogPrintf("CZnodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
             break;
-        case (ZNODE_SYNC_LIST):
+        case (INDEXNODE_SYNC_LIST):
             nTimeLastPaymentVote = GetTime();
-            nRequestedZnodeAssets = ZNODE_SYNC_MNW;
+            nRequestedZnodeAssets = INDEXNODE_SYNC_MNW;
             LogPrintf("CZnodeSync::SwitchToNextAsset -- Starting %s\n", GetAssetName());
             break;
 
-        case (ZNODE_SYNC_MNW):
+        case (INDEXNODE_SYNC_MNW):
             nTimeLastGovernanceItem = GetTime();
             LogPrintf("CZnodeSync::SwitchToNextAsset -- Sync has finished\n");
-            nRequestedZnodeAssets = ZNODE_SYNC_FINISHED;
+            nRequestedZnodeAssets = INDEXNODE_SYNC_FINISHED;
             break;
     }
     nRequestedZnodeAttempt = 0;
@@ -201,18 +201,18 @@ void CZnodeSync::SwitchToNextAsset() {
 }
 
 std::string CZnodeSync::GetSyncStatus() {
-    switch (znodeSync.nRequestedZnodeAssets) {
-        case ZNODE_SYNC_INITIAL:
+    switch (indexnodeSync.nRequestedZnodeAssets) {
+        case INDEXNODE_SYNC_INITIAL:
             return _("Synchronization pending...");
-        case ZNODE_SYNC_SPORKS:
+        case INDEXNODE_SYNC_SPORKS:
             return _("Synchronizing sporks...");
-        case ZNODE_SYNC_LIST:
-            return _("Synchronizing znodes...");
-        case ZNODE_SYNC_MNW:
-            return _("Synchronizing znode payments...");
-        case ZNODE_SYNC_FAILED:
+        case INDEXNODE_SYNC_LIST:
+            return _("Synchronizing indexnodes...");
+        case INDEXNODE_SYNC_MNW:
+            return _("Synchronizing indexnode payments...");
+        case INDEXNODE_SYNC_FAILED:
             return _("Synchronization failed");
-        case ZNODE_SYNC_FINISHED:
+        case INDEXNODE_SYNC_FINISHED:
             return _("Synchronization finished");
         default:
             return "";
@@ -240,18 +240,18 @@ void CZnodeSync::ClearFulfilledRequests() {
     BOOST_FOREACH(CNode * pnode, vNodes)
     {
         netfulfilledman.RemoveFulfilledRequest(pnode->addr, "spork-sync");
-        netfulfilledman.RemoveFulfilledRequest(pnode->addr, "znode-list-sync");
-        netfulfilledman.RemoveFulfilledRequest(pnode->addr, "znode-payment-sync");
+        netfulfilledman.RemoveFulfilledRequest(pnode->addr, "indexnode-list-sync");
+        netfulfilledman.RemoveFulfilledRequest(pnode->addr, "indexnode-payment-sync");
         netfulfilledman.RemoveFulfilledRequest(pnode->addr, "full-sync");
     }
 }
 
 void CZnodeSync::ProcessTick() {
     static int nTick = 0;
-    if (nTick++ % ZNODE_SYNC_TICK_SECONDS != 0) return;
+    if (nTick++ % INDEXNODE_SYNC_TICK_SECONDS != 0) return;
     if (!pCurrentBlockIndex) return;
 
-    //the actual count of znodes we have currently
+    //the actual count of indexnodes we have currently
     int nMnCount = mnodeman.CountZnodes();
 
     LogPrint("ProcessTick", "CZnodeSync::ProcessTick -- nTick %d nMnCount %d\n", nTick, nMnCount);
@@ -265,7 +265,7 @@ void CZnodeSync::ProcessTick() {
     {
         if (IsSynced()) {
             /*
-                Resync if we lost all znodes from sleep/wake or failed to sync originally
+                Resync if we lost all indexnodes from sleep/wake or failed to sync originally
             */
             if (nMnCount == 0) {
                 LogPrintf("CZnodeSync::ProcessTick -- WARNING: not enough data, restarting sync\n");
@@ -286,13 +286,13 @@ void CZnodeSync::ProcessTick() {
         }
     }
 
-    if (Params().NetworkIDString() != CBaseChainParams::REGTEST && !IsBlockchainSynced() && nRequestedZnodeAssets > ZNODE_SYNC_SPORKS) {
+    if (Params().NetworkIDString() != CBaseChainParams::REGTEST && !IsBlockchainSynced() && nRequestedZnodeAssets > INDEXNODE_SYNC_SPORKS) {
         nTimeLastZnodeList = GetTime();
         nTimeLastPaymentVote = GetTime();
         nTimeLastGovernanceItem = GetTime();
         return;
     }
-    if (nRequestedZnodeAssets == ZNODE_SYNC_INITIAL || (nRequestedZnodeAssets == ZNODE_SYNC_SPORKS && IsBlockchainSynced())) {
+    if (nRequestedZnodeAssets == INDEXNODE_SYNC_INITIAL || (nRequestedZnodeAssets == INDEXNODE_SYNC_SPORKS && IsBlockchainSynced())) {
         SwitchToNextAsset();
     }
 
@@ -300,23 +300,23 @@ void CZnodeSync::ProcessTick() {
 
     BOOST_FOREACH(CNode * pnode, vNodesCopy)
     {
-        // Don't try to sync any data from outbound "znode" connections -
+        // Don't try to sync any data from outbound "indexnode" connections -
         // they are temporary and should be considered unreliable for a sync process.
-        // Inbound connection this early is most likely a "znode" connection
+        // Inbound connection this early is most likely a "indexnode" connection
         // initialted from another node, so skip it too.
         if (pnode->fZnode || (fMasternodeMode && pnode->fInbound)) continue;
 
         // QUICK MODE (REGTEST ONLY!)
         if (Params().NetworkIDString() == CBaseChainParams::REGTEST) {
             if (nRequestedZnodeAttempt <= 2) {
-                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::GETSPORKS)); //get current network sporks
+                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::GETSPORKS)); //get current network sporks
             } else if (nRequestedZnodeAttempt < 4) {
                 mnodeman.DsegUpdate(pnode);
             } else if (nRequestedZnodeAttempt < 6) {
                 int nMnCount = mnodeman.CountZnodes();
-                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::ZNODEPAYMENTSYNC, nMnCount)); //sync payment votes
+                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::INDEXNODEPAYMENTSYNC, nMnCount)); //sync payment votes
             } else {
-                nRequestedZnodeAssets = ZNODE_SYNC_FINISHED;
+                nRequestedZnodeAssets = INDEXNODE_SYNC_FINISHED;
             }
             nRequestedZnodeAttempt++;
             g_connman->ReleaseNodeVector(vNodesCopy);
@@ -339,20 +339,20 @@ void CZnodeSync::ProcessTick() {
                 // only request once from each peer
                 netfulfilledman.AddFulfilledRequest(pnode->addr, "spork-sync");
                 // get current network sporks
-                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::GETSPORKS));
+                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::GETSPORKS));
                 LogPrintf("CZnodeSync::ProcessTick -- nTick %d nRequestedZnodeAssets %d -- requesting sporks from peer %d\n", nTick, nRequestedZnodeAssets, pnode->id);
                 continue; // always get sporks first, switch to the next node without waiting for the next tick
             }
 
-            // MNLIST : SYNC ZNODE LIST FROM OTHER CONNECTED CLIENTS
+            // MNLIST : SYNC INDEXNODE LIST FROM OTHER CONNECTED CLIENTS
 
-            if (nRequestedZnodeAssets == ZNODE_SYNC_LIST) {
+            if (nRequestedZnodeAssets == INDEXNODE_SYNC_LIST) {
                 // check for timeout first
-                if (nTimeLastZnodeList < GetTime() - ZNODE_SYNC_TIMEOUT_SECONDS) {
+                if (nTimeLastZnodeList < GetTime() - INDEXNODE_SYNC_TIMEOUT_SECONDS) {
                     LogPrintf("CZnodeSync::ProcessTick -- nTick %d nRequestedZnodeAssets %d -- timeout\n", nTick, nRequestedZnodeAssets);
                     if (nRequestedZnodeAttempt == 0) {
                         LogPrintf("CZnodeSync::ProcessTick -- ERROR: failed to sync %s\n", GetAssetName());
-                        // there is no way we can continue without znode list, fail here and try later
+                        // there is no way we can continue without indexnode list, fail here and try later
                         Fail();
                         g_connman->ReleaseNodeVector(vNodesCopy);
                         return;
@@ -363,8 +363,8 @@ void CZnodeSync::ProcessTick() {
                 }
 
                 // only request once from each peer
-                if (netfulfilledman.HasFulfilledRequest(pnode->addr, "znode-list-sync")) continue;
-                netfulfilledman.AddFulfilledRequest(pnode->addr, "znode-list-sync");
+                if (netfulfilledman.HasFulfilledRequest(pnode->addr, "indexnode-list-sync")) continue;
+                netfulfilledman.AddFulfilledRequest(pnode->addr, "indexnode-list-sync");
 
                 if (pnode->nVersion < znpayments.GetMinZnodePaymentsProto()) continue;
                 nRequestedZnodeAttempt++;
@@ -375,14 +375,14 @@ void CZnodeSync::ProcessTick() {
                 return; //this will cause each peer to get one request each six seconds for the various assets we need
             }
 
-            // MNW : SYNC ZNODE PAYMENT VOTES FROM OTHER CONNECTED CLIENTS
+            // MNW : SYNC INDEXNODE PAYMENT VOTES FROM OTHER CONNECTED CLIENTS
 
-            if (nRequestedZnodeAssets == ZNODE_SYNC_MNW) {
+            if (nRequestedZnodeAssets == INDEXNODE_SYNC_MNW) {
                 LogPrint("znpayments", "CZnodeSync::ProcessTick -- nTick %d nRequestedZnodeAssets %d nTimeLastPaymentVote %lld GetTime() %lld diff %lld\n", nTick, nRequestedZnodeAssets, nTimeLastPaymentVote, GetTime(), GetTime() - nTimeLastPaymentVote);
                 // check for timeout first
-                // This might take a lot longer than ZNODE_SYNC_TIMEOUT_SECONDS minutes due to new blocks,
+                // This might take a lot longer than INDEXNODE_SYNC_TIMEOUT_SECONDS minutes due to new blocks,
                 // but that should be OK and it should timeout eventually.
-                if (nTimeLastPaymentVote < GetTime() - ZNODE_SYNC_TIMEOUT_SECONDS) {
+                if (nTimeLastPaymentVote < GetTime() - INDEXNODE_SYNC_TIMEOUT_SECONDS) {
                     LogPrintf("CZnodeSync::ProcessTick -- nTick %d nRequestedZnodeAssets %d -- timeout\n", nTick, nRequestedZnodeAssets);
                     if (nRequestedZnodeAttempt == 0) {
                         LogPrintf("CZnodeSync::ProcessTick -- ERROR: failed to sync %s\n", GetAssetName());
@@ -407,14 +407,14 @@ void CZnodeSync::ProcessTick() {
                 }
 
                 // only request once from each peer
-                if (netfulfilledman.HasFulfilledRequest(pnode->addr, "znode-payment-sync")) continue;
-                netfulfilledman.AddFulfilledRequest(pnode->addr, "znode-payment-sync");
+                if (netfulfilledman.HasFulfilledRequest(pnode->addr, "indexnode-payment-sync")) continue;
+                netfulfilledman.AddFulfilledRequest(pnode->addr, "indexnode-payment-sync");
 
                 if (pnode->nVersion < znpayments.GetMinZnodePaymentsProto()) continue;
                 nRequestedZnodeAttempt++;
 
                 // ask node for all payment votes it has (new nodes will only return votes for future payments)
-                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_ZNODES_PROTOCOL_VERSION).Make(NetMsgType::ZNODEPAYMENTSYNC, znpayments.GetStorageLimit()));
+                g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::INDEXNODEPAYMENTSYNC, znpayments.GetStorageLimit()));
                 // ask node for missing pieces only (old nodes will not be asked)
                 znpayments.RequestLowDataPaymentBlocks(pnode);
 

@@ -398,8 +398,8 @@
         <translation>Orebalk</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
-        <translation>Versoek betalings (genereer QR-kodes en zcoin: URI's)</translation>
+        <source>Request payments (generates QR codes and index: URIs)</source>
+        <translation>Versoek betalings (genereer QR-kodes en index: URI's)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -410,8 +410,8 @@
         <translation>Vertoon die lys van gebruikte ontvangers-adresse en etikette</translation>
     </message>
     <message>
-        <source>Open a zcoin: URI or payment request</source>
-        <translation>Skep 'n zcoin: URI of betalingsversoek</translation>
+        <source>Open a index: URI or payment request</source>
+        <translation>Skep 'n index: URI of betalingsversoek</translation>
     </message>
     <message>
         <source>Indexing blocks on disk...</source>
@@ -946,7 +946,7 @@
     </message>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Zcoin Core</source>
         <translation>Zcoin Kern</translation>

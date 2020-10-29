@@ -211,7 +211,7 @@
     </message>
     <message>
         <source>Send coins to a Zcoin address</source>
-        <translation>Στείλε νομίσματα σε μια διεύθυνση zcoin</translation>
+        <translation>Στείλε νομίσματα σε μια διεύθυνση index</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -286,8 +286,8 @@
         <translation>Εργαλειοθήκη καρτελών</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
-        <translation>Αίτηση πληρωμών (δημιουργεί QR codes και διευθύνσεις zcoin: )</translation>
+        <source>Request payments (generates QR codes and index: URIs)</source>
+        <translation>Αίτηση πληρωμών (δημιουργεί QR codes και διευθύνσεις index: )</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -298,8 +298,8 @@
         <translation>Προβολή της λίστας των χρησιμοποιημένων διευθύνσεων και ετικετών λήψεως</translation>
     </message>
     <message>
-        <source>Open a zcoin: URI or payment request</source>
-        <translation>Άνοιγμα zcoin: URI αίτησης πληρωμής</translation>
+        <source>Open a index: URI or payment request</source>
+        <translation>Άνοιγμα index: URI αίτησης πληρωμής</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1657,7 +1657,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Options:</source>
         <translation>Επιλογές:</translation>

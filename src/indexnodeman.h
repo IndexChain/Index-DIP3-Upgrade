@@ -2,10 +2,10 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZNODEMAN_H
-#define ZNODEMAN_H
+#ifndef INDEXNODEMAN_H
+#define INDEXNODEMAN_H
 
-#include "znode.h"
+#include "indexnode.h"
 #include "sync.h"
 
 using namespace std;
@@ -52,10 +52,10 @@ public:
         return nSize;
     }
 
-    /// Retrieve znode vin by index
+    /// Retrieve indexnode vin by index
     bool Get(int nIndex, CTxIn& vinZnode) const;
 
-    /// Get index of a znode vin
+    /// Get index of a indexnode vin
     int GetZnodeIndex(const CTxIn& vinZnode) const;
 
     void AddZnodeVIN(const CTxIn& vinZnode);
@@ -125,10 +125,10 @@ private:
     std::map<CNetAddr, int64_t> mWeAskedForZnodeList;
     // which Znodes we've asked for
     std::map<COutPoint, std::map<CNetAddr, int64_t> > mWeAskedForZnodeListEntry;
-    // who we asked for the znode verification
+    // who we asked for the indexnode verification
     std::map<CNetAddr, CZnodeVerification> mWeAskedForVerification;
 
-    // these maps are used for znode recovery from ZNODE_NEW_START_REQUIRED state
+    // these maps are used for indexnode recovery from INDEXNODE_NEW_START_REQUIRED state
     std::map<uint256, std::pair< int64_t, std::set<CNetAddr> > > mMnbRecoveryRequests;
     std::map<uint256, std::vector<CZnodeBroadcast> > mMnbRecoveryGoodReplies;
     std::list< std::pair<CService, uint256> > listScheduledMnbRequestConnections;
@@ -144,10 +144,10 @@ private:
     /// Set when index has been rebuilt, clear when read
     bool fIndexRebuilt;
 
-    /// Set when znodes are added, cleared when CGovernanceManager is notified
+    /// Set when indexnodes are added, cleared when CGovernanceManager is notified
     bool fZnodesAdded;
 
-    /// Set when znodes are removed, cleared when CGovernanceManager is notified
+    /// Set when indexnodes are removed, cleared when CGovernanceManager is notified
     bool fZnodesRemoved;
 
     std::vector<uint256> vecDirtyGovernanceObjectHashes;
@@ -163,7 +163,7 @@ public:
     std::map<uint256, CZnodePing> mapSeenZnodePing;
     // Keep track of all verifications I've seen
     std::map<uint256, CZnodeVerification> mapSeenZnodeVerification;
-    // keep track of dsq count to prevent znodes from gaming darksend queue
+    // keep track of dsq count to prevent indexnodes from gaming darksend queue
     int64_t nDsqCount;
 
 
@@ -235,10 +235,10 @@ public:
     CZnode* Find(const CPubKey& pubKeyZnode);
 
     /// Versions of Find that are safe to use from outside the class
-    bool Get(const CPubKey& pubKeyZnode, CZnode& znode);
-    bool Get(const CTxIn& vin, CZnode& znode);
+    bool Get(const CPubKey& pubKeyZnode, CZnode& indexnode);
+    bool Get(const CTxIn& vin, CZnode& indexnode);
 
-    /// Retrieve znode vin by index
+    /// Retrieve indexnode vin by index
     bool Get(int nIndex, CTxIn& vinZnode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
@@ -250,25 +250,25 @@ public:
         return fIndexRebuilt;
     }
 
-    /// Get index of a znode vin
+    /// Get index of a indexnode vin
     int GetZnodeIndex(const CTxIn& vinZnode) {
         LOCK(cs);
         return indexZnodes.GetZnodeIndex(vinZnode);
     }
 
-    /// Get old index of a znode vin
+    /// Get old index of a indexnode vin
     int GetZnodeIndexOld(const CTxIn& vinZnode) {
         LOCK(cs);
         return indexZnodesOld.GetZnodeIndex(vinZnode);
     }
 
-    /// Get znode VIN for an old index value
+    /// Get indexnode VIN for an old index value
     bool GetZnodeVinForIndexOld(int nZnodeIndex, CTxIn& vinZnodeOut) {
         LOCK(cs);
         return indexZnodesOld.Get(nZnodeIndex, vinZnodeOut);
     }
 
-    /// Get index of a znode vin, returning rebuild flag
+    /// Get index of a indexnode vin, returning rebuild flag
     int GetZnodeIndex(const CTxIn& vinZnode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
@@ -283,13 +283,13 @@ public:
 
     bool Has(const CTxIn& vin);
 
-    znode_info_t GetZnodeInfo(const CTxIn& vin);
+    indexnode_info_t GetZnodeInfo(const CTxIn& vin);
 
-    znode_info_t GetZnodeInfo(const CPubKey& pubKeyZnode);
+    indexnode_info_t GetZnodeInfo(const CPubKey& pubKeyZnode);
 
     char* GetNotQualifyReason(CZnode& mn, int nBlockHeight, bool fFilterSigTime, int nMnCount);
 
-    /// Find an entry in the znode list that is next to be paid
+    /// Find an entry in the indexnode list that is next to be paid
     CZnode* GetNextZnodeInQueueForPayment(int nBlockHeight, bool fFilterSigTime, int& nCount);
     /// Same as above but use current block height
     CZnode* GetNextZnodeInQueueForPayment(bool fFilterSigTime, int& nCount);
@@ -322,7 +322,7 @@ public:
 
     std::string ToString() const;
 
-    /// Update znode list and maps using provided CZnodeBroadcast
+    /// Update indexnode list and maps using provided CZnodeBroadcast
     void UpdateZnodeList(CZnodeBroadcast mnb);
     /// Perform complete check and only then update list and maps
     bool CheckMnbAndUpdateZnodeList(CNode* pfrom, CZnodeBroadcast mnb, int& nDos);
@@ -363,7 +363,7 @@ public:
     void UpdatedBlockTip(const CBlockIndex *pindex);
 
     /**
-     * Called to notify CGovernanceManager that the znode index has been updated.
+     * Called to notify CGovernanceManager that the indexnode index has been updated.
      * Must be called while not holding the CZnodeMan::cs mutex
      */
     void NotifyZnodeUpdates();

@@ -143,7 +143,7 @@
     </message>
     <message>
         <source>Send coins to a Zcoin address</source>
-        <translation>Enviar monedas a una dirección zcoin</translation>
+        <translation>Enviar monedas a una dirección index</translation>
     </message>
     <message>
         <source>Backup wallet to another location</source>
@@ -206,8 +206,8 @@
         <translation>Barra de pestañas</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
-        <translation>Pide pagos (genera codigos QR and zcoin: URls)</translation>
+        <source>Request payments (generates QR codes and index: URIs)</source>
+        <translation>Pide pagos (genera codigos QR and index: URls)</translation>
     </message>
     <message>
         <source>Error</source>
@@ -750,7 +750,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Options:</source>
         <translation>Opciones:
@@ -773,7 +773,7 @@
     </message>
     <message>
         <source>Zcoin Core</source>
-        <translation>zcoin core</translation>
+        <translation>index core</translation>
     </message>
     <message>
         <source>Error loading block database</source>

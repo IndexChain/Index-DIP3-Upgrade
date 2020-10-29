@@ -290,8 +290,8 @@
         <translation>Langeto-breto</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
-        <translation>Peti pagon (kreas QR-kodojn kaj URI-ojn kun prefikso zcoin:)</translation>
+        <source>Request payments (generates QR codes and index: URIs)</source>
+        <translation>Peti pagon (kreas QR-kodojn kaj URI-ojn kun prefikso index:)</translation>
     </message>
     <message>
         <source>Show the list of used sending addresses and labels</source>
@@ -302,8 +302,8 @@
         <translation>Vidigi la liston de uzitaj ricevaj adresoj kaj etikedoj</translation>
     </message>
     <message>
-        <source>Open a zcoin: URI or payment request</source>
-        <translation>Malfermi zcoin:-URI-on aŭ pagpeton</translation>
+        <source>Open a index: URI or payment request</source>
+        <translation>Malfermi index:-URI-on aŭ pagpeton</translation>
     </message>
     <message>
         <source>&amp;Command-line options</source>
@@ -1312,7 +1312,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Options:</source>
         <translation>Agordoj:</translation>

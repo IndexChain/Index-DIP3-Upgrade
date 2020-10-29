@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "consensus/consensus.h"
-#include "znode.h"
-#include "znode-sync.h"
-#include "znode-payments.h"
-#include "znodeman.h"
+#include "indexnode.h"
+#include "indexnode-sync.h"
+#include "indexnode-payments.h"
+#include "indexnodeman.h"
 #include "protocol.h"
 #include "netbase.h"
 
@@ -21,35 +21,35 @@ extern CWallet *pwalletMain;
 CActiveZnode activeZnode;
 
 void CActiveZnode::ManageState() {
-    LogPrint("znode", "CActiveZnode::ManageState -- Start\n");
+    LogPrint("indexnode", "CActiveZnode::ManageState -- Start\n");
     if (!fMasternodeMode) {
-        LogPrint("znode", "CActiveZnode::ManageState -- Not a znode, returning\n");
+        LogPrint("indexnode", "CActiveZnode::ManageState -- Not a indexnode, returning\n");
         return;
     }
 
-    if (Params().NetworkIDString() != CBaseChainParams::REGTEST && !znodeSync.IsBlockchainSynced()) {
-        nState = ACTIVE_ZNODE_SYNC_IN_PROCESS;
+    if (Params().NetworkIDString() != CBaseChainParams::REGTEST && !indexnodeSync.IsBlockchainSynced()) {
+        nState = ACTIVE_INDEXNODE_SYNC_IN_PROCESS;
         LogPrintf("CActiveZnode::ManageState -- %s: %s\n", GetStateString(), GetStatus());
         return;
     }
 
-    if (nState == ACTIVE_ZNODE_SYNC_IN_PROCESS) {
-        nState = ACTIVE_ZNODE_INITIAL;
+    if (nState == ACTIVE_INDEXNODE_SYNC_IN_PROCESS) {
+        nState = ACTIVE_INDEXNODE_INITIAL;
     }
 
-    LogPrint("znode", "CActiveZnode::ManageState -- status = %s, type = %s, pinger enabled = %d\n",
+    LogPrint("indexnode", "CActiveZnode::ManageState -- status = %s, type = %s, pinger enabled = %d\n",
              GetStatus(), GetTypeString(), fPingerEnabled);
 
-    if (eType == ZNODE_UNKNOWN) {
+    if (eType == INDEXNODE_UNKNOWN) {
         ManageStateInitial();
     }
 
-    if (eType == ZNODE_REMOTE) {
+    if (eType == INDEXNODE_REMOTE) {
         ManageStateRemote();
-    } else if (eType == ZNODE_LOCAL) {
-        // Try Remote Start first so the started local znode can be restarted without recreate znode broadcast.
+    } else if (eType == INDEXNODE_LOCAL) {
+        // Try Remote Start first so the started local indexnode can be restarted without recreate indexnode broadcast.
         ManageStateRemote();
-        if (nState != ACTIVE_ZNODE_STARTED)
+        if (nState != ACTIVE_INDEXNODE_STARTED)
             ManageStateLocal();
     }
 
@@ -58,15 +58,15 @@ void CActiveZnode::ManageState() {
 
 std::string CActiveZnode::GetStateString() const {
     switch (nState) {
-        case ACTIVE_ZNODE_INITIAL:
+        case ACTIVE_INDEXNODE_INITIAL:
             return "INITIAL";
-        case ACTIVE_ZNODE_SYNC_IN_PROCESS:
+        case ACTIVE_INDEXNODE_SYNC_IN_PROCESS:
             return "SYNC_IN_PROCESS";
-        case ACTIVE_ZNODE_INPUT_TOO_NEW:
+        case ACTIVE_INDEXNODE_INPUT_TOO_NEW:
             return "INPUT_TOO_NEW";
-        case ACTIVE_ZNODE_NOT_CAPABLE:
+        case ACTIVE_INDEXNODE_NOT_CAPABLE:
             return "NOT_CAPABLE";
-        case ACTIVE_ZNODE_STARTED:
+        case ACTIVE_INDEXNODE_STARTED:
             return "STARTED";
         default:
             return "UNKNOWN";
@@ -75,16 +75,16 @@ std::string CActiveZnode::GetStateString() const {
 
 std::string CActiveZnode::GetStatus() const {
     switch (nState) {
-        case ACTIVE_ZNODE_INITIAL:
+        case ACTIVE_INDEXNODE_INITIAL:
             return "Node just started, not yet activated";
-        case ACTIVE_ZNODE_SYNC_IN_PROCESS:
+        case ACTIVE_INDEXNODE_SYNC_IN_PROCESS:
             return "Sync in progress. Must wait until sync is complete to start Znode";
-        case ACTIVE_ZNODE_INPUT_TOO_NEW:
+        case ACTIVE_INDEXNODE_INPUT_TOO_NEW:
             return strprintf("Znode input must have at least %d confirmations",
                              Params().GetConsensus().nZnodeMinimumConfirmations);
-        case ACTIVE_ZNODE_NOT_CAPABLE:
-            return "Not capable znode: " + strNotCapableReason;
-        case ACTIVE_ZNODE_STARTED:
+        case ACTIVE_INDEXNODE_NOT_CAPABLE:
+            return "Not capable indexnode: " + strNotCapableReason;
+        case ACTIVE_INDEXNODE_STARTED:
             return "Znode successfully started";
         default:
             return "Unknown";
@@ -94,13 +94,13 @@ std::string CActiveZnode::GetStatus() const {
 std::string CActiveZnode::GetTypeString() const {
     std::string strType;
     switch (eType) {
-        case ZNODE_UNKNOWN:
+        case INDEXNODE_UNKNOWN:
             strType = "UNKNOWN";
             break;
-        case ZNODE_REMOTE:
+        case INDEXNODE_REMOTE:
             strType = "REMOTE";
             break;
-        case ZNODE_LOCAL:
+        case INDEXNODE_LOCAL:
             strType = "LOCAL";
             break;
         default:
@@ -112,15 +112,15 @@ std::string CActiveZnode::GetTypeString() const {
 
 bool CActiveZnode::SendZnodePing() {
     if (!fPingerEnabled) {
-        LogPrint("znode",
-                 "CActiveZnode::SendZnodePing -- %s: znode ping service is disabled, skipping...\n",
+        LogPrint("indexnode",
+                 "CActiveZnode::SendZnodePing -- %s: indexnode ping service is disabled, skipping...\n",
                  GetStateString());
         return false;
     }
 
     if (!mnodeman.Has(vin)) {
-        strNotCapableReason = "Znode not in znode list";
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        strNotCapableReason = "Znode not in indexnode list";
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
         LogPrintf("CActiveZnode::SendZnodePing -- %s: %s\n", GetStateString(), strNotCapableReason);
         return false;
     }
@@ -131,8 +131,8 @@ bool CActiveZnode::SendZnodePing() {
         return false;
     }
 
-    // Update lastPing for our znode in Znode list
-    if (mnodeman.IsZnodePingedWithin(vin, ZNODE_MIN_MNP_SECONDS, mnp.sigTime)) {
+    // Update lastPing for our indexnode in Znode list
+    if (mnodeman.IsZnodePingedWithin(vin, INDEXNODE_MIN_MNP_SECONDS, mnp.sigTime)) {
         LogPrintf("CActiveZnode::SendZnodePing -- Too early to send Znode Ping\n");
         return false;
     }
@@ -146,13 +146,13 @@ bool CActiveZnode::SendZnodePing() {
 }
 
 void CActiveZnode::ManageStateInitial() {
-    LogPrint("znode", "CActiveZnode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n",
+    LogPrint("indexnode", "CActiveZnode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n",
              GetStatus(), GetTypeString(), fPingerEnabled);
 
     // Check that our local network configuration is correct
     if (!fListen) {
         // listen option is probably overwritten by smth else, no good
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
         strNotCapableReason = "Znode must accept connections from outside. Make sure listen configuration option is not overwritten by some another parameter.";
         LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
         return;
@@ -167,7 +167,7 @@ void CActiveZnode::ManageStateInitial() {
         if (!fFoundLocal) {
             // nothing and no live connections, can't do anything for now
             if (vNodes.empty()) {
-                nState = ACTIVE_ZNODE_NOT_CAPABLE;
+                nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
                 strNotCapableReason = "Can't detect valid external address. Will retry when there are some connections available.";
                 LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
                 return;
@@ -200,7 +200,7 @@ void CActiveZnode::ManageStateInitial() {
         if (!fFoundLocal) {
             // nothing and no live connections, can't do anything for now
             if (vNodes.empty()) {
-                nState = ACTIVE_ZNODE_NOT_CAPABLE;
+                nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
                 strNotCapableReason = "Can't detect valid external address. Will retry when there are some connections available.";
                 LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
                 return;
@@ -217,7 +217,7 @@ void CActiveZnode::ManageStateInitial() {
     }
 
     if (!fFoundLocal) {
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
         strNotCapableReason = "Can't detect valid external address. Please consider using the externalip configuration option if problem persists. Make sure to use IPv4 address only.";
         LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
         return;
@@ -226,14 +226,14 @@ void CActiveZnode::ManageStateInitial() {
     int mainnetDefaultPort = Params(CBaseChainParams::MAIN).GetDefaultPort();
     if (Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if (service.GetPort() != mainnetDefaultPort) {
-            nState = ACTIVE_ZNODE_NOT_CAPABLE;
+            nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
             strNotCapableReason = strprintf("Invalid port: %u - only %d is supported on mainnet.", service.GetPort(),
                                             mainnetDefaultPort);
             LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }
     } else if (service.GetPort() == mainnetDefaultPort) {
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
         strNotCapableReason = strprintf("Invalid port: %u - %d is only supported on mainnet.", service.GetPort(),
                                         mainnetDefaultPort);
         LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
@@ -243,14 +243,14 @@ void CActiveZnode::ManageStateInitial() {
     LogPrintf("CActiveZnode::ManageStateInitial -- Checking inbound connection to '%s'\n", service.ToString());
     //TODO
     if (!g_connman->OpenMasternodeConnection(CAddress(service, NODE_NETWORK))) {
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
         strNotCapableReason = "Could not connect to " + service.ToString();
         LogPrintf("CActiveZnode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
         return;
     }
 
     // Default to REMOTE
-    eType = ZNODE_REMOTE;
+    eType = INDEXNODE_REMOTE;
 
     // Check if wallet funds are available
     if (!pwalletMain) {
@@ -263,7 +263,7 @@ void CActiveZnode::ManageStateInitial() {
         return;
     }
 
-    if (pwalletMain->GetBalance() < ZNODE_COIN_REQUIRED * COIN) {
+    if (pwalletMain->GetBalance() < INDEXNODE_COIN_REQUIRED * COIN) {
         LogPrintf("CActiveZnode::ManageStateInitial -- %s: Wallet balance is < 1000 XZC\n", GetStateString());
         return;
     }
@@ -274,61 +274,61 @@ void CActiveZnode::ManageStateInitial() {
 
     // If collateral is found switch to LOCAL mode
     if (pwalletMain->GetZnodeVinAndKeys(vin, pubKeyCollateral, keyCollateral)) {
-        eType = ZNODE_LOCAL;
+        eType = INDEXNODE_LOCAL;
     }
 
-    LogPrint("znode", "CActiveZnode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n",
+    LogPrint("indexnode", "CActiveZnode::ManageStateInitial -- End status = %s, type = %s, pinger enabled = %d\n",
              GetStatus(), GetTypeString(), fPingerEnabled);
 }
 
 void CActiveZnode::ManageStateRemote() {
-    LogPrint("znode",
+    LogPrint("indexnode",
              "CActiveZnode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyZnode.GetID() = %s\n",
              GetStatus(), fPingerEnabled, GetTypeString(), pubKeyZnode.GetID().ToString());
 
     mnodeman.CheckZnode(pubKeyZnode);
-    znode_info_t infoMn = mnodeman.GetZnodeInfo(pubKeyZnode);
+    indexnode_info_t infoMn = mnodeman.GetZnodeInfo(pubKeyZnode);
 
     if (infoMn.fInfoValid) {
-        if (infoMn.nProtocolVersion < MIN_ZNODE_PAYMENT_PROTO_VERSION_1
-                || infoMn.nProtocolVersion > MIN_ZNODE_PAYMENT_PROTO_VERSION_2) {
-            nState = ACTIVE_ZNODE_NOT_CAPABLE;
+        if (infoMn.nProtocolVersion < MIN_INDEXNODE_PAYMENT_PROTO_VERSION_1
+                || infoMn.nProtocolVersion > MIN_INDEXNODE_PAYMENT_PROTO_VERSION_2) {
+            nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
             strNotCapableReason = "Invalid protocol version";
             LogPrintf("CActiveZnode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }
         if (service != infoMn.addr) {
-            nState = ACTIVE_ZNODE_NOT_CAPABLE;
+            nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
             // LogPrintf("service: %s\n", service.ToString());
             // LogPrintf("infoMn.addr: %s\n", infoMn.addr.ToString());
-            strNotCapableReason = "Broadcasted IP doesn't match our external address. Make sure you issued a new broadcast if IP of this znode changed recently.";
+            strNotCapableReason = "Broadcasted IP doesn't match our external address. Make sure you issued a new broadcast if IP of this indexnode changed recently.";
             LogPrintf("CActiveZnode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }
         if (!CZnode::IsValidStateForAutoStart(infoMn.nActiveState)) {
-            nState = ACTIVE_ZNODE_NOT_CAPABLE;
+            nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
             strNotCapableReason = strprintf("Znode in %s state", CZnode::StateToString(infoMn.nActiveState));
             LogPrintf("CActiveZnode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }
-        if (nState != ACTIVE_ZNODE_STARTED) {
+        if (nState != ACTIVE_INDEXNODE_STARTED) {
             LogPrintf("CActiveZnode::ManageStateRemote -- STARTED!\n");
             vin = infoMn.vin;
             service = infoMn.addr;
             fPingerEnabled = true;
-            nState = ACTIVE_ZNODE_STARTED;
+            nState = ACTIVE_INDEXNODE_STARTED;
         }
     } else {
-        nState = ACTIVE_ZNODE_NOT_CAPABLE;
-        strNotCapableReason = "Znode not in znode list";
+        nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
+        strNotCapableReason = "Znode not in indexnode list";
         LogPrintf("CActiveZnode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
     }
 }
 
 void CActiveZnode::ManageStateLocal() {
-    LogPrint("znode", "CActiveZnode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n",
+    LogPrint("indexnode", "CActiveZnode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n",
              GetStatus(), GetTypeString(), fPingerEnabled);
-    if (nState == ACTIVE_ZNODE_STARTED) {
+    if (nState == ACTIVE_INDEXNODE_STARTED) {
         return;
     }
 
@@ -339,7 +339,7 @@ void CActiveZnode::ManageStateLocal() {
     if (pwalletMain->GetZnodeVinAndKeys(vin, pubKeyCollateral, keyCollateral)) {
         int nInputAge = GetInputAge(vin);
         if (nInputAge < Params().GetConsensus().nZnodeMinimumConfirmations) {
-            nState = ACTIVE_ZNODE_INPUT_TOO_NEW;
+            nState = ACTIVE_INDEXNODE_INPUT_TOO_NEW;
             strNotCapableReason = strprintf(_("%s - %d confirmations"), GetStatus(), nInputAge);
             LogPrintf("CActiveZnode::ManageStateLocal -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
@@ -354,16 +354,16 @@ void CActiveZnode::ManageStateLocal() {
         std::string strError;
         if (!CZnodeBroadcast::Create(vin, service, keyCollateral, pubKeyCollateral, keyZnode,
                                      pubKeyZnode, strError, mnb)) {
-            nState = ACTIVE_ZNODE_NOT_CAPABLE;
+            nState = ACTIVE_INDEXNODE_NOT_CAPABLE;
             strNotCapableReason = "Error creating mastenode broadcast: " + strError;
             LogPrintf("CActiveZnode::ManageStateLocal -- %s: %s\n", GetStateString(), strNotCapableReason);
             return;
         }
 
         fPingerEnabled = true;
-        nState = ACTIVE_ZNODE_STARTED;
+        nState = ACTIVE_INDEXNODE_STARTED;
 
-        //update to znode list
+        //update to indexnode list
         LogPrintf("CActiveZnode::ManageStateLocal -- Update Znode List\n");
         mnodeman.UpdateZnodeList(mnb);
         mnodeman.NotifyZnodeUpdates();

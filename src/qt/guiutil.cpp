@@ -151,8 +151,8 @@ void setupAmountWidget(QLineEdit *widget, QWidget *parent)
 
 bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 {
-    // return if URI is not valid or is no zcoin: URI
-    if(!uri.isValid() || uri.scheme() != QString("zcoin"))
+    // return if URI is not valid or is no index: URI
+    if(!uri.isValid() || uri.scheme() != QString("index"))
         return false;
 
     SendCoinsRecipient rv;
@@ -212,13 +212,13 @@ bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out)
 
 bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 {
-    // Convert zcoin:// to zcoin:
+    // Convert index:// to index:
     //
-    //    Cannot handle this later, because zcoin:// will cause Qt to see the part after // as host,
+    //    Cannot handle this later, because index:// will cause Qt to see the part after // as host,
     //    which will lower-case it (and thus invalidate the address).
-    if(uri.startsWith("zcoin://", Qt::CaseInsensitive))
+    if(uri.startsWith("index://", Qt::CaseInsensitive))
     {
-        uri.replace(0, 10, "zcoin:");
+        uri.replace(0, 10, "index:");
     }
     QUrl uriInstance(uri);
     return parseBitcoinURI(uriInstance, out);
@@ -226,7 +226,7 @@ bool parseBitcoinURI(QString uri, SendCoinsRecipient *out)
 
 QString formatBitcoinURI(const SendCoinsRecipient &info)
 {
-    QString ret = QString("zcoin:%1").arg(info.address);
+    QString ret = QString("index:%1").arg(info.address);
     int paramCount = 0;
 
     if (info.amount)
@@ -705,8 +705,8 @@ boost::filesystem::path static GetAutostartFilePath()
 {
     std::string chain = ChainNameFromCommandLine();
     if (chain == CBaseChainParams::MAIN)
-        return GetAutostartDir() / "zcoin.desktop";
-    return GetAutostartDir() / strprintf("zcoin-%s.lnk", chain);
+        return GetAutostartDir() / "index.desktop";
+    return GetAutostartDir() / strprintf("index-%s.lnk", chain);
 }
 
 bool GetStartOnSystemStartup()
@@ -745,7 +745,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         if (!optionFile.good())
             return false;
         std::string chain = ChainNameFromCommandLine();
-        // Write a zcoin.desktop file to the autostart directory:
+        // Write a index.desktop file to the autostart directory:
         optionFile << "[Desktop Entry]\n";
         optionFile << "Type=Application\n";
         if (chain == CBaseChainParams::MAIN)

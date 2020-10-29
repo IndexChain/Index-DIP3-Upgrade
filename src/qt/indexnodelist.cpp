@@ -1,13 +1,13 @@
-#include "znodelist.h"
-#include "ui_znodelist.h"
+#include "indexnodelist.h"
+#include "ui_indexnodelist.h"
 
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "clientmodel.h"
 #include "init.h"
 #include "guiutil.h"
-#include "znode-sync.h"
-#include "znodeconfig.h"
-#include "znodeman.h"
+#include "indexnode-sync.h"
+#include "indexnodeconfig.h"
+#include "indexnodeman.h"
 #include "sync.h"
 #include "wallet/wallet.h"
 #include "walletmodel.h"
@@ -100,7 +100,7 @@ void ZnodeList::StartAlias(std::string strAlias)
     std::string strStatusHtml;
     strStatusHtml += "<center>Alias: " + strAlias;
 
-    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
         if(mne.getAlias() == strAlias) {
             std::string strError;
             CZnodeBroadcast mnb;
@@ -108,12 +108,12 @@ void ZnodeList::StartAlias(std::string strAlias)
             bool fSuccess = CZnodeBroadcast::Create(mne.getIp(), mne.getPrivKey(), mne.getTxHash(), mne.getOutputIndex(), strError, mnb);
 
             if(fSuccess) {
-                strStatusHtml += "<br>Successfully started znode.";
+                strStatusHtml += "<br>Successfully started indexnode.";
                 mnodeman.UpdateZnodeList(mnb);
                 mnb.RelayZNode();
                 mnodeman.NotifyZnodeUpdates();
             } else {
-                strStatusHtml += "<br>Failed to start znode.<br>Error: " + strError;
+                strStatusHtml += "<br>Failed to start indexnode.<br>Error: " + strError;
             }
             break;
         }
@@ -133,7 +133,7 @@ void ZnodeList::StartAll(std::string strCommand)
     int nCountFailed = 0;
     std::string strFailedHtml;
 
-    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
         std::string strError;
         CZnodeBroadcast mnb;
 
@@ -161,7 +161,7 @@ void ZnodeList::StartAll(std::string strCommand)
     pwalletMain->Lock();
 
     std::string returnObj;
-    returnObj = strprintf("Successfully started %d znodes, failed to start %d, total %d", nCountSuccessful, nCountFailed, nCountFailed + nCountSuccessful);
+    returnObj = strprintf("Successfully started %d indexnodes, failed to start %d, total %d", nCountSuccessful, nCountFailed, nCountFailed + nCountSuccessful);
     if (nCountFailed > 0) {
         returnObj += strFailedHtml;
     }
@@ -191,7 +191,7 @@ void ZnodeList::updateMyZnodeInfo(QString strAlias, QString strAddr, const COutP
         ui->tableWidgetMyZnodes->insertRow(nNewRow);
     }
 
-    znode_info_t infoMn = mnodeman.GetZnodeInfo(CTxIn(outpoint));
+    indexnode_info_t infoMn = mnodeman.GetZnodeInfo(CTxIn(outpoint));
     bool fFound = infoMn.fInfoValid;
 
     QTableWidgetItem *aliasItem = new QTableWidgetItem(strAlias);
@@ -220,16 +220,16 @@ void ZnodeList::updateMyNodeList(bool fForce)
     }
     static int64_t nTimeMyListUpdated = 0;
 
-    // automatically update my znode list only once in MY_ZNODELIST_UPDATE_SECONDS seconds,
+    // automatically update my indexnode list only once in MY_INDEXNODELIST_UPDATE_SECONDS seconds,
     // this update still can be triggered manually at any time via button click
-    int64_t nSecondsTillUpdate = nTimeMyListUpdated + MY_ZNODELIST_UPDATE_SECONDS - GetTime();
+    int64_t nSecondsTillUpdate = nTimeMyListUpdated + MY_INDEXNODELIST_UPDATE_SECONDS - GetTime();
     ui->secondsLabel->setText(QString::number(nSecondsTillUpdate));
 
     if(nSecondsTillUpdate > 0 && !fForce) return;
     nTimeMyListUpdated = GetTime();
 
     ui->tableWidgetZnodes->setSortingEnabled(false);
-    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
         int32_t nOutputIndex = 0;
         if(!ParseInt32(mne.getOutputIndex(), &nOutputIndex)) {
             continue;
@@ -252,11 +252,11 @@ void ZnodeList::updateNodeList()
 
     static int64_t nTimeListUpdated = GetTime();
 
-    // to prevent high cpu usage update only once in ZNODELIST_UPDATE_SECONDS seconds
-    // or ZNODELIST_FILTER_COOLDOWN_SECONDS seconds after filter was last changed
+    // to prevent high cpu usage update only once in INDEXNODELIST_UPDATE_SECONDS seconds
+    // or INDEXNODELIST_FILTER_COOLDOWN_SECONDS seconds after filter was last changed
     int64_t nSecondsToWait = fFilterUpdated
-                            ? nTimeFilterUpdated - GetTime() + ZNODELIST_FILTER_COOLDOWN_SECONDS
-                            : nTimeListUpdated - GetTime() + ZNODELIST_UPDATE_SECONDS;
+                            ? nTimeFilterUpdated - GetTime() + INDEXNODELIST_FILTER_COOLDOWN_SECONDS
+                            : nTimeListUpdated - GetTime() + INDEXNODELIST_UPDATE_SECONDS;
 
     if(fFilterUpdated) ui->countLabel->setText(QString::fromStdString(strprintf("Please wait... %d", nSecondsToWait)));
     if(nSecondsToWait > 0) return;
@@ -314,7 +314,7 @@ void ZnodeList::on_filterLineEdit_textChanged(const QString &strFilterIn)
     strCurrentFilter = strFilterIn;
     nTimeFilterUpdated = GetTime();
     fFilterUpdated = true;
-    ui->countLabel->setText(QString::fromStdString(strprintf("Please wait... %d", ZNODELIST_FILTER_COOLDOWN_SECONDS)));
+    ui->countLabel->setText(QString::fromStdString(strprintf("Please wait... %d", INDEXNODELIST_FILTER_COOLDOWN_SECONDS)));
 }
 
 void ZnodeList::on_startButton_clicked()
@@ -334,8 +334,8 @@ void ZnodeList::on_startButton_clicked()
     }
 
     // Display message box
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm znode start"),
-        tr("Are you sure you want to start znode %1?").arg(QString::fromStdString(strAlias)),
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm indexnode start"),
+        tr("Are you sure you want to start indexnode %1?").arg(QString::fromStdString(strAlias)),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
 
@@ -358,8 +358,8 @@ void ZnodeList::on_startButton_clicked()
 void ZnodeList::on_startAllButton_clicked()
 {
     // Display message box
-    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm all znodes start"),
-        tr("Are you sure you want to start ALL znodes?"),
+    QMessageBox::StandardButton retval = QMessageBox::question(this, tr("Confirm all indexnodes start"),
+        tr("Are you sure you want to start ALL indexnodes?"),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
 
@@ -382,16 +382,16 @@ void ZnodeList::on_startAllButton_clicked()
 void ZnodeList::on_startMissingButton_clicked()
 {
 
-    if(!znodeSync.IsZnodeListSynced()) {
+    if(!indexnodeSync.IsZnodeListSynced()) {
         QMessageBox::critical(this, tr("Command is not available right now"),
-            tr("You can't use this command until znode list is synced"));
+            tr("You can't use this command until indexnode list is synced"));
         return;
     }
 
     // Display message box
     QMessageBox::StandardButton retval = QMessageBox::question(this,
-        tr("Confirm missing znodes start"),
-        tr("Are you sure you want to start MISSING znodes?"),
+        tr("Confirm missing indexnodes start"),
+        tr("Are you sure you want to start MISSING indexnodes?"),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel);
 

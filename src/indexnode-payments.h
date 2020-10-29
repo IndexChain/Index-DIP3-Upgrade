@@ -2,15 +2,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZNODE_PAYMENTS_H
-#define ZNODE_PAYMENTS_H
+#ifndef INDEXNODE_PAYMENTS_H
+#define INDEXNODE_PAYMENTS_H
 
 #include "util.h"
 #include "net.h"
 #include "core_io.h"
 #include "key.h"
 #include "validation.h"
-#include "znode.h"
+#include "indexnode.h"
 #include "utilstrencodings.h"
 
 class CZnodePayments;
@@ -20,12 +20,12 @@ class CZnode;
 static const int MNPAYMENTS_SIGNATURES_REQUIRED         = 6;
 static const int MNPAYMENTS_SIGNATURES_TOTAL            = 10;
 
-//! minimum peer version that can receive and send znode payment messages,
-//  vote for znode and be elected as a payment winner
+//! minimum peer version that can receive and send indexnode payment messages,
+//  vote for indexnode and be elected as a payment winner
 // V1 - Last protocol version before update
 // V2 - Newest protocol version
-static const int MIN_ZNODE_PAYMENT_PROTO_VERSION_1 = LEGACY_ZNODES_PROTOCOL_VERSION;
-static const int MIN_ZNODE_PAYMENT_PROTO_VERSION_2 = LEGACY_ZNODES_PROTOCOL_VERSION;
+static const int MIN_INDEXNODE_PAYMENT_PROTO_VERSION_1 = LEGACY_INDEXNODES_PROTOCOL_VERSION;
+static const int MIN_INDEXNODE_PAYMENT_PROTO_VERSION_2 = LEGACY_INDEXNODES_PROTOCOL_VERSION;
 
 extern CCriticalSection cs_vecPayees;
 extern CCriticalSection cs_mapZnodeBlocks;
@@ -74,7 +74,7 @@ public:
     std::string ToString() const;
 };
 
-// Keep track of votes for payees from znodes
+// Keep track of votes for payees from indexnodes
 class CZnodeBlockPayees
 {
 public:
@@ -169,7 +169,7 @@ public:
 class CZnodePayments
 {
 private:
-    // znode count times nStorageCoeff payments blocks should be stored ...
+    // indexnode count times nStorageCoeff payments blocks should be stored ...
     const float nStorageCoeff;
     // ... but at least nMinBlocksToStore (payments blocks)
     const int nMinBlocksToStore;

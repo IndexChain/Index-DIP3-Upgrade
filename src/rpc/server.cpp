@@ -333,11 +333,11 @@ static const CRPCCommand vRPCCommands[] =
     { "addressindex",       "getaddresstxids",        &getaddresstxids,        false },
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      false },
         /* Zcoin features */
-    { "zcoin",               "znode",                 &znode,                  true  },
-    { "zcoin",               "znsync",                &znsync,                 true  },
-    { "zcoin",               "znodelist",             &znodelist,              true  },
-    { "zcoin",               "znodebroadcast",        &znodebroadcast,         true  },
-    { "zcoin",               "getpoolinfo",           &getpoolinfo,            true  },
+    { "index",               "indexnode",                 &indexnode,                  true  },
+    { "index",               "znsync",                &znsync,                 true  },
+    { "index",               "indexnodelist",             &indexnodelist,              true  },
+    { "index",               "indexnodebroadcast",        &indexnodebroadcast,         true  },
+    { "index",               "getpoolinfo",           &getpoolinfo,            true  },
         /* Mobile related */
     { "mobile",             "getanonymityset",        &getanonymityset,        true  },
     { "mobile",             "getmintmetadata",        &getmintmetadata,        true  },
@@ -580,7 +580,7 @@ std::vector<std::string> CRPCTable::listCommands() const
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)
 {
-    return "> zcoin-cli " + methodname + " " + args + "\n";
+    return "> index-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)

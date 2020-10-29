@@ -389,7 +389,7 @@ bool CConnman::CheckIncomingNonce(uint64_t nonce)
 CNode* CConnman::ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool fAllowLocal)
 {
     if (pszDest == NULL) {
-        // we clean znode connections in CZnodeMan::ProcessZnodeConnections()
+        // we clean indexnode connections in CZnodeMan::ProcessZnodeConnections()
         // so should be safe to skip this and connect to local Hot MN on CActiveZnode::ManageState()
         if (!fAllowLocal && IsLocal(addrConnect))
             return NULL;
@@ -2621,7 +2621,7 @@ void CConnman::ThreadDandelionShuffle() {
                 GetTimeMicros(), consensus.nDandelionShuffleInterval);
             // Sleep for 1 second until the next shuffle time.
             // Sleeping for DANDELION_SHUFFLE_INTERVAL seconds at once
-            // results to not being able to close zcoin.
+            // results to not being able to close index.
             int time_to_sleep = (nNextDandelionShuffle - GetTimeMicros()) / 1000;
             while (time_to_sleep > 0) {
                 if (!interruptNet.sleep_for(
@@ -3477,7 +3477,7 @@ CNode::CNode(NodeId idIn, ServiceFlags nLocalServicesIn, int nMyStartingHeightIn
     minFeeFilter = 0;
     lastSentFeeFilter = 0;
     nextSendTimeFeeFilter = 0;
-    // znode
+    // indexnode
     fZnode = false;
     fPauseRecv = false;
     fPauseSend = false;

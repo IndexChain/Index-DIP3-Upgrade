@@ -137,7 +137,7 @@ struct Params {
     std::string stage2DevelopmentFundAddress;
     /** percentage of block subsidy going to developer fund */
     int stage2DevelopmentFundShare;
-    /** percentage of block subsidy going to znode */
+    /** percentage of block subsidy going to indexnode */
     int stage2ZnodeShare;
 
     /** Used to check majorities for block version upgrade */
@@ -280,10 +280,10 @@ struct Params {
     /** block number to disable zerocoin on consensus level */
     int nDisableZerocoinStartBlock;
 
-    /** block to start accepting pro reg txs for evo znodes */
+    /** block to start accepting pro reg txs for evo indexnodes */
     int DIP0003Height;
 
-    /** block to switch to evo znode payments */
+    /** block to switch to evo indexnode payments */
     int DIP0003EnforcementHeight;
 
     /** block to start using chainlocks */

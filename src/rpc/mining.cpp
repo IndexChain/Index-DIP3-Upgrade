@@ -19,7 +19,7 @@
 #include "rpc/server.h"
 #include "txmempool.h"
 #include "util.h"
-#include "znodesync-interface.h"
+#include "indexnodesync-interface.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
 
@@ -404,15 +404,15 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxxxxxxx\",              (string) compressed target of next block\n"
             "  \"height\" : n                      (numeric) The height of the next block\n"
-            "  \"znode\" : [                       (array) required znode payments that must be included in the next block\n"
+            "  \"indexnode\" : [                       (array) required indexnode payments that must be included in the next block\n"
             "      {\n"
             "         \"payee\" : \"xxxx\",          (string) payee address\n"
             "         \"script\" : \"xxxx\",         (string) payee scriptPubKey\n"
             "         \"amount\": n                (numeric) required amount to pay\n"
             "      }\n"
             "  },\n"
-            "  \"znode_payments_started\" :  true|false, (boolean) true, if znode payments started\n"
-            "  \"znode_payments_enforced\" : true|false, (boolean) true, if znode payments are enforced\n"
+            "  \"indexnode_payments_started\" :  true|false, (boolean) true, if indexnode payments started\n"
+            "  \"indexnode_payments_enforced\" : true|false, (boolean) true, if indexnode payments are enforced\n"
             "  \"coinbase_payload\" : \"xxxxxxxx\"    (string) coinbase transaction payload data encoded in hexadecimal\n"
             "}\n"
 
@@ -498,7 +498,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Zcoin is downloading blocks...");
 
-    if (Params().GetConsensus().IsMain() && !znodeSyncInterface.IsSynced())
+    if (Params().GetConsensus().IsMain() && !indexnodeSyncInterface.IsSynced())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Zcoin Core is syncing with network...");
 
     static unsigned int nTransactionsUpdatedLast;
@@ -748,22 +748,22 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
             masternodeObj.push_back(obj);
         }
 
-        result.push_back(Pair("znode", masternodeObj));
-        result.push_back(Pair("znode_payments_started", true));
-        result.push_back(Pair("znode_payments_enforced", true));
+        result.push_back(Pair("indexnode", masternodeObj));
+        result.push_back(Pair("indexnode_payments_started", true));
+        result.push_back(Pair("indexnode_payments_enforced", true));
     }
     else {
-        UniValue znodeObj(UniValue::VOBJ);
+        UniValue indexnodeObj(UniValue::VOBJ);
         if(pblock->txoutZnode != CTxOut()) {
             CTxDestination address1;
             ExtractDestination(pblock->txoutZnode.scriptPubKey, address1);
             CBitcoinAddress address2(address1);
-            znodeObj.push_back(Pair("payee", address2.ToString().c_str()));
-            znodeObj.push_back(Pair("script", HexStr(pblock->txoutZnode.scriptPubKey.begin(), pblock->txoutZnode.scriptPubKey.end())));
-            znodeObj.push_back(Pair("amount", pblock->txoutZnode.nValue));
+            indexnodeObj.push_back(Pair("payee", address2.ToString().c_str()));
+            indexnodeObj.push_back(Pair("script", HexStr(pblock->txoutZnode.scriptPubKey.begin(), pblock->txoutZnode.scriptPubKey.end())));
+            indexnodeObj.push_back(Pair("amount", pblock->txoutZnode.nValue));
         }
-        result.push_back(Pair("znode", znodeObj));
-        result.push_back(Pair("znode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nZnodePaymentsStartBlock));
+        result.push_back(Pair("indexnode", indexnodeObj));
+        result.push_back(Pair("indexnode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nZnodePaymentsStartBlock));
     }
 
     if (pindexPrev->nHeight+1 >= Params().GetConsensus().DIP0003Height) {

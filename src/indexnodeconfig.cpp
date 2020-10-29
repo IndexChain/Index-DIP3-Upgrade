@@ -1,13 +1,13 @@
 
 #include "netbase.h"
-#include "znodeconfig.h"
+#include "indexnodeconfig.h"
 #include "util.h"
 #include "chainparams.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
-CZnodeConfig znodeConfig;
+CZnodeConfig indexnodeConfig;
 
 void CZnodeConfig::add(std::string alias, std::string ip, std::string privKey, std::string txHash, std::string outputIndex) {
     CZnodeEntry cme(alias, ip, privKey, txHash, outputIndex);
@@ -24,7 +24,7 @@ bool CZnodeConfig::read(std::string& strErr) {
         FILE* configFile = fopen(pathZnodeConfigFile.string().c_str(), "a");
         if (configFile != NULL) {
             std::string strHeader = "# Znode config file\n"
-                          "# Format: alias IP:port znode_privatekey collateral_output_txid collateral_output_index\n"
+                          "# Format: alias IP:port indexnode_privatekey collateral_output_txid collateral_output_index\n"
                           "# Example: zn1 127.0.0.1:7082 7Cqyr4U7GU7qVo5TE1nrfA8XPVqh7GXBuEBPYzaWxEhiRRDLZ5c 2bcd3c84c84f87eaa86e4e56834c92927a07f9e18718810b92e0d0324456a67c 1\n";
             fwrite(strHeader.c_str(), std::strlen(strHeader.c_str()), 1, configFile);
             fclose(configFile);
@@ -48,7 +48,7 @@ bool CZnodeConfig::read(std::string& strErr) {
             iss.str(line);
             iss.clear();
             if (!(iss >> alias >> ip >> privKey >> txHash >> outputIndex)) {
-                strErr = _("Could not parse znode.conf") + "\n" +
+                strErr = _("Could not parse indexnode.conf") + "\n" +
                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"";
                 streamConfig.close();
                 return false;
@@ -70,7 +70,7 @@ bool CZnodeConfig::read(std::string& strErr) {
         LogPrintf("CBaseChainParams::MAIN=%s\n", CBaseChainParams::MAIN);
         if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
             if(port != mainnetDefaultPort) {
-                strErr = _("Invalid port detected in znode.conf") + "\n" +
+                strErr = _("Invalid port detected in indexnode.conf") + "\n" +
                         strprintf(_("Port: %d"), port) + "\n" +
                         strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
                         strprintf(_("(must be %d for mainnet)"), mainnetDefaultPort);
@@ -78,7 +78,7 @@ bool CZnodeConfig::read(std::string& strErr) {
                 return false;
             }
         } else if(port == mainnetDefaultPort) {
-            strErr = _("Invalid port detected in znode.conf") + "\n" +
+            strErr = _("Invalid port detected in indexnode.conf") + "\n" +
                     strprintf(_("Line: %d"), linenumber) + "\n\"" + line + "\"" + "\n" +
                     strprintf(_("(%d could be used only on mainnet)"), mainnetDefaultPort);
             streamConfig.close();

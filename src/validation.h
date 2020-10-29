@@ -61,7 +61,7 @@ static const bool DEFAULT_WHITELISTRELAY = true;
 static const bool DEFAULT_WHITELISTFORCERELAY = true;
 /** Default for -minrelaytxfee, minimum relay fee for transactions */
 //btzc: update Zcoin fee
-static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = CENT / 1000; //0.00001 zcoin,
+static const unsigned int DEFAULT_MIN_RELAY_TX_FEE = CENT / 1000; //0.00001 index,
 static const unsigned int MAX_STANDARD_TX_SIZE = 300000;
 //! -maxtxfee default
 static const CAmount DEFAULT_TRANSACTION_MAXFEE = 1000 * CENT;
@@ -81,9 +81,9 @@ static const unsigned int DEFAULT_DESCENDANT_SIZE_LIMIT = 101;
 static const unsigned int DEFAULT_MEMPOOL_EXPIRY = 72;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const unsigned int MAX_BLOCKFILE_SIZE = 0x8000000; // 128 MiB
-/** The pre-allocation chunk size for blk?????.dat files (since 0.8), btzc:zcoin: 16MiB */
+/** The pre-allocation chunk size for blk?????.dat files (since 0.8), btzc:index: 16MiB */
 static const unsigned int BLOCKFILE_CHUNK_SIZE = 0x1000000; // 16 MiB
-/** The pre-allocation chunk size for rev?????.dat files (since 0.8), btzc:zcoin: 1MiB */
+/** The pre-allocation chunk size for rev?????.dat files (since 0.8), btzc:index: 1MiB */
 static const unsigned int UNDOFILE_CHUNK_SIZE = 0x100000; // 1 MiB
 
 

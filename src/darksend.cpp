@@ -2,16 +2,16 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "wallet/coincontrol.h"
 #include "consensus/validation.h"
 #include "darksend.h"
 //#include "governance.h"
 #include "init.h"
 #include "instantx.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 #include "script/sign.h"
 #include "txmempool.h"
 #include "util.h"
@@ -129,7 +129,7 @@ std::string CDarksendPool::GetStatus() {
     nStatusMessageProgress += 10;
     std::string strSuffix = "";
 
-    if ((pCurrentBlockIndex && pCurrentBlockIndex->nHeight - nCachedLastSuccessBlock < nMinBlockSpacing) || !znodeSync.IsBlockchainSynced())
+    if ((pCurrentBlockIndex && pCurrentBlockIndex->nHeight - nCachedLastSuccessBlock < nMinBlockSpacing) || !indexnodeSync.IsBlockchainSynced())
         return strAutoDenomResult;
 
     switch (nState) {
@@ -139,7 +139,7 @@ std::string CDarksendPool::GetStatus() {
             if (nStatusMessageProgress % 70 <= 30) strSuffix = ".";
             else if (nStatusMessageProgress % 70 <= 50) strSuffix = "..";
             else if (nStatusMessageProgress % 70 <= 70) strSuffix = "...";
-            return strprintf(_("Submitted to znode, waiting in queue %s"), strSuffix);;
+            return strprintf(_("Submitted to indexnode, waiting in queue %s"), strSuffix);;
         case POOL_STATE_ACCEPTING_ENTRIES:
             if (nEntriesCount == 0) {
                 nStatusMessageProgress = 0;
@@ -151,11 +151,11 @@ std::string CDarksendPool::GetStatus() {
                 }
                 return _("PrivateSend request complete:") + " " + _("Your transaction was accepted into the pool!");
             } else {
-                if (nStatusMessageProgress % 70 <= 40) return strprintf(_("Submitted following entries to znode: %u / %d"), nEntriesCount, GetMaxPoolTransactions());
+                if (nStatusMessageProgress % 70 <= 40) return strprintf(_("Submitted following entries to indexnode: %u / %d"), nEntriesCount, GetMaxPoolTransactions());
                 else if (nStatusMessageProgress % 70 <= 50) strSuffix = ".";
                 else if (nStatusMessageProgress % 70 <= 60) strSuffix = "..";
                 else if (nStatusMessageProgress % 70 <= 70) strSuffix = "...";
-                return strprintf(_("Submitted to znode, waiting for more entries ( %u / %d ) %s"), nEntriesCount, GetMaxPoolTransactions(), strSuffix);
+                return strprintf(_("Submitted to indexnode, waiting for more entries ( %u / %d ) %s"), nEntriesCount, GetMaxPoolTransactions(), strSuffix);
             }
         case POOL_STATE_SIGNING:
             if (nStatusMessageProgress % 70 <= 40) return _("Found enough users, signing ...");
@@ -561,7 +561,7 @@ bool CDarkSendSigner::IsVinAssociatedWithPubkey(const CTxIn &txin, const CPubKey
     uint256 hash;
     if (GetTransaction(txin.prevout.hash, tx, Params().GetConsensus(), hash, true)) {
         BOOST_FOREACH(CTxOut out, tx->vout)
-        if (out.nValue == ZNODE_COIN_REQUIRED * COIN && out.scriptPubKey == payee) return true;
+        if (out.nValue == INDEXNODE_COIN_REQUIRED * COIN && out.scriptPubKey == payee) return true;
     }
     return false;
 }

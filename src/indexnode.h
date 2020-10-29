@@ -2,8 +2,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZNODE_H
-#define ZNODE_H
+#ifndef INDEXNODE_H
+#define INDEXNODE_H
 
 #include "key.h"
 #include "validation.h"
@@ -16,13 +16,13 @@ class CZnode;
 class CZnodeBroadcast;
 class CZnodePing;
 
-static const int ZNODE_CHECK_SECONDS               =   5;
-static const int ZNODE_MIN_MNB_SECONDS             =   5 * 60; //BROADCAST_TIME
-static const int ZNODE_EXPIRATION_SECONDS          =  65 * 60;
-static const int ZNODE_WATCHDOG_MAX_SECONDS        = 120 * 60;
-static const int ZNODE_COIN_REQUIRED  = 5000;
+static const int INDEXNODE_CHECK_SECONDS               =   5;
+static const int INDEXNODE_MIN_MNB_SECONDS             =   5 * 60; //BROADCAST_TIME
+static const int INDEXNODE_EXPIRATION_SECONDS          =  65 * 60;
+static const int INDEXNODE_WATCHDOG_MAX_SECONDS        = 120 * 60;
+static const int INDEXNODE_COIN_REQUIRED  = 5000;
 
-static const int ZNODE_POSE_BAN_MAX_SCORE          = 5;
+static const int INDEXNODE_POSE_BAN_MAX_SCORE          = 5;
 
 class CZnodeTimings {
     struct Mainnet {
@@ -44,11 +44,11 @@ private:
     int minMnp, newStartRequired;
 };
 
-#define ZNODE_MIN_MNP_SECONDS CZnodeTimings::MinMnpSeconds()
-#define ZNODE_NEW_START_REQUIRED_SECONDS CZnodeTimings::NewStartRequiredSeconds()
+#define INDEXNODE_MIN_MNP_SECONDS CZnodeTimings::MinMnpSeconds()
+#define INDEXNODE_NEW_START_REQUIRED_SECONDS CZnodeTimings::NewStartRequiredSeconds()
 
 //
-// The Znode Ping Class : Contains a different serialize method for sending pings from znodes throughout the network
+// The Znode Ping Class : Contains a different serialize method for sending pings from indexnodes throughout the network
 //
 
 class CZnodePing
@@ -87,7 +87,7 @@ public:
         return ss.GetHash();
     }
 
-    bool IsExpired() { return GetTime() - sigTime > ZNODE_NEW_START_REQUIRED_SECONDS; }
+    bool IsExpired() { return GetTime() - sigTime > INDEXNODE_NEW_START_REQUIRED_SECONDS; }
 
     bool Sign(CKey& keyZnode, CPubKey& pubKeyZnode);
     bool CheckSignature(CPubKey& pubKeyZnode, int &nDos);
@@ -114,9 +114,9 @@ public:
 
 };
 
-struct znode_info_t
+struct indexnode_info_t
 {
-    znode_info_t()
+    indexnode_info_t()
         : vin(),
           addr(),
           pubKeyCollateralAddress(),
@@ -159,14 +159,14 @@ private:
 
 public:
     enum state {
-        ZNODE_PRE_ENABLED,
-        ZNODE_ENABLED,
-        ZNODE_EXPIRED,
-        ZNODE_OUTPOINT_SPENT,
-        ZNODE_UPDATE_REQUIRED,
-        ZNODE_WATCHDOG_EXPIRED,
-        ZNODE_NEW_START_REQUIRED,
-        ZNODE_POSE_BAN
+        INDEXNODE_PRE_ENABLED,
+        INDEXNODE_ENABLED,
+        INDEXNODE_EXPIRED,
+        INDEXNODE_OUTPOINT_SPENT,
+        INDEXNODE_UPDATE_REQUIRED,
+        INDEXNODE_WATCHDOG_EXPIRED,
+        INDEXNODE_NEW_START_REQUIRED,
+        INDEXNODE_POSE_BAN
     };
 
     CTxIn vin;
@@ -189,7 +189,7 @@ public:
     bool fAllowMixingTx;
     bool fUnitTest;
 
-    // KEEP TRACK OF GOVERNANCE ITEMS EACH ZNODE HAS VOTE UPON FOR RECALCULATION
+    // KEEP TRACK OF GOVERNANCE ITEMS EACH INDEXNODE HAS VOTE UPON FOR RECALCULATION
     std::map<uint256, int> mapGovernanceObjectsVotedOn;
 
     CZnode();
@@ -272,23 +272,23 @@ public:
         return nTimeToCheckAt - lastPing.sigTime < nSeconds;
     }
 
-    bool IsEnabled() { return nActiveState == ZNODE_ENABLED; }
-    bool IsPreEnabled() { return nActiveState == ZNODE_PRE_ENABLED; }
-    bool IsPoSeBanned() { return nActiveState == ZNODE_POSE_BAN; }
+    bool IsEnabled() { return nActiveState == INDEXNODE_ENABLED; }
+    bool IsPreEnabled() { return nActiveState == INDEXNODE_PRE_ENABLED; }
+    bool IsPoSeBanned() { return nActiveState == INDEXNODE_POSE_BAN; }
     // NOTE: this one relies on nPoSeBanScore, not on nActiveState as everything else here
-    bool IsPoSeVerified() { return nPoSeBanScore <= -ZNODE_POSE_BAN_MAX_SCORE; }
-    bool IsExpired() { return nActiveState == ZNODE_EXPIRED; }
-    bool IsOutpointSpent() { return nActiveState == ZNODE_OUTPOINT_SPENT; }
-    bool IsUpdateRequired() { return nActiveState == ZNODE_UPDATE_REQUIRED; }
-    bool IsWatchdogExpired() { return nActiveState == ZNODE_WATCHDOG_EXPIRED; }
-    bool IsNewStartRequired() { return nActiveState == ZNODE_NEW_START_REQUIRED; }
+    bool IsPoSeVerified() { return nPoSeBanScore <= -INDEXNODE_POSE_BAN_MAX_SCORE; }
+    bool IsExpired() { return nActiveState == INDEXNODE_EXPIRED; }
+    bool IsOutpointSpent() { return nActiveState == INDEXNODE_OUTPOINT_SPENT; }
+    bool IsUpdateRequired() { return nActiveState == INDEXNODE_UPDATE_REQUIRED; }
+    bool IsWatchdogExpired() { return nActiveState == INDEXNODE_WATCHDOG_EXPIRED; }
+    bool IsNewStartRequired() { return nActiveState == INDEXNODE_NEW_START_REQUIRED; }
 
     static bool IsValidStateForAutoStart(int nActiveStateIn)
     {
-        return  nActiveStateIn == ZNODE_ENABLED ||
-                nActiveStateIn == ZNODE_PRE_ENABLED ||
-                nActiveStateIn == ZNODE_EXPIRED ||
-                nActiveStateIn == ZNODE_WATCHDOG_EXPIRED;
+        return  nActiveStateIn == INDEXNODE_ENABLED ||
+                nActiveStateIn == INDEXNODE_PRE_ENABLED ||
+                nActiveStateIn == INDEXNODE_EXPIRED ||
+                nActiveStateIn == INDEXNODE_WATCHDOG_EXPIRED;
     }
 
     bool IsValidForPayment();
@@ -298,10 +298,10 @@ public:
     bool IsValidNetAddr();
     static bool IsValidNetAddr(CService addrIn);
 
-    void IncreasePoSeBanScore() { if(nPoSeBanScore < ZNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore++; }
-    void DecreasePoSeBanScore() { if(nPoSeBanScore > -ZNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore--; }
+    void IncreasePoSeBanScore() { if(nPoSeBanScore < INDEXNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore++; }
+    void DecreasePoSeBanScore() { if(nPoSeBanScore > -INDEXNODE_POSE_BAN_MAX_SCORE) nPoSeBanScore--; }
 
-    znode_info_t GetInfo();
+    indexnode_info_t GetInfo();
 
     static std::string StateToString(int nStateIn);
     std::string GetStateString() const;
@@ -341,7 +341,7 @@ public:
 
 
 //
-// The Znode Broadcast Class : Contains a different serialize method for sending znodes through the network
+// The Znode Broadcast Class : Contains a different serialize method for sending indexnodes through the network
 //
 
 class CZnodeBroadcast : public CZnode
@@ -448,7 +448,7 @@ public:
 
     void Relay() const
     {
-        CInv inv(MSG_ZNODE_VERIFY, GetHash());
+        CInv inv(MSG_INDEXNODE_VERIFY, GetHash());
         g_connman->RelayInv(inv);
     }
 };

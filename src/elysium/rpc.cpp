@@ -1461,7 +1461,7 @@ UniValue elysium_gettradehistoryforaddress(const JSONRPCRequest& request)
             "    \"sendingaddress\" : \"address\",                  (string) the Zcoin address of the trader\n"
             "    \"ismine\" : true|false,                         (boolean) whether the order involes an address in the wallet\n"
             "    \"confirmations\" : nnnnnnnnnn,                  (number) the number of transaction confirmations\n"
-            "    \"fee\" : \"n.nnnnnnnn\",                          (string) the transaction fee in zcoins\n"
+            "    \"fee\" : \"n.nnnnnnnn\",                          (string) the transaction fee in indexs\n"
             "    \"blocktime\" : nnnnnnnnnn,                      (number) the timestamp of the block that contains the transaction\n"
             "    \"valid\" : true|false,                          (boolean) whether the transaction is valid\n"
             "    \"version\" : n,                                 (number) the transaction version\n"
@@ -1590,7 +1590,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
             "    \"propertyid\" : n,                   (number) the identifier of the tokens for sale\n"
             "    \"seller\" : \"address\",               (string) the Zcoin address of the seller\n"
             "    \"amountavailable\" : \"n.nnnnnnnn\",   (string) the number of tokens still listed for sale and currently available\n"
-            "    \"zcoindesired\" : \"n.nnnnnnnn\",    (string) the number of zcoins desired in exchange\n"
+            "    \"indexdesired\" : \"n.nnnnnnnn\",    (string) the number of indexs desired in exchange\n"
             "    \"unitprice\" : \"n.nnnnnnnn\" ,        (string) the unit price (XZC/token)\n"
             "    \"timelimit\" : nn,                   (number) the time limit in blocks a buyer has to pay following a successful accept\n"
             "    \"minimumfee\" : \"n.nnnnnnnn\",        (string) the minimum mining fee a buyer has to pay to accept this offer\n"
@@ -1601,7 +1601,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
             "        \"block\" : nnnnnn,                   (number) the index of the block that contains the \"accept\" order\n"
             "        \"blocksleft\" : nn,                  (number) the number of blocks left to pay\n"
             "        \"amount\" : \"n.nnnnnnnn\"             (string) the amount of tokens accepted and reserved\n"
-            "        \"amounttopay\" : \"n.nnnnnnnn\"        (string) the amount in zcoins needed finalize the trade\n"
+            "        \"amounttopay\" : \"n.nnnnnnnn\"        (string) the amount in indexs needed finalize the trade\n"
             "      },\n"
             "      ...\n"
             "    ]\n"
@@ -1646,7 +1646,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
         // TODO: no math, and especially no rounding here (!)
         // TODO: no math, and especially no rounding here (!)
 
-        // calculate unit price and updated amount of zcoin desired
+        // calculate unit price and updated amount of index desired
         double unitPriceFloat = 0.0;
         if ((sellOfferAmount > 0) && (sellBitcoinDesired > 0)) {
             unitPriceFloat = (double) sellBitcoinDesired / (double) sellOfferAmount; // divide by zero protection
@@ -1659,7 +1659,7 @@ UniValue elysium_getactivedexsells(const JSONRPCRequest& request)
         responseObj.push_back(Pair("propertyid", (uint64_t) propertyId));
         responseObj.push_back(Pair("seller", seller));
         responseObj.push_back(Pair("amountavailable", FormatDivisibleMP(amountAvailable)));
-        responseObj.push_back(Pair("zcoindesired", FormatDivisibleMP(bitcoinDesired)));
+        responseObj.push_back(Pair("indexdesired", FormatDivisibleMP(bitcoinDesired)));
         responseObj.push_back(Pair("unitprice", FormatDivisibleMP(unitPrice)));
         responseObj.push_back(Pair("timelimit", timeLimit));
         responseObj.push_back(Pair("minimumfee", FormatDivisibleMP(minFee)));
@@ -1765,7 +1765,7 @@ UniValue elysium_gettransaction(const JSONRPCRequest& request)
             "  \"referenceaddress\" : \"address\",   (string) a Zcoin address used as reference (if any)\n"
             "  \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
             "  \"confirmations\" : nnnnnnnnnn,     (number) the number of transaction confirmations\n"
-            "  \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in zcoins\n"
+            "  \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in indexs\n"
             "  \"blocktime\" : nnnnnnnnnn,         (number) the timestamp of the block that contains the transaction\n"
             "  \"valid\" : true|false,             (boolean) whether the transaction is valid\n"
             "  \"invalidreason\" : \"reason\",     (string) if a transaction is invalid, the reason \n"
@@ -1808,7 +1808,7 @@ UniValue elysium_listtransactions(const JSONRPCRequest& request)
             "    \"referenceaddress\" : \"address\",   (string) a Zcoin address used as reference (if any)\n"
             "    \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
             "    \"confirmations\" : nnnnnnnnnn,     (number) the number of transaction confirmations\n"
-            "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in zcoins\n"
+            "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in indexs\n"
             "    \"blocktime\" : nnnnnnnnnn,         (number) the timestamp of the block that contains the transaction\n"
             "    \"valid\" : true|false,             (boolean) whether the transaction is valid\n"
             "    \"version\" : n,                    (number) the transaction version\n"
@@ -1993,7 +1993,7 @@ UniValue elysium_listpendingtransactions(const JSONRPCRequest& request)
             "    \"sendingaddress\" : \"address\",     (string) the Zcoin address of the sender\n"
             "    \"referenceaddress\" : \"address\",   (string) a Zcoin address used as reference (if any)\n"
             "    \"ismine\" : true|false,            (boolean) whether the transaction involes an address in the wallet\n"
-            "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in zcoins\n"
+            "    \"fee\" : \"n.nnnnnnnn\",             (string) the transaction fee in indexs\n"
             "    \"version\" : n,                    (number) the transaction version\n"
             "    \"type_int\" : n,                   (number) the transaction type as number\n"
             "    \"type\" : \"type\",                  (string) the transaction type as string\n"
@@ -2035,7 +2035,7 @@ UniValue elysium_getinfo(const JSONRPCRequest& request)
             "{\n"
             "  \"elysiumversion_int\" : xxxxxxx,      (number) client version as integer\n"
             "  \"elysiumversion\" : \"x.x.x.x-xxx\",    (string) client version\n"
-            "  \"zcoincoreversion\" : \"x.x.x\",        (string) Zcoin Core version\n"
+            "  \"indexcoreversion\" : \"x.x.x\",        (string) Zcoin Core version\n"
             "  \"block\" : nnnnnn,                      (number) index of the last processed block\n"
             "  \"blocktime\" : nnnnnnnnnn,              (number) timestamp of the last processed block\n"
             "  \"blocktransactions\" : nnnn,            (number) Elysium transactions found in the last processed block\n"
@@ -2060,7 +2060,7 @@ UniValue elysium_getinfo(const JSONRPCRequest& request)
     // provide the Elysium and Zcoin version
     infoResponse.push_back(Pair("elysiumversion_int", ELYSIUM_VERSION));
     infoResponse.push_back(Pair("elysiumversion", ElysiumVersion()));
-    infoResponse.push_back(Pair("zcoincoreversion", ZcoinCoreVersion()));
+    infoResponse.push_back(Pair("indexcoreversion", ZcoinCoreVersion()));
 
     // provide the current block details
     int block = GetHeight();
@@ -2186,7 +2186,7 @@ UniValue elysium_getsto(const JSONRPCRequest& request)
             "  \"sendingaddress\" : \"address\",   (string) the Zcoin address of the sender\n"
             "  \"ismine\" : true|false,          (boolean) whether the transaction involes an address in the wallet\n"
             "  \"confirmations\" : nnnnnnnnnn,   (number) the number of transaction confirmations\n"
-            "  \"fee\" : \"n.nnnnnnnn\",           (string) the transaction fee in zcoins\n"
+            "  \"fee\" : \"n.nnnnnnnn\",           (string) the transaction fee in indexs\n"
             "  \"blocktime\" : nnnnnnnnnn,       (number) the timestamp of the block that contains the transaction\n"
             "  \"valid\" : true|false,           (boolean) whether the transaction is valid\n"
             "  \"version\" : n,                  (number) the transaction version\n"
@@ -2234,7 +2234,7 @@ UniValue elysium_gettrade(const JSONRPCRequest& request)
             "  \"sendingaddress\" : \"address\",                  (string) the Zcoin address of the trader\n"
             "  \"ismine\" : true|false,                         (boolean) whether the order involes an address in the wallet\n"
             "  \"confirmations\" : nnnnnnnnnn,                  (number) the number of transaction confirmations\n"
-            "  \"fee\" : \"n.nnnnnnnn\",                          (string) the transaction fee in zcoins\n"
+            "  \"fee\" : \"n.nnnnnnnn\",                          (string) the transaction fee in indexs\n"
             "  \"blocktime\" : nnnnnnnnnn,                      (number) the timestamp of the block that contains the transaction\n"
             "  \"valid\" : true|false,                          (boolean) whether the transaction is valid\n"
             "  \"version\" : n,                                 (number) the transaction version\n"

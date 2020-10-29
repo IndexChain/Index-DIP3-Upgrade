@@ -51,9 +51,9 @@ QString BitcoinUnits::description(int unit)
 {
     switch(unit)
     {
-    case BTC: return QString("zcoins");
-    case mBTC: return QString("Milli-zcoins (1 / 1" THIN_SP_UTF8 "000)");
-    case uBTC: return QString("Micro-zcoins (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
+    case BTC: return QString("indexs");
+    case mBTC: return QString("Milli-indexs (1 / 1" THIN_SP_UTF8 "000)");
+    case uBTC: return QString("Micro-indexs (1 / 1" THIN_SP_UTF8 "000" THIN_SP_UTF8 "000)");
     default: return QString("???");
     }
 }

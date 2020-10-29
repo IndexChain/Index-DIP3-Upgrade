@@ -32,9 +32,9 @@
 
 #include "spork.h"
 #include "instantx.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 
 #include "masternode-payments.h"
 #include "masternode-sync.h"
@@ -980,10 +980,10 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
     case MSG_SPORK:
         return fEvoZnodes || mapSporks.count(inv.hash);
 
-    case MSG_ZNODE_PAYMENT_VOTE:
+    case MSG_INDEXNODE_PAYMENT_VOTE:
         return fEvoZnodes || znpayments.mapZnodePaymentVotes.count(inv.hash);
 
-    case MSG_ZNODE_PAYMENT_BLOCK:
+    case MSG_INDEXNODE_PAYMENT_BLOCK:
         if (!fEvoZnodes)
         {
             BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
@@ -992,13 +992,13 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
         else
             return true;
 
-    case MSG_ZNODE_ANNOUNCE:
+    case MSG_INDEXNODE_ANNOUNCE:
         return fEvoZnodes || (mnodeman.mapSeenZnodeBroadcast.count(inv.hash) && !mnodeman.IsMnbRecoveryRequested(inv.hash));
 
-    case MSG_ZNODE_PING:
+    case MSG_INDEXNODE_PING:
         return fEvoZnodes || mnodeman.mapSeenZnodePing.count(inv.hash);
 
-    case MSG_ZNODE_VERIFY:
+    case MSG_INDEXNODE_VERIFY:
         return fEvoZnodes || mnodeman.mapSeenZnodeVerification.count(inv.hash);
 
     case MSG_QUORUM_FINAL_COMMITMENT:
@@ -1282,17 +1282,17 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                     }
                 }
 
-                if (!fEvoZnodes && !pushed && inv.type == MSG_ZNODE_PAYMENT_VOTE) {
+                if (!fEvoZnodes && !pushed && inv.type == MSG_INDEXNODE_PAYMENT_VOTE) {
                     if(znpayments.HasVerifiedPaymentVote(inv.hash)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << znpayments.mapZnodePaymentVotes[inv.hash];
-                        connman.PushMessage(pfrom, msgMaker.Make(NetMsgType::ZNODEPAYMENTVOTE, ss));
+                        connman.PushMessage(pfrom, msgMaker.Make(NetMsgType::INDEXNODEPAYMENTVOTE, ss));
                         pushed = true;
                     }
                 }
 
-                if (!fEvoZnodes && !pushed && inv.type == MSG_ZNODE_PAYMENT_BLOCK) {
+                if (!fEvoZnodes && !pushed && inv.type == MSG_INDEXNODE_PAYMENT_BLOCK) {
                     BlockMap::iterator mi = mapBlockIndex.find(inv.hash);
                     LOCK(cs_mapZnodeBlocks);
                     if (mi != mapBlockIndex.end() && znpayments.mapZnodeBlocks.count(mi->second->nHeight)) {
@@ -1303,7 +1303,7 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                                     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                                     ss.reserve(1000);
                                     ss << znpayments.mapZnodePaymentVotes[hash];
-                                    connman.PushMessage(pfrom, msgMaker.Make(NetMsgType::ZNODEPAYMENTVOTE, ss));
+                                    connman.PushMessage(pfrom, msgMaker.Make(NetMsgType::INDEXNODEPAYMENTVOTE, ss));
                                 }
                             }
                         }
@@ -1311,7 +1311,7 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                     }
                 }
 
-                if (!fEvoZnodes && !pushed && inv.type == MSG_ZNODE_ANNOUNCE) {
+                if (!fEvoZnodes && !pushed && inv.type == MSG_INDEXNODE_ANNOUNCE) {
                     if(mnodeman.mapSeenZnodeBroadcast.count(inv.hash)){
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
@@ -1321,7 +1321,7 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                     }
                 }
 
-                if (!fEvoZnodes && !pushed && inv.type == MSG_ZNODE_PING) {
+                if (!fEvoZnodes && !pushed && inv.type == MSG_INDEXNODE_PING) {
                     if(mnodeman.mapSeenZnodePing.count(inv.hash)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
@@ -1331,7 +1331,7 @@ void static ProcessGetData(CNode* pfrom, const Consensus::Params& consensusParam
                     }
                 }
 
-                if (!fEvoZnodes && !pushed && inv.type == MSG_ZNODE_VERIFY) {
+                if (!fEvoZnodes && !pushed && inv.type == MSG_INDEXNODE_VERIFY) {
                     if(mnodeman.mapSeenZnodeVerification.count(inv.hash)) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
@@ -3153,18 +3153,18 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
 
             bool fEvoZnodes = deterministicMNManager->IsDIP3Enforced();
 
-            // legacy znodes
+            // legacy indexnodes
             if (!fEvoZnodes) {
                 mnodeman.ProcessMessage(pfrom, command, vRecv);
                 znpayments.ProcessMessage(pfrom, command, vRecv);
                 sporkManager.ProcessSpork(pfrom, command, vRecv);
-                znodeSync.ProcessMessage(pfrom, command, vRecv);
+                indexnodeSync.ProcessMessage(pfrom, command, vRecv);
             }
 
             // these functions must be called in transition window
             CMNAuth::ProcessMessage(pfrom, strCommand, vRecv, connman);
 
-            // evo znodes
+            // evo indexnodes
             if (fEvoZnodes) {
                 masternodeSync.ProcessMessage(pfrom, strCommand, vRecv);
                 //privateSendServer.ProcessMessage(pfrom, strCommand, vRecv, connman);

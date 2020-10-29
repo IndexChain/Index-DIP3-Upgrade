@@ -24,7 +24,7 @@
 #include "wallet/mnemoniccontainer.h"
 #include "../base58.h"
 #include "zerocoin_params.h"
-#include "znode-payments.h"
+#include "indexnode-payments.h"
 #include "univalue.h"
 
 #include "hdmint/tracker.h"
@@ -134,7 +134,7 @@ enum AvailableCoinsType
     ONLY_DENOMINATED = 2,
     ONLY_NOT1000IFMN = 3,
     ONLY_NONDENOMINATED_NOT1000IFMN = 4,
-    ONLY_1000 = 5, // find znode outputs including locked ones (use with caution)
+    ONLY_1000 = 5, // find indexnode outputs including locked ones (use with caution)
     ONLY_PRIVATESEND_COLLATERAL = 6,
     ONLY_MINTS = 7,
     WITH_MINTS = 8
@@ -747,7 +747,7 @@ public:
     // Map from Key ID (for regular keys) or Script ID (for watch-only keys) to
     // key metadata.
     std::map<CTxDestination, CKeyMetadata> mapKeyMetadata;
-    //znode
+    //indexnode
     int64_t nKeysLeftSinceAutoBackup;
 
     typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
@@ -839,7 +839,7 @@ public:
 
     bool HasMasternode();
 
-    // znode
+    // indexnode
     /// Get 1000 XZC output and keys which can be used for the Znode
     bool GetZnodeVinAndKeys(CTxIn& txinRet, CPubKey& pubKeyRet, CKey& keyRet, std::string strTxHash = "", std::string strOutputIndex = "");
     /// Extract txin information and keys from output
@@ -942,11 +942,11 @@ public:
     // to be spent.
     std::list<CSigmaEntry> GetAvailableCoins(const CCoinControl *coinControl = NULL, bool includeUnsafe = false) const;
 
-    /** \brief Selects coins to spend, and coins to re-mint based on the required amount to spend, provided by the user. As the lower denomination now is 0.1 zcoin, user's request will be rounded up to the nearest 0.1. This difference between the user's requested value, and the actually spent value will be left to the miners as a fee.
+    /** \brief Selects coins to spend, and coins to re-mint based on the required amount to spend, provided by the user. As the lower denomination now is 0.1 index, user's request will be rounded up to the nearest 0.1. This difference between the user's requested value, and the actually spent value will be left to the miners as a fee.
      * \param[in] required Required amount to spend.
      * \param[out] coinsToSpend_out Coins which user needs to spend.
      * \param[out] coinsToMint_out Coins which will be re-minted by the user to get the change back.
-     * \returns true, if it was possible to spend exactly required(rounded up to 0.1 zcoin) amount using coins we have.
+     * \returns true, if it was possible to spend exactly required(rounded up to 0.1 index) amount using coins we have.
      */
     bool GetCoinsToSpend(
         CAmount required,

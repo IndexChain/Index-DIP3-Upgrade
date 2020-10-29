@@ -1,10 +1,10 @@
-#include "activeznode.h"
+#include "activeindexnode.h"
 #include "init.h"
 #include "validation.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeconfig.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeconfig.h"
+#include "indexnodeman.h"
 #include "darksend.h"
 #include "rpc/server.h"
 #include "util.h"
@@ -37,7 +37,7 @@ UniValue privatesend(const JSONRPCRequest &request) {
         }
 
         if (fMasternodeMode)
-            return "Mixing is not supported from znodes";
+            return "Mixing is not supported from indexnodes";
 
         fEnablePrivateSend = true;
         bool result = darkSendPool.DoAutomaticDenominating();
@@ -88,7 +88,7 @@ UniValue getpoolinfo(const JSONRPCRequest &request) {
 }
 
 
-UniValue znode(const JSONRPCRequest &request) {
+UniValue indexnode(const JSONRPCRequest &request) {
     CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 
     std::string strCommand;
@@ -107,24 +107,24 @@ UniValue znode(const JSONRPCRequest &request) {
          strCommand != "genkey" &&
          strCommand != "connect" && strCommand != "outputs" && strCommand != "status"))
         throw std::runtime_error(
-                "znode \"command\"...\n"
-                        "Set of commands to execute znode related actions\n"
+                "indexnode \"command\"...\n"
+                        "Set of commands to execute indexnode related actions\n"
                         "\nArguments:\n"
                         "1. \"command\"        (string or set of strings, required) The command to execute\n"
                         "\nAvailable commands:\n"
-                        "  count        - Print number of all known znodes (optional: 'ps', 'enabled', 'all', 'qualify')\n"
-                        "  current      - Print info on current znode winner to be paid the next block (calculated locally)\n"
-                        "  debug        - Print znode status\n"
-                        "  genkey       - Generate new znodeprivkey\n"
-                        "  outputs      - Print znode compatible outputs\n"
-                        "  start        - Start local Hot znode configured in zcoin.conf\n"
-                        "  start-alias  - Start single remote znode by assigned alias configured in znode.conf\n"
-                        "  start-<mode> - Start remote znodes configured in znode.conf (<mode>: 'all', 'missing', 'disabled')\n"
-                        "  status       - Print znode status information\n"
-                        "  list         - Print list of all known znodes (see znodelist for more info)\n"
-                        "  list-conf    - Print znode.conf in JSON format\n"
-                        "  winner       - Print info on next znode winner to vote for\n"
-                        "  winners      - Print list of znode winners\n"
+                        "  count        - Print number of all known indexnodes (optional: 'ps', 'enabled', 'all', 'qualify')\n"
+                        "  current      - Print info on current indexnode winner to be paid the next block (calculated locally)\n"
+                        "  debug        - Print indexnode status\n"
+                        "  genkey       - Generate new indexnodeprivkey\n"
+                        "  outputs      - Print indexnode compatible outputs\n"
+                        "  start        - Start local Hot indexnode configured in index.conf\n"
+                        "  start-alias  - Start single remote indexnode by assigned alias configured in indexnode.conf\n"
+                        "  start-<mode> - Start remote indexnodes configured in indexnode.conf (<mode>: 'all', 'missing', 'disabled')\n"
+                        "  status       - Print indexnode status information\n"
+                        "  list         - Print list of all known indexnodes (see indexnodelist for more info)\n"
+                        "  list-conf    - Print indexnode.conf in JSON format\n"
+                        "  winner       - Print info on next indexnode winner to vote for\n"
+                        "  winners      - Print list of indexnode winners\n"
         );
 
     if (strCommand == "list") {
@@ -134,7 +134,7 @@ UniValue znode(const JSONRPCRequest &request) {
         for (unsigned int i = 1; i < request.params.size(); i++) {
             newRequest.params.push_back(request.params[i]);
         }
-        return znodelist(newRequest);
+        return indexnodelist(newRequest);
     }
 
     if (strCommand == "connect") {
@@ -145,11 +145,11 @@ UniValue znode(const JSONRPCRequest &request) {
         std::vector<CNetAddr> ip;
 
         if (!LookupHost(strAddress.c_str(), ip, 1, false))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to znode %s", strAddress));
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to indexnode %s", strAddress));
 
         g_connman->OpenMasternodeConnection(CAddress(CService(ip[0], 0), NODE_NETWORK));
         /*if (!g_connman->IsConnected(CAddress(addr, NODE_NETWORK), CConnman::AllNodes))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to znode %s", strAddress));*/
+            throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("Couldn't connect to indexnode %s", strAddress));*/
 
         return "successfully connected";
     }
@@ -209,7 +209,7 @@ UniValue znode(const JSONRPCRequest &request) {
     }
 
     if (strCommand == "debug") {
-        if (activeZnode.nState != ACTIVE_ZNODE_INITIAL || !znodeSync.IsBlockchainSynced())
+        if (activeZnode.nState != ACTIVE_INDEXNODE_INITIAL || !indexnodeSync.IsBlockchainSynced())
             return activeZnode.GetStatus();
 
         CTxIn vin;
@@ -218,22 +218,22 @@ UniValue znode(const JSONRPCRequest &request) {
 
         if (!pwallet || !pwallet->GetZnodeVinAndKeys(vin, pubkey, key))
             throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               "Missing znode input, please look at the documentation for instructions on znode creation");
+                               "Missing indexnode input, please look at the documentation for instructions on indexnode creation");
 
         return activeZnode.GetStatus();
     }
 
     if (strCommand == "start") {
         if (!fMasternodeMode)
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "You must set znode=1 in the configuration");
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "You must set indexnode=1 in the configuration");
 
         {
             LOCK(pwallet->cs_wallet);
             EnsureWalletIsUnlocked(pwallet);
         }
 
-        if (activeZnode.nState != ACTIVE_ZNODE_STARTED) {
-            activeZnode.nState = ACTIVE_ZNODE_INITIAL; // TODO: consider better way
+        if (activeZnode.nState != ACTIVE_INDEXNODE_STARTED) {
+            activeZnode.nState = ACTIVE_INDEXNODE_INITIAL; // TODO: consider better way
             activeZnode.ManageState();
         }
 
@@ -256,7 +256,7 @@ UniValue znode(const JSONRPCRequest &request) {
         UniValue statusObj(UniValue::VOBJ);
         statusObj.push_back(Pair("alias", strAlias));
 
-        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
             if (mne.getAlias() == strAlias) {
                 fFound = true;
                 std::string strError;
@@ -295,9 +295,9 @@ UniValue znode(const JSONRPCRequest &request) {
         }
 
         if ((strCommand == "start-missing" || strCommand == "start-disabled") &&
-            !znodeSync.IsZnodeListSynced()) {
+            !indexnodeSync.IsZnodeListSynced()) {
             throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD,
-                               "You can't use this command until znode list is synced");
+                               "You can't use this command until indexnode list is synced");
         }
 
         int nSuccessful = 0;
@@ -305,7 +305,7 @@ UniValue znode(const JSONRPCRequest &request) {
 
         UniValue resultsObj(UniValue::VOBJ);
 
-        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
             std::string strError;
 
             CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
@@ -337,7 +337,7 @@ UniValue znode(const JSONRPCRequest &request) {
 
         UniValue returnObj(UniValue::VOBJ);
         returnObj.push_back(Pair("overall",
-                                 strprintf("Successfully started %d znodes, failed to start %d, total %d",
+                                 strprintf("Successfully started %d indexnodes, failed to start %d, total %d",
                                            nSuccessful, nFailed, nSuccessful + nFailed)));
         returnObj.push_back(Pair("detail", resultsObj));
 
@@ -354,7 +354,7 @@ UniValue znode(const JSONRPCRequest &request) {
     if (strCommand == "list-conf") {
         UniValue resultObj(UniValue::VOBJ);
 
-        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
             CTxIn vin = CTxIn(uint256S(mne.getTxHash()), uint32_t(atoi(mne.getOutputIndex().c_str())));
             CZnode *pmn = mnodeman.Find(vin);
 
@@ -367,7 +367,7 @@ UniValue znode(const JSONRPCRequest &request) {
             mnObj.push_back(Pair("txHash", mne.getTxHash()));
             mnObj.push_back(Pair("outputIndex", mne.getOutputIndex()));
             mnObj.push_back(Pair("status", strStatus));
-            resultObj.push_back(Pair("znode", mnObj));
+            resultObj.push_back(Pair("indexnode", mnObj));
         }
 
         return resultObj;
@@ -390,7 +390,7 @@ UniValue znode(const JSONRPCRequest &request) {
 
     if (strCommand == "status") {
         if (!fMasternodeMode)
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "This is not a znode");
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "This is not a indexnode");
 
         UniValue mnObj(UniValue::VOBJ);
 
@@ -428,7 +428,7 @@ UniValue znode(const JSONRPCRequest &request) {
         }
 
         if (request.params.size() > 3)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'znode winners ( \"count\" \"filter\" )'");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'indexnode winners ( \"count\" \"filter\" )'");
 
         UniValue obj(UniValue::VOBJ);
 
@@ -444,7 +444,7 @@ UniValue znode(const JSONRPCRequest &request) {
     return NullUniValue;
 }
 
-UniValue znodelist(const JSONRPCRequest &request) {
+UniValue indexnodelist(const JSONRPCRequest &request) {
     std::string strMode = "status";
     std::string strFilter = "";
 
@@ -457,27 +457,27 @@ UniValue znodelist(const JSONRPCRequest &request) {
             strMode != "protocol" && strMode != "payee" && strMode != "rank" && strMode != "qualify" &&
             strMode != "status")) {
         throw std::runtime_error(
-                "znodelist ( \"mode\" \"filter\" )\n"
-                        "Get a list of znodes in different modes\n"
+                "indexnodelist ( \"mode\" \"filter\" )\n"
+                        "Get a list of indexnodes in different modes\n"
                         "\nArguments:\n"
                         "1. \"mode\"      (string, optional/required to use filter, defaults = status) The mode to run list in\n"
                         "2. \"filter\"    (string, optional) Filter results. Partial match by outpoint by default in all modes,\n"
                         "                                    additional matches in some modes are also available\n"
                         "\nAvailable modes:\n"
-                        "  activeseconds  - Print number of seconds znode recognized by the network as enabled\n"
-                        "                   (since latest issued \"znode start/start-many/start-alias\")\n"
-                        "  addr           - Print ip address associated with a znode (can be additionally filtered, partial match)\n"
+                        "  activeseconds  - Print number of seconds indexnode recognized by the network as enabled\n"
+                        "                   (since latest issued \"indexnode start/start-many/start-alias\")\n"
+                        "  addr           - Print ip address associated with a indexnode (can be additionally filtered, partial match)\n"
                         "  full           - Print info in format 'status protocol payee lastseen activeseconds lastpaidtime lastpaidblock IP'\n"
                         "                   (can be additionally filtered, partial match)\n"
                         "  lastpaidblock  - Print the last block height a node was paid on the network\n"
                         "  lastpaidtime   - Print the last time a node was paid on the network\n"
-                        "  lastseen       - Print timestamp of when a znode was last seen on the network\n"
-                        "  payee          - Print Zcoin address associated with a znode (can be additionally filtered,\n"
+                        "  lastseen       - Print timestamp of when a indexnode was last seen on the network\n"
+                        "  payee          - Print Zcoin address associated with a indexnode (can be additionally filtered,\n"
                         "                   partial match)\n"
-                        "  protocol       - Print protocol of a znode (can be additionally filtered, exact match))\n"
-                        "  rank           - Print rank of a znode based on current block\n"
-                        "  qualify        - Print qualify status of a znode based on current block\n"
-                        "  status         - Print znode status: PRE_ENABLED / ENABLED / EXPIRED / WATCHDOG_EXPIRED / NEW_START_REQUIRED /\n"
+                        "  protocol       - Print protocol of a indexnode (can be additionally filtered, exact match))\n"
+                        "  rank           - Print rank of a indexnode based on current block\n"
+                        "  qualify        - Print qualify status of a indexnode based on current block\n"
+                        "  status         - Print indexnode status: PRE_ENABLED / ENABLED / EXPIRED / WATCHDOG_EXPIRED / NEW_START_REQUIRED /\n"
                         "                   UPDATE_REQUIRED / POSE_BAN / OUTPOINT_SPENT (can be additionally filtered, partial match)\n"
         );
     }
@@ -589,7 +589,7 @@ bool DecodeHexVecMnb(std::vector <CZnodeBroadcast> &vecMnb, std::string strHexMn
     return true;
 }
 
-UniValue znodebroadcast(const JSONRPCRequest &request) {
+UniValue indexnodebroadcast(const JSONRPCRequest &request) {
     CWallet* const pwallet = GetWalletForJSONRPCRequest(request);
 
     std::string strCommand;
@@ -599,15 +599,15 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
     if (request.fHelp ||
         (strCommand != "create-alias" && strCommand != "create-all" && strCommand != "decode" && strCommand != "relay"))
         throw std::runtime_error(
-                "znodebroadcast \"command\"...\n"
-                        "Set of commands to create and relay znode broadcast messages\n"
+                "indexnodebroadcast \"command\"...\n"
+                        "Set of commands to create and relay indexnode broadcast messages\n"
                         "\nArguments:\n"
                         "1. \"command\"        (string or set of strings, required) The command to execute\n"
                         "\nAvailable commands:\n"
-                        "  create-alias  - Create single remote znode broadcast message by assigned alias configured in znode.conf\n"
-                        "  create-all    - Create remote znode broadcast messages for all znodes configured in znode.conf\n"
-                        "  decode        - Decode znode broadcast message\n"
-                        "  relay         - Relay znode broadcast message to the network\n"
+                        "  create-alias  - Create single remote indexnode broadcast message by assigned alias configured in indexnode.conf\n"
+                        "  create-all    - Create remote indexnode broadcast messages for all indexnodes configured in indexnode.conf\n"
+                        "  decode        - Decode indexnode broadcast message\n"
+                        "  relay         - Relay indexnode broadcast message to the network\n"
         );
 
     if (strCommand == "create-alias") {
@@ -632,7 +632,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         statusObj.push_back(Pair("alias", strAlias));
 
         BOOST_FOREACH(CZnodeConfig::CZnodeEntry
-        mne, znodeConfig.getEntries()) {
+        mne, indexnodeConfig.getEntries()) {
             if (mne.getAlias() == strAlias) {
                 fFound = true;
                 std::string strError;
@@ -674,7 +674,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         }
 
         std::vector <CZnodeConfig::CZnodeEntry> mnEntries;
-        mnEntries = znodeConfig.getEntries();
+        mnEntries = indexnodeConfig.getEntries();
 
         int nSuccessful = 0;
         int nFailed = 0;
@@ -683,7 +683,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         std::vector <CZnodeBroadcast> vecMnb;
 
         BOOST_FOREACH(CZnodeConfig::CZnodeEntry
-        mne, znodeConfig.getEntries()) {
+        mne, indexnodeConfig.getEntries()) {
             std::string strError;
             CZnodeBroadcast mnb;
 
@@ -709,7 +709,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         ssVecMnb << vecMnb;
         UniValue returnObj(UniValue::VOBJ);
         returnObj.push_back(Pair("overall", strprintf(
-                "Successfully created broadcast messages for %d znodes, failed to create %d, total %d",
+                "Successfully created broadcast messages for %d indexnodes, failed to create %d, total %d",
                 nSuccessful, nFailed, nSuccessful + nFailed)));
         returnObj.push_back(Pair("detail", resultsObj));
         returnObj.push_back(Pair("hex", HexStr(ssVecMnb.begin(), ssVecMnb.end())));
@@ -719,7 +719,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
 
     if (strCommand == "decode") {
         if (request.params.size() != 2)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'znodebroadcast decode \"hexstring\"'");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Correct usage is 'indexnodebroadcast decode \"hexstring\"'");
 
         std::vector <CZnodeBroadcast> vecMnb;
 
@@ -764,7 +764,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         }
 
         returnObj.push_back(Pair("overall", strprintf(
-                "Successfully decoded broadcast messages for %d znodes, failed to decode %d, total %d",
+                "Successfully decoded broadcast messages for %d indexnodes, failed to decode %d, total %d",
                 nSuccessful, nFailed, nSuccessful + nFailed)));
 
         return returnObj;
@@ -772,7 +772,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
 
     if (strCommand == "relay") {
         if (request.params.size() < 2 || request.params.size() > 3)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "znodebroadcast relay \"hexstring\" ( fast )\n"
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "indexnodebroadcast relay \"hexstring\" ( fast )\n"
                     "\nArguments:\n"
                     "1. \"hex\"      (string, required) Broadcast messages hex string\n"
                     "2. fast       (string, optional) If none, using safe method\n");
@@ -820,7 +820,7 @@ UniValue znodebroadcast(const JSONRPCRequest &request) {
         }
 
         returnObj.push_back(Pair("overall", strprintf(
-                "Successfully relayed broadcast messages for %d znodes, failed to relay %d, total %d", nSuccessful,
+                "Successfully relayed broadcast messages for %d indexnodes, failed to relay %d, total %d", nSuccessful,
                 nFailed, nSuccessful + nFailed)));
 
         return returnObj;

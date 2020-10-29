@@ -234,14 +234,14 @@
     </message>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Zcoin Core</source>
         <translation>Zcoin Core</translation>
     </message>
     <message>
         <source>Whitelisted peers cannot be DoS banned and their transactions are always relayed, even if they are already in the mempool, useful e.g. for a gateway</source>
-        <translation>zcoin-core</translation>
+        <translation>index-core</translation>
     </message>
     <message>
         <source>Information</source>

@@ -132,8 +132,8 @@ class DIP3Test(BitcoinTestFramework):
         found_multisig_payee = False
         for i in range(len(mns)):
             bt = self.nodes[0].getblocktemplate()
-            expected_payee = bt['znode'][0]['payee']
-            expected_amount = bt['znode'][0]['amount'] / COIN
+            expected_payee = bt['indexnode'][0]['payee']
+            expected_amount = bt['indexnode'][0]['amount'] / COIN
             self.nodes[0].generate(1)
             self.sync_all()
             if expected_payee == multisig:
@@ -205,7 +205,7 @@ class DIP3Test(BitcoinTestFramework):
         mn.operatorAddr = blsKey['public']
         mn.votingAddr = mn.ownerAddr
         mn.blsMnkey = blsKey['secret']
-        mn.znodePrivKey = node.znode("genkey")
+        mn.indexnodePrivKey = node.indexnode("genkey")
 
         return mn
 
@@ -250,7 +250,7 @@ class DIP3Test(BitcoinTestFramework):
     def start_mn(self, mn):
         while len(self.nodes) <= mn.idx:
             self.nodes.append(None)
-        extra_args = ['-znode=1', '-znodeblsprivkey=%s' % mn.blsMnkey, '-znodeprivkey=%s' % mn.znodePrivKey]
+        extra_args = ['-indexnode=1', '-indexnodeblsprivkey=%s' % mn.blsMnkey, '-indexnodeprivkey=%s' % mn.indexnodePrivKey]
         n = start_node(mn.idx, self.options.tmpdir, extra_args, redirect_stderr=True)
         self.nodes[mn.idx] = n
         for i in range(0, self.num_nodes):
@@ -278,7 +278,7 @@ class DIP3Test(BitcoinTestFramework):
         self.sync_all()
         for node in self.nodes:
             protx_info = node.protx('info', mn.protx_hash)
-            mn_list = node.evoznode('list')
+            mn_list = node.evoindexnode('list')
             assert_equal(protx_info['state']['service'], '127.0.0.2:%d' % mn.p2p_port)
             assert_equal(mn_list['COutPoint(%s, %d)' % (mn.collateral_txid, mn.collateral_vout)]['address'], '127.0.0.2:%d' % mn.p2p_port)
 
@@ -291,19 +291,19 @@ class DIP3Test(BitcoinTestFramework):
         while tm < 30:
             s = node.evoznsync('next')
             if s == 'sync updated to MASTERNODE_SYNC_FINISHED' \
-                    or s == 'sync updated to ZNODE_SYNC_FINISHED':
+                    or s == 'sync updated to INDEXNODE_SYNC_FINISHED':
                 break
             time.sleep(0.1)
             tm += 0.1
 
     def force_finish_mnsync_list(self, node):
         if node.evoznsync('status')['AssetName'] == 'MASTERNODE_SYNC_WAITING'\
-                or node.evoznsync('status')['AssetName'] == 'ZNODE_SYNC_WAITING':
+                or node.evoznsync('status')['AssetName'] == 'INDEXNODE_SYNC_WAITING':
             node.evoznsync('next')
 
         tm = 0
         while tm < 30:
-            mnlist = node.evoznode('list', 'status')
+            mnlist = node.evoindexnode('list', 'status')
             if len(mnlist) != 0:
                 time.sleep(0.5)
                 self.force_finish_mnsync(node)
@@ -371,7 +371,7 @@ class DIP3Test(BitcoinTestFramework):
             expected = []
             for mn in mns:
                 expected.append('%s, %d' % (mn.collateral_txid, mn.collateral_vout))
-            self.log.error('mnlist: ' + str(node.evoznode('list', 'status')))
+            self.log.error('mnlist: ' + str(node.evoindexnode('list', 'status')))
             self.log.error('expected: ' + str(expected))
             raise AssertionError("mnlists does not match provided mns")
 
@@ -392,7 +392,7 @@ class DIP3Test(BitcoinTestFramework):
         return True
 
     def compare_mnlist(self, node, mns):
-        mnlist = node.evoznode('list', 'status')
+        mnlist = node.evoindexnode('list', 'status')
         for mn in mns:
             s = 'COutPoint(%s, %d)' % (mn.collateral_txid, mn.collateral_vout)
             in_list = s in mnlist
@@ -441,10 +441,10 @@ class DIP3Test(BitcoinTestFramework):
         if miner_address is None:
             miner_address = node.getnewaddress()
         if mn_payee is None:
-            if isinstance(bt['znode'], list):
-                mn_payee = bt['znode'][0]['payee']
+            if isinstance(bt['indexnode'], list):
+                mn_payee = bt['indexnode'][0]['payee']
             else:
-                mn_payee = bt['znode']['payee']
+                mn_payee = bt['indexnode']['payee']
         # we can't take the masternode payee amount from the template here as we might have additional fees in vtx
 
         # calculate fees that the block template included (we'll have to remove it from the coinbase as we won't

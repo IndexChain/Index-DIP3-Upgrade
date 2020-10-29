@@ -418,7 +418,7 @@
     </message>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Zcoin Core</source>
         <translation>Биткойн ядро</translation>

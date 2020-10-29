@@ -8,8 +8,8 @@
 #include "definition.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
 #include "sigma/remint.h"
 
 #include <atomic>
@@ -544,9 +544,9 @@ bool CheckMintZcoinTransaction(const CTxOut &txout,
 bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state, const Consensus::Params &params, int nHeight) {
         int total_payment_tx = 0; // no more than 1 output for payment
 
-            CAmount znodePayment = GetZnodePayment(params,nHeight);
+            CAmount indexnodePayment = GetZnodePayment(params,nHeight);
             BOOST_FOREACH(const CTxOut &output, tx.vout) {
-                if (znodePayment == output.nValue) {
+                if (indexnodePayment == output.nValue) {
                     total_payment_tx = total_payment_tx + 1;
                 }
             }
@@ -554,7 +554,7 @@ bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state
                 bool validZnodePayment;
 
                 if (nHeight > params.nZnodePaymentsBugFixedAtBlock) {
-                    if (!znodeSync.IsSynced()) {
+                    if (!indexnodeSync.IsSynced()) {
                         validZnodePayment = true;
                     } else {
                         validZnodePayment = znpayments.IsTransactionValid(tx, nHeight);
@@ -564,8 +564,8 @@ bool CheckZerocoinFoundersInputs(const CTransaction &tx, CValidationState &state
                 }
 
                 if (!validZnodePayment) {
-                    return state.DoS(100, false, REJECT_INVALID_ZNODE_PAYMENT,
-                                    "CTransaction::CheckTransaction() : invalid znode payment");
+                    return state.DoS(100, false, REJECT_INVALID_INDEXNODE_PAYMENT,
+                                    "CTransaction::CheckTransaction() : invalid indexnode payment");
                 }
             }
     return true;

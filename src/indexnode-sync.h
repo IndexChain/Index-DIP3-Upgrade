@@ -1,8 +1,8 @@
 // Copyright (c) 2014-2017 The Dash Core developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#ifndef ZNODE_SYNC_H
-#define ZNODE_SYNC_H
+#ifndef INDEXNODE_SYNC_H
+#define INDEXNODE_SYNC_H
 
 #include "chain.h"
 #include "net.h"
@@ -11,22 +11,22 @@
 
 class CZnodeSync;
 
-static const int ZNODE_SYNC_FAILED          = -1;
-static const int ZNODE_SYNC_INITIAL         = 0;
-static const int ZNODE_SYNC_SPORKS          = 1;
-static const int ZNODE_SYNC_LIST            = 2;
-static const int ZNODE_SYNC_MNW             = 3;
-static const int ZNODE_SYNC_FINISHED        = 999;
+static const int INDEXNODE_SYNC_FAILED          = -1;
+static const int INDEXNODE_SYNC_INITIAL         = 0;
+static const int INDEXNODE_SYNC_SPORKS          = 1;
+static const int INDEXNODE_SYNC_LIST            = 2;
+static const int INDEXNODE_SYNC_MNW             = 3;
+static const int INDEXNODE_SYNC_FINISHED        = 999;
 
-static const int ZNODE_SYNC_TICK_SECONDS    = 6;
-static const int ZNODE_SYNC_TIMEOUT_SECONDS = 30; // our blocks are 2.5 minutes so 30 seconds should be fine
+static const int INDEXNODE_SYNC_TICK_SECONDS    = 6;
+static const int INDEXNODE_SYNC_TIMEOUT_SECONDS = 30; // our blocks are 2.5 minutes so 30 seconds should be fine
 
-static const int ZNODE_SYNC_ENOUGH_PEERS    = 3;
+static const int INDEXNODE_SYNC_ENOUGH_PEERS    = 3;
 
-extern CZnodeSync znodeSync;
+extern CZnodeSync indexnodeSync;
 
 //
-// CZnodeSync : Sync znode assets in stages
+// CZnodeSync : Sync indexnode assets in stages
 //
 
 class CZnodeSync
@@ -37,10 +37,10 @@ private:
     // Count peers we've requested the asset from
     int nRequestedZnodeAttempt;
 
-    // Time when current znode asset sync started
+    // Time when current indexnode asset sync started
     int64_t nTimeAssetSyncStarted;
 
-    // Last time when we received some znode asset ...
+    // Last time when we received some indexnode asset ...
     int64_t nTimeLastZnodeList;
     int64_t nTimeLastPaymentVote;
     int64_t nTimeLastGovernanceItem;
@@ -66,11 +66,11 @@ public:
 
     void SendGovernanceSyncRequest(CNode* pnode);
 
-    bool IsFailed() { return nRequestedZnodeAssets == ZNODE_SYNC_FAILED; }
+    bool IsFailed() { return nRequestedZnodeAssets == INDEXNODE_SYNC_FAILED; }
     bool IsBlockchainSynced(bool fBlockAccepted = false);
-    bool IsZnodeListSynced() { return nRequestedZnodeAssets > ZNODE_SYNC_LIST; }
-    bool IsWinnersListSynced() { return nRequestedZnodeAssets > ZNODE_SYNC_MNW; }
-    bool IsSynced() { return nRequestedZnodeAssets == ZNODE_SYNC_FINISHED; }
+    bool IsZnodeListSynced() { return nRequestedZnodeAssets > INDEXNODE_SYNC_LIST; }
+    bool IsWinnersListSynced() { return nRequestedZnodeAssets > INDEXNODE_SYNC_MNW; }
+    bool IsSynced() { return nRequestedZnodeAssets == INDEXNODE_SYNC_FINISHED; }
 
     int GetAssetID() { return nRequestedZnodeAssets; }
     int GetAttempt() { return nRequestedZnodeAttempt; }

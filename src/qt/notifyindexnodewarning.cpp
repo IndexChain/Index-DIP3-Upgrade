@@ -1,11 +1,11 @@
-#include "notifyznodewarning.h"
+#include "notifyindexnodewarning.h"
 
 #include "evo/deterministicmns.h"
-#include "znode.h"
-#include "znodesync-interface.h"
+#include "indexnode.h"
+#include "indexnodesync-interface.h"
 #include "chain.h"
-#include "znodeconfig.h"
-#include "znodeman.h"
+#include "indexnodeconfig.h"
+#include "indexnodeman.h"
 #include "warnings.h"
 #include "validation.h"
 
@@ -26,7 +26,7 @@ void NotifyZnodeWarning::notify()
     float daysToEnforcement = floor(daysDecimal);
     float hoursToEnforcement = floor((daysDecimal > 0 ? (daysDecimal - daysToEnforcement) : 0) * 24);
 
-    std::string strWarning = strprintf(_("WARNING: Legacy znodes detected. You should migrate to the new Znode layout before it becomes enforced (approximately %i days and %i hours). For details on how to migrate, go to https://zcoin.io/znode-migration"),
+    std::string strWarning = strprintf(_("WARNING: Legacy indexnodes detected. You should migrate to the new Znode layout before it becomes enforced (approximately %i days and %i hours). For details on how to migrate, go to https://index.io/indexnode-migration"),
         (int)daysToEnforcement,
         (int)hoursToEnforcement);
 
@@ -38,10 +38,10 @@ bool NotifyZnodeWarning::shouldShow()
 {
 #ifdef ENABLE_WALLET
     if(nConsidered ||                                         // already fully considered warning
-       znodeConfig.getCount() == 0 ||                         // no legacy znodes detected
+       indexnodeConfig.getCount() == 0 ||                         // no legacy indexnodes detected
        !CZnode::IsLegacyWindow(chainActive.Tip()->nHeight) || // outside of legacy window
        !pwalletMain ||                                        // wallet not yet loaded
-       !znodeSyncInterface.IsSynced())                        // znode state not yet synced
+       !indexnodeSyncInterface.IsSynced())                        // indexnode state not yet synced
         return false;
 
     // get Znode entries.
@@ -49,7 +49,7 @@ bool NotifyZnodeWarning::shouldShow()
     bool nGotProReg = false;
     uint256 mnTxHash;
     int outputIndex;
-    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+    BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
       
         CZnode* mn = mnodeman.Find(mne.getTxHash(), mne.getOutputIndex());
         // in the case that the Znode has dissapeared from the network, was never initialized, or it's outpoint has been spent (disabled Znode).
@@ -80,7 +80,7 @@ bool NotifyZnodeWarning::shouldShow()
         }
     }
 
-    // if we get to here, the warning will never be shown, and so is fully considered (All znodes ported or expired)
+    // if we get to here, the warning will never be shown, and so is fully considered (All indexnodes ported or expired)
     nConsidered = true;
 #endif
     return false;

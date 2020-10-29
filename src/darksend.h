@@ -5,7 +5,7 @@
 #ifndef DARKSEND_H
 #define DARKSEND_H
 
-#include "znode.h"
+#include "indexnode.h"
 #include "wallet/wallet.h"
 
 class CDarksendPool;
@@ -186,7 +186,7 @@ public:
 
     std::string ToString()
     {
-        return strprintf("nDenom=%d, nTime=%lld, fReady=%s, fTried=%s, znode=%s",
+        return strprintf("nDenom=%d, nTime=%lld, fReady=%s, fTried=%s, indexnode=%s",
                         nDenom, nTime, fReady ? "true" : "false", fTried ? "true" : "false", vin.prevout.ToStringShort());
     }
 
@@ -239,7 +239,7 @@ public:
 class CDarkSendSigner
 {
 public:
-    /// Is the input associated with this public key? (and there is 1000 XZC - checking if valid znode)
+    /// Is the input associated with this public key? (and there is 1000 XZC - checking if valid indexnode)
     bool IsVinAssociatedWithPubkey(const CTxIn& vin, const CPubKey& pubkey);
     /// Set the private/public key values, returns true if successful
     bool GetKeysFromSecret(std::string strSecret, CKey& keyRet, CPubKey& pubkeyRet);

@@ -309,7 +309,7 @@ Clone the git repositories for bitcoin and Gitian.
 
 ```bash
 git clone https://github.com/devrandom/gitian-builder.git
-git clone https://github.com/zcoinofficial/zcoin
+git clone https://github.com/indexofficial/index
 git clone https://github.com/bitcoin-core/gitian.sigs.git
 ```
 
@@ -391,11 +391,11 @@ and inputs.
 
 For example:
 ```bash
-URL=https://github.com/snguyen-vn/zcoin.git
+URL=https://github.com/snguyen-vn/index.git
 COMMIT=2014_03_windows_unicode_path
-./bin/gbuild --commit zcoin=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-linux.yml
-./bin/gbuild --commit zcoin=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-win.yml
-./bin/gbuild --commit zcoin=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-osx.yml
+./bin/gbuild --commit index=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-linux.yml
+./bin/gbuild --commit index=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-win.yml
+./bin/gbuild --commit index=${COMMIT} --url bitcoin=${URL} ../bitcoin/contrib/gitian-descriptors/gitian-osx.yml
 ```
 
 Building fully offline

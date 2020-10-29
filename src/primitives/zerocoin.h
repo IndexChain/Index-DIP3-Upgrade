@@ -169,7 +169,7 @@ private:
     // to it. In these cases the value is automatically converted to int,
     // which is not what we want.
     // Starting from Version 3 == sigma, this number is coin value * COIN,
-    // I.E. it is set to 100.000.000 for 1 zcoin.
+    // I.E. it is set to 100.000.000 for 1 index.
     int64_t denomination;
 
 public:
@@ -325,7 +325,7 @@ private:
     // to it. In these cases the value is automatically converted to int,
     // which is not what we want.
     // Starting from Version 3 == sigma, this number is coin value * COIN,
-    // I.E. it is set to 100.000.000 for 1 zcoin.
+    // I.E. it is set to 100.000.000 for 1 index.
     int64_t denomination;
 };
 

@@ -216,9 +216,9 @@ extern UniValue getlatestcoinids(const JSONRPCRequest& params);
 
 extern UniValue getpoolinfo(const JSONRPCRequest &request);
 extern UniValue spork(const JSONRPCRequest &request);
-extern UniValue znode(const JSONRPCRequest &request);
-extern UniValue znodelist(const JSONRPCRequest &request);
-extern UniValue znodebroadcast(const JSONRPCRequest &request);
+extern UniValue indexnode(const JSONRPCRequest &request);
+extern UniValue indexnodelist(const JSONRPCRequest &request);
+extern UniValue indexnodebroadcast(const JSONRPCRequest &request);
 extern UniValue znsync(const JSONRPCRequest &request);
 
 bool StartRPC();

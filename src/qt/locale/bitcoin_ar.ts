@@ -394,7 +394,7 @@
         <translation>شريط أدوات علامات التبويب</translation>
     </message>
     <message>
-        <source>Request payments (generates QR codes and zcoin: URIs)</source>
+        <source>Request payments (generates QR codes and index: URIs)</source>
         <translation>أطلب دفعات (يولد كودات الرمز المربع وبيت كوين: العناوين المعطاة)</translation>
     </message>
     <message>
@@ -406,7 +406,7 @@
         <translation>عرض قائمة عناوين الإستقبال المستخدمة والملصقات</translation>
     </message>
     <message>
-        <source>Open a zcoin: URI or payment request</source>
+        <source>Open a index: URI or payment request</source>
         <translation>فتح URI : Zcoin أو طلب دفع</translation>
     </message>
     <message>
@@ -1922,7 +1922,7 @@
     </message>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Options:</source>
         <translation>خيارات: </translation>

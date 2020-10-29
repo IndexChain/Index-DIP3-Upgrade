@@ -127,7 +127,7 @@ private:
     QAction *showHelpMessageAction;
     QAction *sigmaAction;
     QAction *zc2SigmaAction;
-    QAction *znodeAction;
+    QAction *indexnodeAction;
     QAction *masternodeAction;
     QAction *stakepageAction;
 
@@ -236,7 +236,7 @@ private Q_SLOTS:
     void gotoHistoryPage();
     /** Switch directly to Zcoin history tab */
     void gotoBitcoinHistoryTab();
-    /** Switch to znode page */
+    /** Switch to indexnode page */
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();

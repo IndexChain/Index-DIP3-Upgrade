@@ -166,7 +166,7 @@
     <name>WalletView</name>
     </context>
 <context>
-    <name>zcoin-core</name>
+    <name>index-core</name>
     <message>
         <source>Transaction too large for fee policy</source>
         <translation>根据费率标准，本次转账超额</translation>

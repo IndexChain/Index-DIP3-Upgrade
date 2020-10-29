@@ -25,9 +25,9 @@
 #include "rpc/server.h"
 #include "rpc/register.h"
 #include "zerocoin.h"
-#include "znodeman.h"
-#include "znode-sync.h"
-#include "znode-payments.h"
+#include "indexnodeman.h"
+#include "indexnode-sync.h"
+#include "indexnode-payments.h"
 
 #include "test/testutil.h"
 #include "consensus/merkle.h"
@@ -117,7 +117,7 @@ struct ZnodeTestingSetup : public TestingSetup {
     CKey coinbaseKey; // private/public key needed to spend coinbase transactions
 };
 
-BOOST_FIXTURE_TEST_SUITE(znode_tests, ZnodeTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(indexnode_tests, ZnodeTestingSetup)
 
 BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
 {
@@ -142,9 +142,9 @@ BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
 
     auto const before_block = initialHeight
              , after_block = initialHeight + 1;
-    // Emulates synced state of znodes.
+    // Emulates synced state of indexnodes.
     for(size_t i =0; i < 4; ++i)
-        znodeSync.SwitchToNextAsset();
+        indexnodeSync.SwitchToNextAsset();
 
 
     ///////////////////////////////////////////////////////////////////////////
@@ -170,9 +170,9 @@ BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
 
     ///////////////////////////////////////////////////////////////////////////
     // Paying to a completely wrong payee
-    size_t const znodeOutput = FindZnodeOutput(tx);
+    size_t const indexnodeOutput = FindZnodeOutput(tx);
     CMutableTransaction txCopy = tx;
-    txCopy.vout[znodeOutput].scriptPubKey = txCopy.vout[0].scriptPubKey;
+    txCopy.vout[indexnodeOutput].scriptPubKey = txCopy.vout[0].scriptPubKey;
     b.vtx[0] = MakeTransactionRef(txCopy);
     b.fChecked = false;
     b.hashMerkleRoot = BlockMerkleRoot(b, &mutated);
@@ -180,14 +180,14 @@ BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
         ++b.nNonce;
     }
     BOOST_CHECK(false == ContextualCheckBlock(b, state, chainparams.GetConsensus(), chainActive.Tip()->pprev));
-    BOOST_CHECK(state.GetRejectReason().find("invalid znode payment") != std::string::npos);
+    BOOST_CHECK(state.GetRejectReason().find("invalid indexnode payment") != std::string::npos);
     BOOST_CHECK(true == CheckTransaction(*b.vtx[0], state, true, tx.GetHash(), false, after_block));
 
 
     ///////////////////////////////////////////////////////////////////////////
-    // Removing the znode payment
-    CTxOut storedCopy = tx.vout[znodeOutput];
-    tx.vout.erase(tx.vout.begin() + znodeOutput);
+    // Removing the indexnode payment
+    CTxOut storedCopy = tx.vout[indexnodeOutput];
+    tx.vout.erase(tx.vout.begin() + indexnodeOutput);
     b.fChecked = false;
     b.hashMerkleRoot = BlockMerkleRoot(b, &mutated);
     while (!CheckProofOfWork(b.GetHash(), b.nBits, chainparams.GetConsensus())){
@@ -195,15 +195,15 @@ BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
     }
 
     BOOST_CHECK(false == ContextualCheckBlock(b, state, chainparams.GetConsensus(), chainActive.Tip()->pprev));
-    BOOST_CHECK(state.GetRejectReason().find("invalid znode payment") != std::string::npos);
+    BOOST_CHECK(state.GetRejectReason().find("invalid indexnode payment") != std::string::npos);
     BOOST_CHECK(true == CheckTransaction(*b.vtx[0], state, true, tx.GetHash(), false, after_block));
 
-    tx.vout.insert(tx.vout.begin() + znodeOutput, storedCopy);
+    tx.vout.insert(tx.vout.begin() + indexnodeOutput, storedCopy);
 
 
     ///////////////////////////////////////////////////////////////////////////
-    // Making znodes not synchronized and checking the functionality is disabled
-    znodeSync.Reset();
+    // Making indexnodes not synchronized and checking the functionality is disabled
+    indexnodeSync.Reset();
     b.fChecked = false;
     b.hashMerkleRoot = BlockMerkleRoot(b, &mutated);
     while (!CheckProofOfWork(b.GetHash(), b.nBits, chainparams.GetConsensus())){
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(Test_EnforceZnodePayment)
     ///////////////////////////////////////////////////////////////////////////
     // Paying to an acceptable payee
     for(size_t i =0; i < 4; ++i)
-        znodeSync.SwitchToNextAsset();
+        indexnodeSync.SwitchToNextAsset();
 
     CZnodePayee payee2(tx.vout[0].scriptPubKey, uint256());
     // Emulates 9 votes for the payee

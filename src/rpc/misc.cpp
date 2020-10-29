@@ -15,7 +15,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #ifdef ENABLE_WALLET
-#include "znode-sync.h"
+#include "indexnode-sync.h"
 #include "wallet/rpcwallet.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
@@ -57,7 +57,7 @@ UniValue getinfo(const JSONRPCRequest& request)
             "  \"version\": xxxxx,           (numeric) the server version\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total zcoin balance of the wallet\n"
+            "  \"balance\": xxxxxxx,         (numeric) the total index balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
@@ -321,26 +321,26 @@ UniValue znsync(const JSONRPCRequest& request)
 
     if(strMode == "status") {
         UniValue objStatus(UniValue::VOBJ);
-        objStatus.push_back(Pair("AssetID", znodeSync.GetAssetID()));
-        objStatus.push_back(Pair("AssetName", znodeSync.GetAssetName()));
-        objStatus.push_back(Pair("Attempt", znodeSync.GetAttempt()));
-        objStatus.push_back(Pair("IsBlockchainSynced", znodeSync.IsBlockchainSynced()));
-        objStatus.push_back(Pair("IsZnodeListSynced", znodeSync.IsZnodeListSynced()));
-        objStatus.push_back(Pair("IsWinnersListSynced", znodeSync.IsWinnersListSynced()));
-        objStatus.push_back(Pair("IsSynced", znodeSync.IsSynced()));
-        objStatus.push_back(Pair("IsFailed", znodeSync.IsFailed()));
+        objStatus.push_back(Pair("AssetID", indexnodeSync.GetAssetID()));
+        objStatus.push_back(Pair("AssetName", indexnodeSync.GetAssetName()));
+        objStatus.push_back(Pair("Attempt", indexnodeSync.GetAttempt()));
+        objStatus.push_back(Pair("IsBlockchainSynced", indexnodeSync.IsBlockchainSynced()));
+        objStatus.push_back(Pair("IsZnodeListSynced", indexnodeSync.IsZnodeListSynced()));
+        objStatus.push_back(Pair("IsWinnersListSynced", indexnodeSync.IsWinnersListSynced()));
+        objStatus.push_back(Pair("IsSynced", indexnodeSync.IsSynced()));
+        objStatus.push_back(Pair("IsFailed", indexnodeSync.IsFailed()));
         return objStatus;
     }
 
     if(strMode == "next")
     {
-        znodeSync.SwitchToNextAsset();
-        return "sync updated to " + znodeSync.GetAssetName();
+        indexnodeSync.SwitchToNextAsset();
+        return "sync updated to " + indexnodeSync.GetAssetName();
     }
 
     if(strMode == "reset")
     {
-        znodeSync.Reset();
+        indexnodeSync.Reset();
         return "success";
     }
     return "failure";
@@ -1391,7 +1391,7 @@ UniValue getinfoex(const JSONRPCRequest& request)
             "  \"version\": xxxxx,           (numeric) the server version\n"
             "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
             "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxxxx,         (numeric) the total zcoin balance of the wallet\n"
+            "  \"balance\": xxxxxxx,         (numeric) the total index balance of the wallet\n"
             "  \"blocks\": xxxxxx,           (numeric) the current number of blocks processed in the server\n"
             "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
             "  \"connections\": xxxxx,       (numeric) the number of connections\n"
@@ -1499,7 +1499,7 @@ static const CRPCCommand commands[] =
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      false },
 
     /* Znode features */
-    { "zcoin",              "evoznsync",              &mnsync,                 true,  {} },
+    { "index",              "evoznsync",              &mnsync,                 true,  {} },
 
     /* Not shown in help */
     { "hidden",             "getzerocoinsupply",      &getzerocoinsupply,      false },

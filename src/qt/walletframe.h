@@ -80,7 +80,7 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** Switch directory to bitcoin tx history tab */
     void gotoBitcoinHistoryTab();
-    /** Switch to znode page */
+    /** Switch to indexnode page */
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();

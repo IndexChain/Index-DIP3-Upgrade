@@ -129,7 +129,7 @@ public:
     std::vector<CTransactionRef> vtx;
 
     // memory only
-    mutable CTxOut txoutZnode; // znode payment
+    mutable CTxOut txoutZnode; // indexnode payment
     mutable std::vector<CTxOut> voutSuperblock; // superblock payment
     mutable bool fChecked;
 

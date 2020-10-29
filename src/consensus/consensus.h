@@ -11,11 +11,11 @@
 #include <stdint.h>
 
 // HF constants
-static const int HF_ZNODE_HEIGHT = 66550;
-static const int HF_ZNODE_PAYMENT_START = HF_ZNODE_HEIGHT + 150; // 66700 - about 25h after HF
+static const int HF_INDEXNODE_HEIGHT = 66550;
+static const int HF_INDEXNODE_PAYMENT_START = HF_INDEXNODE_HEIGHT + 150; // 66700 - about 25h after HF
 static const int HF_MTP_HEIGHT = 88888;
 
-static const int HF_ZNODE_HEIGHT_TESTNET = 500;
+static const int HF_INDEXNODE_HEIGHT_TESTNET = 500;
 static const int HF_MTP_HEIGHT_TESTNET = 9999;
 
 static const int HF_ZEROSPEND_FIX = 22000;

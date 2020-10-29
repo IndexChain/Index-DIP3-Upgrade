@@ -93,11 +93,11 @@
 #include <event2/util.h>
 #include <event2/event.h>
 #include <event2/thread.h>
-#include "activeznode.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
-#include "znodeconfig.h"
+#include "activeindexnode.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
+#include "indexnodeconfig.h"
 #include "netfulfilledman.h"
 #include "flat-database.h"
 #include "instantx.h"
@@ -663,8 +663,8 @@ std::string HelpMessage(HelpMessageMode mode)
 
 std::string LicenseInfo()
 {
-    const std::string URL_SOURCE_CODE = "<https://github.com/zcoinofficial/zcoin>";
-    const std::string URL_WEBSITE = "<https://zcoin.io/>";
+    const std::string URL_SOURCE_CODE = "<https://github.com/indexofficial/index>";
+    const std::string URL_WEBSITE = "<https://index.io/>";
     // todo: remove urls from translations on next change
     return CopyrightHolders(strprintf(_("Copyright (C) %i-%i"), 2009, COPYRIGHT_YEAR) + " ") + "\n" +
            "\n" +
@@ -921,14 +921,14 @@ void InitParameterInteraction()
             LogPrintf("%s: parameter interaction: -whitebind set -> setting -listen=1\n", __func__);
     }
 
-    if (IsArgSet("-znodeblsprivkey")) {
+    if (IsArgSet("-indexnodeblsprivkey")) {
         // masternodes MUST accept connections from outside
         ForceSetArg("-listen", "1");
-        LogPrintf("%s: parameter interaction: -znodeblsprivkey=... -> setting -listen=1\n", __func__);
+        LogPrintf("%s: parameter interaction: -indexnodeblsprivkey=... -> setting -listen=1\n", __func__);
         if (GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS) < DEFAULT_MAX_PEER_CONNECTIONS) {
             // masternodes MUST be able to handle at least DEFAULT_MAX_PEER_CONNECTIONS connections
             ForceSetArg("-maxconnections", itostr(DEFAULT_MAX_PEER_CONNECTIONS));
-            LogPrintf("%s: parameter interaction: -znodeblsprivkey=... -> setting -maxconnections=%d instead of specified -maxconnections=%d\n",
+            LogPrintf("%s: parameter interaction: -indexnodeblsprivkey=... -> setting -maxconnections=%d instead of specified -maxconnections=%d\n",
                     __func__, DEFAULT_MAX_PEER_CONNECTIONS, GetArg("-maxconnections", DEFAULT_MAX_PEER_CONNECTIONS));
         }
     }
@@ -2057,43 +2057,43 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         nRelevantServices = ServiceFlags(nRelevantServices | NODE_WITNESS);
     }
 
-    // ********************************************************* Step 10a: Prepare znode related stuff
-    fMasternodeMode = GetBoolArg("-znode", false);
+    // ********************************************************* Step 10a: Prepare indexnode related stuff
+    fMasternodeMode = GetBoolArg("-indexnode", false);
     if (fMasternodeMode)
-        // turn off dandelion for znodes
+        // turn off dandelion for indexnodes
         ForceSetArg("-dandelion", "0");
 
     LogPrintf("fMasternodeMode = %s\n", fMasternodeMode);
-    LogPrintf("znodeConfig.getCount(): %s\n", znodeConfig.getCount());
+    LogPrintf("indexnodeConfig.getCount(): %s\n", indexnodeConfig.getCount());
 
     if(fLiteMode && fMasternodeMode) {
         return InitError(_("You can not start a masternode in lite mode."));
     }
 
-    if ((fMasternodeMode || znodeConfig.getCount() > 0) && !fTxIndex) {
+    if ((fMasternodeMode || indexnodeConfig.getCount() > 0) && !fTxIndex) {
         return InitError("Enabling Znode support requires turning on transaction indexing."
                                  "Please add txindex=1 to your configuration and start with -reindex");
     }
 
-    // Legacy znode system
+    // Legacy indexnode system
     if (fMasternodeMode) {
-        LogPrintf("ZNODE:\n");
+        LogPrintf("INDEXNODE:\n");
 
-        if (!GetArg("-znodeaddr", "").empty()) {
+        if (!GetArg("-indexnodeaddr", "").empty()) {
             // Hot Znode (either local or remote) should get its address in
             // CActiveZnode::ManageState() automatically and no longer relies on Znodeaddr.
-            return InitError(_("znodeaddr option is deprecated. Please use znode.conf to manage your remote znodes."));
+            return InitError(_("indexnodeaddr option is deprecated. Please use indexnode.conf to manage your remote indexnodes."));
         }
 
-        std::string strZnodePrivKey = GetArg("-znodeprivkey", "");
+        std::string strZnodePrivKey = GetArg("-indexnodeprivkey", "");
         if (!strZnodePrivKey.empty()) {
             if (!darkSendSigner.GetKeysFromSecret(strZnodePrivKey, activeZnode.keyZnode,
                                                   activeZnode.pubKeyZnode))
-                return InitError(_("Invalid znodeprivkey. Please see documentation."));
+                return InitError(_("Invalid indexnodeprivkey. Please see documentation."));
 
             LogPrintf("  pubKeyZnode: %s\n", CBitcoinAddress(activeZnode.pubKeyZnode.GetID()).ToString());
         } else {
-            // TODO: remove temporary key creation when legacy znode code is removed
+            // TODO: remove temporary key creation when legacy indexnode code is removed
             activeZnode.keyZnode.MakeNewKey(false);
             activeZnode.pubKeyZnode = activeZnode.keyZnode.GetPubKey();
         }
@@ -2101,12 +2101,12 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     LogPrintf("Using Znode config file %s\n", GetZnodeConfigFile().string());
 
-    if (GetBoolArg("-znconflock", true) && pwalletMain && (znodeConfig.getCount() > 0)) {
+    if (GetBoolArg("-znconflock", true) && pwalletMain && (indexnodeConfig.getCount() > 0)) {
         LOCK(pwalletMain->cs_wallet);
         LogPrintf("Locking Znodes:\n");
         uint256 mnTxHash;
         int outputIndex;
-        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, znodeConfig.getEntries()) {
+        BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
             mnTxHash.SetHex(mne.getTxHash());
             outputIndex = boost::lexical_cast<unsigned int>(mne.getOutputIndex());
             COutPoint outpoint = COutPoint(mnTxHash, outputIndex);
@@ -2120,15 +2120,15 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         }
     }
 
-    // evo znode system
+    // evo indexnode system
     if(fLiteMode && fMasternodeMode) {
-        return InitError(_("You can not start a znode in lite mode."));
+        return InitError(_("You can not start a indexnode in lite mode."));
     }
 
     if(fMasternodeMode) {
-        LogPrintf("ZNODE:\n");
+        LogPrintf("INDEXNODE:\n");
 
-        std::string strMasterNodeBLSPrivKey = GetArg("-znodeblsprivkey", "");
+        std::string strMasterNodeBLSPrivKey = GetArg("-indexnodeblsprivkey", "");
         if(!strMasterNodeBLSPrivKey.empty()) {
             auto binKey = ParseHex(strMasterNodeBLSPrivKey);
             CBLSSecretKey keyOperator;
@@ -2138,10 +2138,10 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
                 activeMasternodeInfo.blsPubKeyOperator = std::make_unique<CBLSPublicKey>(activeMasternodeInfo.blsKeyOperator->GetPublicKey());
                 LogPrintf("  blsPubKeyOperator: %s\n", keyOperator.GetPublicKey().ToString());
             } else {
-                return InitError(_("Invalid znodeblsprivkey. Please see documentation."));
+                return InitError(_("Invalid indexnodeblsprivkey. Please see documentation."));
             }
         } else {
-            return InitError(_("You must specify a znodeblsprivkey in the configuration. Please see documentation for help."));
+            return InitError(_("You must specify a indexnodeblsprivkey in the configuration. Please see documentation for help."));
         }
 
         // Create and register activeMasternodeManager, will init later in ThreadImport
@@ -2156,7 +2156,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         activeMasternodeInfo.blsPubKeyOperator = std::make_unique<CBLSPublicKey>();
     }
 
-    // ********************************************************* Step 10b: PrivateSend (some of its functions are required for legacy znode operation)
+    // ********************************************************* Step 10b: PrivateSend (some of its functions are required for legacy indexnode operation)
 
     nLiquidityProvider = GetArg("-liquidityprovider", nLiquidityProvider);
     nLiquidityProvider = std::min(std::max(nLiquidityProvider, 0), 100);
@@ -2180,20 +2180,20 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 10c: Load cache data
 
     // LOAD SERIALIZED DAT FILES INTO DATA CACHES FOR INTERNAL USE
-    bool fIgnoreCacheFiles = !GetBoolArg("-persistentznodestate", true) || fLiteMode || fReindex || fReindexChainState;
+    bool fIgnoreCacheFiles = !GetBoolArg("-persistentindexnodestate", true) || fLiteMode || fReindex || fReindexChainState;
     if (!fIgnoreCacheFiles) {
-        // Legacy znodes cache
-        uiInterface.InitMessage(_("Loading znode cache..."));
+        // Legacy indexnodes cache
+        uiInterface.InitMessage(_("Loading indexnode cache..."));
         CFlatDB<CZnodeMan> flatdb1("zncache.dat", "magicZnodeCache");
         if (!flatdb1.Load(mnodeman)) {
-            return InitError("Failed to load znode cache from zncache.dat");
+            return InitError("Failed to load indexnode cache from zncache.dat");
         }
 
         if (mnodeman.size()) {
             uiInterface.InitMessage(_("Loading Znode payment cache..."));
             CFlatDB<CZnodePayments> flatdb2("znpayments.dat", "magicZnodePaymentsCache");
             if (!flatdb2.Load(znpayments)) {
-                return InitError("Failed to load znode payments cache from znpayments.dat");
+                return InitError("Failed to load indexnode payments cache from znpayments.dat");
             }
         } else {
             uiInterface.InitMessage(_("Znode cache is empty, skipping payments cache..."));
@@ -2201,15 +2201,15 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     }
 
     if (!fIgnoreCacheFiles) {
-        // Evo znode cache
+        // Evo indexnode cache
         boost::filesystem::path pathDB = GetDataDir();
         std::string strDBName;
 
         strDBName = "evozncache.dat";
-        uiInterface.InitMessage(_("Loading znode cache..."));
+        uiInterface.InitMessage(_("Loading indexnode cache..."));
         CFlatDB<CMasternodeMetaMan> flatdb1(strDBName, "magicMasternodeCache");
         if(!flatdb1.Load(mmetaman)) {
-            return InitError(_("Failed to load znode cache from") + "\n" + (pathDB / strDBName).string());
+            return InitError(_("Failed to load indexnode cache from") + "\n" + (pathDB / strDBName).string());
         }
 
         /*
@@ -2346,19 +2346,19 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
             mnodeman.UpdatedBlockTip(chainActive.Tip());
             //darkSendPool.UpdatedBlockTip(chainActive.Tip());
             znpayments.UpdatedBlockTip(chainActive.Tip());
-            znodeSync.UpdatedBlockTip(chainActive.Tip());
+            indexnodeSync.UpdatedBlockTip(chainActive.Tip());
             // governance.UpdatedBlockTip(chainActive.Tip());
         }
     }
 
-    // ********************************************************* Step 13b: start legacy znodes thread
+    // ********************************************************* Step 13b: start legacy indexnodes thread
 
     // TODO: remove this code after switch to evo is done
     if (!fEvoZnodes)
     {
         threadGroup.create_thread([] {
 
-            RenameThread("znode-tick");
+            RenameThread("indexnode-tick");
 
             if (fLiteMode)
                 return;
@@ -2370,26 +2370,26 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
                 {
                     LOCK(cs_main);
-                    // shut legacy znode down if past 6 blocks of DIP3 enforcement
+                    // shut legacy indexnode down if past 6 blocks of DIP3 enforcement
                     if (chainActive.Height()-6 >= Params().GetConsensus().DIP0003EnforcementHeight)
                         break;
                 }
                     
-                znodeSync.ProcessTick();
+                indexnodeSync.ProcessTick();
 
-                if (znodeSync.IsBlockchainSynced() && !ShutdownRequested()) {
+                if (indexnodeSync.IsBlockchainSynced() && !ShutdownRequested()) {
                     nTick++;
 
                     LOCK(cs_main);
 
-                    // make sure to check all znodes first
+                    // make sure to check all indexnodes first
                     mnodeman.Check();
 
                     mnodeman.ProcessPendingMnvRequests(*g_connman);
 
                     // check if we should activate or ping every few minutes,
                     // slightly postpone first run to give net thread a chance to connect to some peers
-                    if (nTick % ZNODE_MIN_MNP_SECONDS == 15)
+                    if (nTick % INDEXNODE_MIN_MNP_SECONDS == 15)
                         activeZnode.ManageState();
 
                     if (nTick % 60 == 0) {

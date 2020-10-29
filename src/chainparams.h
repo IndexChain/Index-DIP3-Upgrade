@@ -79,7 +79,7 @@ public:
     const std::vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     const std::vector<SeedSpec6>& FixedSeeds() const { return vFixedSeeds; }
     const CCheckpointData& Checkpoints() const { return checkpointData; }
-    /** znode code from Dash*/
+    /** indexnode code from Dash*/
     int64_t MaxTipAge() const { return nMaxTipAge; }
     int PoolMaxTransactions() const { return nPoolMaxTransactions; }
     int FulfilledRequestExpireTime() const { return nFulfilledRequestExpireTime; }
@@ -113,7 +113,7 @@ protected:
     bool fAllowMultiplePorts;
     CCheckpointData checkpointData;
 
-    /** znode params*/
+    /** indexnode params*/
     long nMaxTipAge;
     int nPoolMaxTransactions;
     int nFulfilledRequestExpireTime;

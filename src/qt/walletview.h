@@ -10,7 +10,7 @@
 #endif
 
 #include "amount.h"
-#include "znodelist.h"
+#include "indexnodelist.h"
 #include "masternodelist.h"
 #include "sigmadialog.h"
 
@@ -113,9 +113,9 @@ private:
     BlankSigmaDialog *blankSigmaView;
     QWidget *sigmaPage;
     Zc2SigmaPage *zc2SigmaPage;
-    TransactionView *zcoinTransactionList;
-    QWidget *zcoinTransactionsView;
-    ZnodeList *znodeListPage;
+    TransactionView *indexTransactionList;
+    QWidget *indexTransactionsView;
+    ZnodeList *indexnodeListPage;
     MasternodeList *masternodeListPage;
     StakePage *stakePage;
 
@@ -141,7 +141,7 @@ public Q_SLOTS:
     void gotoBitcoinHistoryTab();
     /** Switch to bitcoin tx history tab and focus on specific transaction */
     void focusBitcoinHistoryTab(const QModelIndex &idx);
-    /** Switch to znode page */
+    /** Switch to indexnode page */
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();

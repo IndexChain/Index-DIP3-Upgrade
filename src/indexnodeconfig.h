@@ -3,11 +3,11 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef SRC_ZNODECONFIG_H_
-#define SRC_ZNODECONFIG_H_
+#ifndef SRC_INDEXNODECONFIG_H_
+#define SRC_INDEXNODECONFIG_H_
 
 class CZnodeConfig;
-extern CZnodeConfig znodeConfig;
+extern CZnodeConfig indexnodeConfig;
 
 class CZnodeConfig
 {
@@ -96,4 +96,4 @@ private:
 };
 
 
-#endif /* SRC_ZNODECONFIG_H_ */
+#endif /* SRC_INDEXNODECONFIG_H_ */

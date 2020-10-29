@@ -28,9 +28,9 @@
 #include "wallet/wallet.h"
 #include "definition.h"
 #include "crypto/scrypt.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
-#include "znodeman.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
+#include "indexnodeman.h"
 #include "zerocoin.h"
 #include "sigma.h"
 #include "sigma/remint.h"
@@ -869,7 +869,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 
 void static ZcoinMiner(const CChainParams &chainparams) {
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
-    RenameThread("zcoin-miner");
+    RenameThread("index-miner");
 
     unsigned int nExtraNonce = 0;
 
@@ -890,7 +890,7 @@ void static ZcoinMiner(const CChainParams &chainparams) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
 
-                // Also try to wait for znode winners unless we're on regtest chain
+                // Also try to wait for indexnode winners unless we're on regtest chain
                 do {
                     bool fvNodesEmpty = g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0;
                     bool fHasZnodesWinnerForNextBlock;
@@ -1094,7 +1094,7 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
                 nLastCoinStakeSearchInterval = 0;
                 MilliSleep(10000);
             }
-            while (fvNodesEmpty || IsInitialBlockDownload() || !znodeSync.IsSynced())
+            while (fvNodesEmpty || IsInitialBlockDownload() || !indexnodeSync.IsSynced())
             {
                 nLastCoinStakeSearchInterval = 0;
                 fTryToSync = true;

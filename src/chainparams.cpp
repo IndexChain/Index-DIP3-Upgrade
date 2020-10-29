@@ -57,7 +57,7 @@ static CBlock CreateGenesisBlock(const char *pszTimestamp, const CScript &genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount &genesisReward,
                    std::vector<unsigned char> extraNonce) {
-    //btzc: zcoin timestamp
+    //btzc: index timestamp
     const char *pszTimestamp = "Bitcoin Recovers from Below $7.2K After Schiff Says ‘Game Is Over";
     const CScript genesisOutputScript = CScript();
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward,
@@ -236,8 +236,8 @@ public:
         consensus.nMultipleSpendInputsInOneTxStartBlock = ZC_MULTIPLE_SPEND_INPUT_STARTING_BLOCK;
         consensus.nDontAllowDupTxsStartBlock = 1;
 
-        // znode params
-        consensus.nZnodePaymentsStartBlock = HF_ZNODE_PAYMENT_START; // not true, but it's ok as long as it's less then nZnodePaymentsIncreaseBlock
+        // indexnode params
+        consensus.nZnodePaymentsStartBlock = HF_INDEXNODE_PAYMENT_START; // not true, but it's ok as long as it's less then nZnodePaymentsIncreaseBlock
         // consensus.nZnodePaymentsIncreaseBlock = 680000; // actual historical value // not used for now, probably later
         // consensus.nZnodePaymentsIncreasePeriod = 576*30; // 17280 - actual historical value // not used for now, probably later
         // consensus.nSuperblockStartBlock = 614820;
@@ -245,7 +245,7 @@ public:
         // consensus.nBudgetPaymentsCycleBlocks = 16616; // ~(60*24*30)/2.6, actual number of blocks per month is 200700 / 12 = 16725
         // consensus.nBudgetPaymentsWindowBlocks = 100;
 
-        // evo znodes
+        // evo indexnodes
         consensus.DIP0003Height = 999999999; // TODO akshaynexus change this on mainnet fork
         consensus.DIP0003EnforcementHeight = 999999999; // This aswell
         consensus.DIP0008Height = INT_MAX;
@@ -282,7 +282,7 @@ public:
          * The characters are rarely used upper ASCII, not valid as UTF-8, and produce
        `  * a large 32-bit integer with any alignment.
          */
-        //btzc: update zcoin pchMessage
+        //btzc: update index pchMessage
         pchMessageStart[0] = 0xe5;
         pchMessageStart[1] = 0xd3;
         pchMessageStart[2] = 0xf7;
@@ -290,7 +290,7 @@ public:
         nDefaultPort = 7082;
         nPruneAfterHeight = 100000;
         /**
-         * btzc: zcoin init genesis block
+         * btzc: index init genesis block
          * nBits = 0x1e0ffff0
          * nTime = 1414776286
          * nNonce = 142392
@@ -471,7 +471,7 @@ public:
         //consensus.nBudgetPaymentsWindowBlocks = 10;
         nMaxTipAge = 0x7fffffff; // allow mining on top of old blocks for testnet
 
-        // evo znodes
+        // evo indexnodes
         consensus.DIP0003Height = 3340;
         consensus.DIP0003EnforcementHeight = 3800;
         consensus.DIP0008Height = INT_MAX;
@@ -524,10 +524,10 @@ public:
                 uint256S("3f105b7ee0068c963cab5e889bcec419d82646b9060905f559eb8c4c1975f4c6"));
         vFixedSeeds.clear();
         vSeeds.clear();
-        // zcoin test seeds
+        // index test seeds
 
-        vSeeds.push_back(CDNSSeedData("EVO1", "evo1.zcoin.io", false));
-        vSeeds.push_back(CDNSSeedData("EVO2", "evo2.zcoin.io", false));
+        vSeeds.push_back(CDNSSeedData("EVO1", "evo1.index.io", false));
+        vSeeds.push_back(CDNSSeedData("EVO2", "evo2.index.io", false));
 
         base58Prefixes[PUBKEY_ADDRESS] = std::vector < unsigned char > (1, 65);
         base58Prefixes[SCRIPT_ADDRESS] = std::vector < unsigned char > (1, 178);
@@ -658,7 +658,7 @@ public:
         consensus.nDgwPastBlocks = 30; // number of blocks to average in Dark Gravity Wave
         //Proof-of-Stake related values
         consensus.nFirstPOSBlock = 135;//TODO akshaynexus :This needs to be decided
-        // evo znodes
+        // evo indexnodes
         consensus.DIP0003Height = 500;
         consensus.DIP0003EnforcementHeight = 550;
         consensus.DIP0008Height = INT_MAX;

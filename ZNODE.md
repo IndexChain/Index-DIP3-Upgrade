@@ -2,7 +2,7 @@ Znode Build Instructions and Notes
 =============================
  - Version 0.1.6
  - Date: 14 December 2017
- - More detailed guide available here: https://zcoin.io/zcoin-znode-setup-guide/
+ - More detailed guide available here: https://index.io/index-indexnode-setup-guide/
 
 Prerequisites
 -------------
@@ -14,7 +14,7 @@ Step 1. Build
 ----------------------
 **1.1.**  Check out from source:
 
-    git clone https://github.com/zcoinofficial/zcoin
+    git clone https://github.com/indexofficial/index
 
 **1.2.**  See [README.md](README.md) for instructions on building.
 
@@ -30,31 +30,31 @@ Step 3. First run on your Local Wallet
 ----------------------
 **3.0.**  Go to the checked out folder
 
-    cd zcoin
+    cd index
 
 **3.1.**  Start daemon in testnet mode:
 
-    ./src/zcoind -daemon -server -testnet
+    ./src/indexd -daemon -server -testnet
 
-**3.2.**  Generate znodeprivkey:
+**3.2.**  Generate indexnodeprivkey:
 
-    ./src/zcoin-cli znode genkey
+    ./src/index-cli indexnode genkey
 
 (Store this key)
 
 **3.3.**  Get wallet address:
 
-    ./src/zcoin-cli getaccountaddress 0
+    ./src/index-cli getaccountaddress 0
 
 **3.4.**  Send to received address **exactly 1000 XZC** in **1 transaction**. Wait for 15 confirmations.
 
 **3.5.**  Stop daemon:
 
-    ./src/zcoin-cli stop
+    ./src/index-cli stop
 
 Step 4. In your VPS where you are hosting your Znode. Update config files
 ----------------------
-**4.1.**  Create file **zcoin.conf** (in folder **~/.zcoin**)
+**4.1.**  Create file **index.conf** (in folder **~/.index**)
 
     rpcuser=username
     rpcpassword=password
@@ -65,41 +65,41 @@ Step 4. In your VPS where you are hosting your Znode. Update config files
     server=1
     listen=1
     maxconnections=24
-    znode=1
-    znodeprivkey=XXXXXXXXXXXXXXXXX  ## Replace with your znode private key
+    indexnode=1
+    indexnodeprivkey=XXXXXXXXXXXXXXXXX  ## Replace with your indexnode private key
     externalip=XXX.XXX.XXX.XXX:7082 ## Replace with your node external IP
 
-**4.2.**  Create file **znode.conf** (in 2 folders **~/.zcoin** and **~/.zcoin/testnet3**) contains the following info:
+**4.2.**  Create file **indexnode.conf** (in 2 folders **~/.index** and **~/.index/testnet3**) contains the following info:
  - LABEL: A one word name you make up to call your node (ex. ZN1)
- - IP:PORT: Your znode VPS's IP, and the port is always 18168.
- - ZNODEPRIVKEY: This is the result of your "znode genkey" from earlier.
+ - IP:PORT: Your indexnode VPS's IP, and the port is always 18168.
+ - INDEXNODEPRIVKEY: This is the result of your "indexnode genkey" from earlier.
  - TRANSACTION HASH: The collateral tx. hash from the 1000 XZC deposit.
  - INDEX: The Index is always 0 or 1.
 
 To get TRANSACTION HASH, run:
 
-    ./src/zcoin-cli znode outputs
+    ./src/index-cli indexnode outputs
 
 The output will look like:
 
     { "d6fd38868bb8f9958e34d5155437d009b72dfd33fc28874c87fd42e51c0f74fdb" : "0", }
 
-Sample of znode.conf:
+Sample of indexnode.conf:
 
     ZN1 51.52.53.54:18168 XrxSr3fXpX3dZcU7CoiFuFWqeHYw83r28btCFfIHqf6zkMp1PZ4 d6fd38868bb8f9958e34d5155437d009b72dfd33fc28874c87fd42e51c0f74fdb 0
 
-Step 5. Run a znode
+Step 5. Run a indexnode
 ----------------------
-**5.1.**  Start znode:
+**5.1.**  Start indexnode:
 
-    ./src/zcoin-cli znode start-alias <LABEL>
+    ./src/index-cli indexnode start-alias <LABEL>
 
 For example:
 
-    ./src/zcoin-cli znode start-alias ZN1
+    ./src/index-cli indexnode start-alias ZN1
 
 **5.2.**  To check node status:
 
-    ./src/zcoin-cli znode debug
+    ./src/index-cli indexnode debug
 
 If not successfully started, just repeat start command
