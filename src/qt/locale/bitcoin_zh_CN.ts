@@ -3013,8 +3013,8 @@
         <translation>无法启动HTTP服务，查看日志获取更多信息</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
-        <translation>Zcoin Core</translation>
+        <source>Index Core</source>
+        <translation>Index Core</translation>
     </message>
     <message>
         <source>The %s developers</source>

@@ -772,7 +772,7 @@
 </translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>index core</translation>
     </message>
     <message>

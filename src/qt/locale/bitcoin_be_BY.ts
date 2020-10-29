@@ -1258,8 +1258,8 @@
         <translation>Запусціць у фоне як дэман і прымаць каманды</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
-        <translation>Zcoin Core</translation>
+        <source>Index Core</source>
+        <translation>Index Core</translation>
     </message>
     <message>
         <source>Do you want to rebuild the block database now?</source>

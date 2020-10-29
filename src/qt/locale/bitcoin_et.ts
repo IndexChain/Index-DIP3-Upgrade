@@ -1758,7 +1758,7 @@
         <translation>Tööta taustal ning aktsepteeri käsklusi</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>Zcoini tuumik</translation>
     </message>
     <message>

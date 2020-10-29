@@ -484,7 +484,7 @@
         <translation>Opsiynau:</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>Craidd Zcoin</translation>
     </message>
     <message>

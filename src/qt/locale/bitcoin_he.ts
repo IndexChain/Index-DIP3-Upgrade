@@ -1648,7 +1648,7 @@
         <translation>ריצה כסוכן ברקע וקבלת פקודות</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>ליבת ביטקוין</translation>
     </message>
     <message>

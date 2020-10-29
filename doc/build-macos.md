@@ -32,7 +32,7 @@ from the root of the repository.
 Note: You only need Berkeley DB if the wallet is enabled (see Disable-wallet mode).
       
       
-Build Zcoin Core
+Build Index Core
 ------------------------
 1.  Build Zcoin-core:
 
@@ -58,7 +58,7 @@ Build Zcoin Core
 Running
 -------
 
-Zcoin Core is now available at `./src/indexd`
+Index Core is now available at `./src/indexd`
 
 Before running, it's recommended you create an RPC configuration file.
 

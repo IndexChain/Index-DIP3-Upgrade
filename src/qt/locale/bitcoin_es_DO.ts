@@ -1123,7 +1123,7 @@
 </translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>Núcleo de Zcoin</translation>
     </message>
     <message>

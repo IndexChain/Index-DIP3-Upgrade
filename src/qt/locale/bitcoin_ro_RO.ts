@@ -1594,7 +1594,7 @@
         <translation>Rulează în fundal ca un demon şi acceptă comenzi</translation>
     </message>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>Nucleul Zcoin</translation>
     </message>
     <message>

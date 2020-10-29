@@ -708,7 +708,7 @@
 <context>
     <name>index-core</name>
     <message>
-        <source>Zcoin Core</source>
+        <source>Index Core</source>
         <translation>Zcoin மையம்</translation>
     </message>
     <message>

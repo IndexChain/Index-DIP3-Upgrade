@@ -705,7 +705,7 @@ int main(int argc, char *argv[])
     /// 7a. parse indexnode.conf
     std::string strErr;
     if(!indexnodeConfig.read(strErr)) {
-        QMessageBox::critical(0, QObject::tr("Zcoin Core"),
+        QMessageBox::critical(0, QObject::tr("Index Core"),
                               QObject::tr("Error reading indexnode configuration file: %1").arg(strErr.c_str()));
         return EXIT_FAILURE;
     }

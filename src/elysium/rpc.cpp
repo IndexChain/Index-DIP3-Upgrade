@@ -2035,7 +2035,7 @@ UniValue elysium_getinfo(const JSONRPCRequest& request)
             "{\n"
             "  \"elysiumversion_int\" : xxxxxxx,      (number) client version as integer\n"
             "  \"elysiumversion\" : \"x.x.x.x-xxx\",    (string) client version\n"
-            "  \"indexcoreversion\" : \"x.x.x\",        (string) Zcoin Core version\n"
+            "  \"indexcoreversion\" : \"x.x.x\",        (string) Index Core version\n"
             "  \"block\" : nnnnnn,                      (number) index of the last processed block\n"
             "  \"blocktime\" : nnnnnnnnnn,              (number) timestamp of the last processed block\n"
             "  \"blocktransactions\" : nnnn,            (number) Elysium transactions found in the last processed block\n"

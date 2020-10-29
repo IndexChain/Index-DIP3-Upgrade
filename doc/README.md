@@ -1,9 +1,9 @@
-Zcoin Core 0.14.8.x
+Index Core 0.14.8.x
 =====================
 
 Setup
 ---------------------
-[Zcoin Core] (https://index.io/get-index/) is the original Zcoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Zcoin transactions (which is currently several hundreds MBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
+[Index Core] (https://index.io/get-index/) is the original Zcoin client and it builds the backbone of the network. However, it downloads and stores the entire history of Zcoin transactions (which is currently several hundreds MBs); depending on the speed of your computer and network connection, the synchronization process can take anywhere from a few hours to a day or more.
 
 Running
 ---------------------

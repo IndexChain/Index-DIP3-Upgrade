@@ -3953,8 +3953,8 @@
     </message>
     <message>
         <location line="-360"/>
-        <source>Zcoin Core</source>
-        <translation type="unfinished">Zcoin Core</translation>
+        <source>Index Core</source>
+        <translation type="unfinished">Index Core</translation>
     </message>
     <message>
         <location line="+1"/>
