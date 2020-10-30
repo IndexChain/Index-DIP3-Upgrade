@@ -3916,6 +3916,8 @@ bool CheckBlockHeader(const CBlockHeader &block, CValidationState &state, const 
                return state.DoS(50, false, REJECT_INVALID, "high-hash", false, "proof of work failed");
         }
     }
+    if(block.IsProofOfStake() && block.vchBlockSig.empty())
+        return state.DoS(100,false,REJECT_INVALID,"empty-blocksig",false,"Empty block signature for PoS block");
     return true;
 }
 
