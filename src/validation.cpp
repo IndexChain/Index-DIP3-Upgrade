@@ -2682,7 +2682,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
             return state.DoS(0, error("ConnectBlock(EVOINDEXNODES): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
 
-        if (!IsBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockSubsidy)) {
+        if (!IsBlockPayeeValid(*block.vtx[block.IsProofOfStake()], pindex->nHeight, blockSubsidy)) {
             mapRejectedBlocks.insert(std::make_pair(block.GetHash(), GetTime()));
             return state.DoS(0, error("ConnectBlock(EVPINDEXNODES): couldn't find evo indexnode payments"),
                                     REJECT_INVALID, "bad-cb-payee");
@@ -2693,7 +2693,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         if (!IsZnodeBlockValueValid(block, pindex->nHeight, blockReward, strError)) {
             return state.DoS(0, error("ConnectBlock(): %s", strError), REJECT_INVALID, "bad-cb-amount");
         }
-        if (!IsZnodeBlockPayeeValid(*block.vtx[0], pindex->nHeight, blockReward)) {
+        if (!IsZnodeBlockPayeeValid(*block.vtx[block.IsProofOfStake()], pindex->nHeight, blockReward)) {
             mapRejectedBlocks.insert(make_pair(block.GetHash(), GetTime()));
             return state.DoS(0, error("ConnectBlock(): couldn't find indexnode or superblock payments"),
                             REJECT_INVALID, "bad-cb-payee");
