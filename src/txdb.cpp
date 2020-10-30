@@ -722,8 +722,8 @@ public:
         fCoinBase = nCode & 1;         //0001 - means coinbase
         fCoinStake = (nCode & 2) != 0; //0010 coinstake
         std::vector<bool> vAvail(2, false);
-        vAvail[0] = (nCode & 2) != 0;
-        vAvail[1] = (nCode & 4) != 0;
+        vAvail[0] = (nCode & 4) != 0; // 0100
+        vAvail[1] = (nCode & 8) != 0; // 1000
         unsigned int nMaskCode = (nCode / 16) + ((nCode & 12) != 0 ? 0 : 1);
         // spentness bitmask
         while (nMaskCode > 0) {
@@ -745,6 +745,7 @@ public:
         // coinbase height
         ::Unserialize(s, VARINT(nHeight));
     }
+
 };
 
 }
