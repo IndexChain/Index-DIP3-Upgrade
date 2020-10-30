@@ -252,7 +252,7 @@ void CZnodeSync::ProcessTick() {
     if (!pCurrentBlockIndex) return;
 
     //the actual count of indexnodes we have currently
-    int nMnCount = mnodeman.CountZnodes();
+    int nMnCount = mnodeman.CountIndexnodes();
 
     LogPrint("ProcessTick", "CZnodeSync::ProcessTick -- nTick %d nMnCount %d\n", nTick, nMnCount);
 
@@ -313,7 +313,7 @@ void CZnodeSync::ProcessTick() {
             } else if (nRequestedZnodeAttempt < 4) {
                 mnodeman.DsegUpdate(pnode);
             } else if (nRequestedZnodeAttempt < 6) {
-                int nMnCount = mnodeman.CountZnodes();
+                int nMnCount = mnodeman.CountIndexnodes();
                 g_connman->PushMessage(pnode, CNetMsgMaker(LEGACY_INDEXNODES_PROTOCOL_VERSION).Make(NetMsgType::INDEXNODEPAYMENTSYNC, nMnCount)); //sync payment votes
             } else {
                 nRequestedZnodeAssets = INDEXNODE_SYNC_FINISHED;

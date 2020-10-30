@@ -62,7 +62,7 @@ void CDarksendPool::InitDenominations() {
 void CDarksendPool::ResetPool() {
     nCachedLastSuccessBlock = 0;
     txMyCollateral = CMutableTransaction();
-    vecZnodesUsed.clear();
+    vecIndexnodesUsed.clear();
     UnlockCoins();
     SetNull();
 }
@@ -241,7 +241,7 @@ void CDarksendPool::CommitFinalTransaction() {
 // a client submits a transaction then refused to sign, there must be a cost. Otherwise they
 // would be able to do this over and over again and bring the mixing to a hault.
 //
-// How does this work? Messages to Znodes come in via NetMsgType::DSVIN, these require a valid collateral
+// How does this work? Messages to Indexnodes come in via NetMsgType::DSVIN, these require a valid collateral
 // transaction for the client to be able to enter the pool. This transaction is kept by the Znode
 // until the transaction is either complete or fails.
 //

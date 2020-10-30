@@ -180,7 +180,7 @@ private:
 public:
     std::map<uint256, CZnodePaymentVote> mapZnodePaymentVotes;
     std::map<int, CZnodeBlockPayees> mapZnodeBlocks;
-    std::map<COutPoint, int> mapZnodesLastVote;
+    std::map<COutPoint, int> mapIndexnodesLastVote;
 
     CZnodePayments() : nStorageCoeff(1.25), nMinBlocksToStore(5000) {}
 

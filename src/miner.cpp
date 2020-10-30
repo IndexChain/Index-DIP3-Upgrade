@@ -893,18 +893,18 @@ void static IndexMiner(const CChainParams &chainparams) {
                 // Also try to wait for indexnode winners unless we're on regtest chain
                 do {
                     bool fvNodesEmpty = g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0;
-                    bool fHasZnodesWinnerForNextBlock;
+                    bool fHasIndexnodesWinnerForNextBlock;
                     const Consensus::Params &params = chainparams.GetConsensus();
                     {
                         LOCK2(cs_main, mempool.cs);
                         int nCount = 0;
-                        fHasZnodesWinnerForNextBlock =
+                        fHasIndexnodesWinnerForNextBlock =
                                 params.IsRegtest() ||
                                 chainActive.Height()+1 >= chainparams.GetConsensus().DIP0003EnforcementHeight ||
                                 chainActive.Height() < params.nZnodePaymentsStartBlock ||
                                 mnodeman.GetNextZnodeInQueueForPayment(chainActive.Height(), true, nCount);
                     }
-                    if (!fvNodesEmpty && fHasZnodesWinnerForNextBlock && !IsInitialBlockDownload()) {
+                    if (!fvNodesEmpty && fHasIndexnodesWinnerForNextBlock && !IsInitialBlockDownload()) {
                         break;
                     }
                     MilliSleep(1000);

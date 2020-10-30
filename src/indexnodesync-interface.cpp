@@ -7,40 +7,40 @@ CZnodeSyncInterface indexnodeSyncInterface;
 
 void CZnodeSyncInterface::Reset()
 {
-    if (!fEvoZnodes)
+    if (!fEvoIndexnodes)
         indexnodeSync.Reset();
     masternodeSync.Reset();
 }
 
 int CZnodeSyncInterface::GetAssetID()
 {
-    return fEvoZnodes ? masternodeSync.GetAssetID() : indexnodeSync.GetAssetID();
+    return fEvoIndexnodes ? masternodeSync.GetAssetID() : indexnodeSync.GetAssetID();
 }
 
 bool CZnodeSyncInterface::IsBlockchainSynced() {
-    return fEvoZnodes ? masternodeSync.IsBlockchainSynced() : indexnodeSync.IsBlockchainSynced();
+    return fEvoIndexnodes ? masternodeSync.IsBlockchainSynced() : indexnodeSync.IsBlockchainSynced();
 }
 
 bool CZnodeSyncInterface::IsSynced() {
-    return fEvoZnodes ? masternodeSync.IsSynced() : indexnodeSync.IsSynced();
+    return fEvoIndexnodes ? masternodeSync.IsSynced() : indexnodeSync.IsSynced();
 }
 
 void CZnodeSyncInterface::UpdatedBlockTip(const CBlockIndex * /*pindexNew*/, bool /*fInitialDownload*/, CConnman & /*connman*/)
 {
-    fEvoZnodes = deterministicMNManager->IsDIP3Enforced();
+    fEvoIndexnodes = deterministicMNManager->IsDIP3Enforced();
 }
 
 void CZnodeSyncInterface::SwitchToNextAsset(CConnman &connman)
 {
-    fEvoZnodes ? masternodeSync.SwitchToNextAsset(connman) : indexnodeSync.SwitchToNextAsset();
+    fEvoIndexnodes ? masternodeSync.SwitchToNextAsset(connman) : indexnodeSync.SwitchToNextAsset();
 }
 
 std::string CZnodeSyncInterface::GetAssetName()
 {
-    return fEvoZnodes ? masternodeSync.GetAssetName() : indexnodeSync.GetAssetName();
+    return fEvoIndexnodes ? masternodeSync.GetAssetName() : indexnodeSync.GetAssetName();
 }
 
 std::string CZnodeSyncInterface::GetSyncStatus()
 {
-    return fEvoZnodes ? masternodeSync.GetSyncStatus() : indexnodeSync.GetSyncStatus();
+    return fEvoIndexnodes ? masternodeSync.GetSyncStatus() : indexnodeSync.GetSyncStatus();
 }

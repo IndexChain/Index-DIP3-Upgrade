@@ -382,12 +382,12 @@ void BitcoinGUI::createActions()
 #ifdef ENABLE_WALLET
     // These showNormalIfMinimized are needed because Send Coins and Receive Coins
     // can be triggered from the tray menu, and need to show the GUI to be useful.
-    indexnodeAction = new QAction(platformStyle->MultiStatesIcon(":/icons/indexnodes"), tr("&Znodes"), this);
-    indexnodeAction->setStatusTip(tr("Browse Znodes"));
+    indexnodeAction = new QAction(platformStyle->MultiStatesIcon(":/icons/indexnodes"), tr("&Indexnodes"), this);
+    indexnodeAction->setStatusTip(tr("Browse Indexnodes"));
     indexnodeAction->setToolTip(indexnodeAction->statusTip());
     indexnodeAction->setCheckable(true);
-    masternodeAction = new QAction(platformStyle->MultiStatesIcon(":/icons/indexnodes"), tr("&Znodes"), this);
-    masternodeAction->setStatusTip(tr("Browse Znodes"));
+    masternodeAction = new QAction(platformStyle->MultiStatesIcon(":/icons/indexnodes"), tr("&Indexnodes"), this);
+    masternodeAction->setStatusTip(tr("Browse Indexnodes"));
     masternodeAction->setToolTip(masternodeAction->statusTip());
     masternodeAction->setCheckable(true);
     stakepageAction = new QAction(platformStyle->MultiStatesIcon(":/icons/tx_mined"), tr("&Staking"), this);
@@ -1549,8 +1549,8 @@ void BitcoinGUI::checkZnodeVisibility(int numBlocks) {
         masternodeAction->setVisible(false);
     } // during legacy window
     else if(numBlocks < params.DIP0003EnforcementHeight){
-        indexnodeAction->setText(tr("&Znodes (legacy)"));
-        indexnodeAction->setStatusTip(tr("Browse legacy Znodes"));
+        indexnodeAction->setText(tr("&Indexnodes (legacy)"));
+        indexnodeAction->setStatusTip(tr("Browse legacy Indexnodes"));
         indexnodeAction->setVisible(true);
         masternodeAction->setVisible(true);
     } // DIP0003 Enforcement

@@ -469,7 +469,7 @@ QT_TRANSLATE_NOOP("index-core", "Maximum per-connection send buffer, <n>*1000 by
 QT_TRANSLATE_NOOP("index-core", "Missing input transaction information."),
 QT_TRANSLATE_NOOP("index-core", "Mixing in progress..."),
 QT_TRANSLATE_NOOP("index-core", "Need to specify a port with -whitebind: '%s'"),
-QT_TRANSLATE_NOOP("index-core", "No Znodes detected."),
+QT_TRANSLATE_NOOP("index-core", "No Indexnodes detected."),
 QT_TRANSLATE_NOOP("index-core", "No compatible Znode found."),
 QT_TRANSLATE_NOOP("index-core", "No errors detected."),
 QT_TRANSLATE_NOOP("index-core", "No matching denominations found for mixing."),

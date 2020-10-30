@@ -38,7 +38,7 @@ static const int PRIVATESEND_KEYS_THRESHOLD_STOP    = 50;
 
 // The main object for accessing mixing
 extern CDarksendPool darkSendPool;
-// A helper object for signing messages from Znodes
+// A helper object for signing messages from Indexnodes
 extern CDarkSendSigner darkSendSigner;
 
 extern int nPrivateSendRounds;
@@ -305,8 +305,8 @@ private:
 
     // The current mixing sessions in progress on the network
     std::vector<CDarksendQueue> vecDarksendQueue;
-    // Keep track of the used Znodes
-    std::vector<CTxIn> vecZnodesUsed;
+    // Keep track of the used Indexnodes
+    std::vector<CTxIn> vecIndexnodesUsed;
 
     std::vector<CAmount> vecDenominationsSkipped;
     std::vector<COutPoint> vecOutPointLocked;

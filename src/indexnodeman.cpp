@@ -150,7 +150,7 @@ void CZnodeIndex::RebuildIndex()
 }
 
 CZnodeMan::CZnodeMan() : cs(),
-  vZnodes(),
+  vIndexnodes(),
   mAskedUsForZnodeList(),
   mWeAskedForZnodeList(),
   mWeAskedForZnodeListEntry(),
@@ -159,11 +159,11 @@ CZnodeMan::CZnodeMan() : cs(),
   mMnbRecoveryGoodReplies(),
   listScheduledMnbRequestConnections(),
   nLastIndexRebuildTime(0),
-  indexZnodes(),
-  indexZnodesOld(),
+  indexIndexnodes(),
+  indexIndexnodesOld(),
   fIndexRebuilt(false),
-  fZnodesAdded(false),
-  fZnodesRemoved(false),
+  fIndexnodesAdded(false),
+  fIndexnodesRemoved(false),
 //  vecDirtyGovernanceObjectHashes(),
   nLastWatchdogVoteTime(0),
   mapSeenZnodeBroadcast(),
@@ -178,9 +178,9 @@ bool CZnodeMan::Add(CZnode &mn)
     CZnode *pmn = Find(mn.vin);
     if (pmn == NULL) {
         LogPrint("indexnode", "CZnodeMan::Add -- Adding new Znode: addr=%s, %i now\n", mn.addr.ToString(), size() + 1);
-        vZnodes.push_back(mn);
-        indexZnodes.AddZnodeVIN(mn.vin);
-        fZnodesAdded = true;
+        vIndexnodes.push_back(mn);
+        indexIndexnodes.AddZnodeVIN(mn.vin);
+        fIndexnodesAdded = true;
         return true;
     }
 
@@ -222,7 +222,7 @@ void CZnodeMan::Check()
 
 //    LogPrint("indexnode", "CZnodeMan::Check -- nLastWatchdogVoteTime=%d, IsWatchdogActive()=%d\n", nLastWatchdogVoteTime, IsWatchdogActive());
 
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         mn.Check();
     }
 }
@@ -241,11 +241,11 @@ void CZnodeMan::CheckAndRemove()
         Check();
 
         // Remove spent indexnodes, prepare structures and make requests to reasure the state of inactive ones
-        std::vector<CZnode>::iterator it = vZnodes.begin();
+        std::vector<CZnode>::iterator it = vIndexnodes.begin();
         std::vector<std::pair<int, CZnode> > vecZnodeRanks;
         // ask for up to MNB_RECOVERY_MAX_ASK_ENTRIES indexnode entries at a time
         int nAskForMnbRecovery = MNB_RECOVERY_MAX_ASK_ENTRIES;
-        while(it != vZnodes.end()) {
+        while(it != vIndexnodes.end()) {
             CZnodeBroadcast mnb = CZnodeBroadcast(*it);
             uint256 hash = mnb.GetHash();
             // If collateral was spent ...
@@ -258,8 +258,8 @@ void CZnodeMan::CheckAndRemove()
 
                 // and finally remove it from the list
 //                it->FlagGovernanceItemsAsDirty();
-                it = vZnodes.erase(it);
-                fZnodesRemoved = true;
+                it = vIndexnodes.erase(it);
+                fIndexnodesRemoved = true;
             } else {
                 bool fAsk = pCurrentBlockIndex &&
                             (nAskForMnbRecovery > 0) &&
@@ -352,7 +352,7 @@ void CZnodeMan::CheckAndRemove()
             }
         }
 
-        // check which Znodes we've asked for
+        // check which Indexnodes we've asked for
         std::map<COutPoint, std::map<CNetAddr, int64_t> >::iterator it2 = mWeAskedForZnodeListEntry.begin();
         while(it2 != mWeAskedForZnodeListEntry.end()){
             std::map<CNetAddr, int64_t>::iterator it3 = it2->second.begin();
@@ -405,12 +405,12 @@ void CZnodeMan::CheckAndRemove()
 
         LogPrintf("CZnodeMan::CheckAndRemove -- %s\n", ToString());
 
-        if(fZnodesRemoved) {
+        if(fIndexnodesRemoved) {
             CheckAndRebuildZnodeIndex();
         }
     }
 
-    if(fZnodesRemoved) {
+    if(fIndexnodesRemoved) {
         NotifyZnodeUpdates();
     }
 }
@@ -418,7 +418,7 @@ void CZnodeMan::CheckAndRemove()
 void CZnodeMan::Clear()
 {
     LOCK(cs);
-    vZnodes.clear();
+    vIndexnodes.clear();
     mAskedUsForZnodeList.clear();
     mWeAskedForZnodeList.clear();
     mWeAskedForZnodeListEntry.clear();
@@ -426,17 +426,17 @@ void CZnodeMan::Clear()
     mapSeenZnodePing.clear();
     nDsqCount = 0;
     nLastWatchdogVoteTime = 0;
-    indexZnodes.Clear();
-    indexZnodesOld.Clear();
+    indexIndexnodes.Clear();
+    indexIndexnodesOld.Clear();
 }
 
-int CZnodeMan::CountZnodes(int nProtocolVersion)
+int CZnodeMan::CountIndexnodes(int nProtocolVersion)
 {
     LOCK(cs);
     int nCount = 0;
     nProtocolVersion = nProtocolVersion == -1 ? znpayments.GetMinZnodePaymentsProto() : nProtocolVersion;
 
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         if(mn.nProtocolVersion < nProtocolVersion) continue;
         nCount++;
     }
@@ -450,7 +450,7 @@ int CZnodeMan::CountEnabled(int nProtocolVersion)
     int nCount = 0;
     nProtocolVersion = nProtocolVersion == -1 ? znpayments.GetMinZnodePaymentsProto() : nProtocolVersion;
 
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         if(mn.nProtocolVersion < nProtocolVersion || !mn.IsEnabled()) continue;
         nCount++;
     }
@@ -464,7 +464,7 @@ int CZnodeMan::CountByIP(int nNetworkType)
     LOCK(cs);
     int nNodeCount = 0;
 
-    BOOST_FOREACH(CZnode& mn, vZnodes)
+    BOOST_FOREACH(CZnode& mn, vIndexnodes)
         if ((nNetworkType == NET_IPV4 && mn.addr.IsIPv4()) ||
             (nNetworkType == NET_TOR  && mn.addr.IsTor())  ||
             (nNetworkType == NET_IPV6 && mn.addr.IsIPv6())) {
@@ -500,7 +500,7 @@ CZnode* CZnodeMan::Find(const std::string &txHash, const std::string &outputInde
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CZnode& mn, vZnodes)
+    BOOST_FOREACH(CZnode& mn, vIndexnodes)
     {
         COutPoint outpoint = mn.vin.prevout;
 
@@ -515,7 +515,7 @@ CZnode* CZnodeMan::Find(const CScript &payee)
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CZnode& mn, vZnodes)
+    BOOST_FOREACH(CZnode& mn, vIndexnodes)
     {
         if(GetScriptForDestination(mn.pubKeyCollateralAddress.GetID()) == payee)
             return &mn;
@@ -527,7 +527,7 @@ CZnode* CZnodeMan::Find(const CTxIn &vin)
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CZnode& mn, vZnodes)
+    BOOST_FOREACH(CZnode& mn, vIndexnodes)
     {
         if(mn.vin.prevout == vin.prevout)
             return &mn;
@@ -539,7 +539,7 @@ CZnode* CZnodeMan::Find(const CPubKey &pubKeyZnode)
 {
     LOCK(cs);
 
-    BOOST_FOREACH(CZnode& mn, vZnodes)
+    BOOST_FOREACH(CZnode& mn, vIndexnodes)
     {
         if(mn.pubKeyZnode == pubKeyZnode)
             return &mn;
@@ -670,7 +670,7 @@ CZnode* CZnodeMan::GetNextZnodeInQueueForPayment(int nBlockHeight, bool fFilterS
     */
     int nMnCount = CountEnabled();
     int index = 0;
-    BOOST_FOREACH(CZnode &mn, vZnodes)
+    BOOST_FOREACH(CZnode &mn, vIndexnodes)
     {
         index += 1;
         // LogPrintf("index=%s, mn=%s\n", index, mn.ToString());
@@ -767,18 +767,18 @@ CZnode* CZnodeMan::FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, in
     if(nCountNotExcluded < 1) return NULL;
 
     // fill a vector of pointers
-    std::vector<CZnode*> vpZnodesShuffled;
-    BOOST_FOREACH(CZnode &mn, vZnodes) {
-        vpZnodesShuffled.push_back(&mn);
+    std::vector<CZnode*> vpIndexnodesShuffled;
+    BOOST_FOREACH(CZnode &mn, vIndexnodes) {
+        vpIndexnodesShuffled.push_back(&mn);
     }
 
     InsecureRand insecureRand;
     // shuffle pointers
-    std::random_shuffle(vpZnodesShuffled.begin(), vpZnodesShuffled.end(), insecureRand);
+    std::random_shuffle(vpIndexnodesShuffled.begin(), vpIndexnodesShuffled.end(), insecureRand);
     bool fExclude;
 
     // loop through
-    BOOST_FOREACH(CZnode* pmn, vpZnodesShuffled) {
+    BOOST_FOREACH(CZnode* pmn, vpIndexnodesShuffled) {
         if(pmn->nProtocolVersion < nProtocolVersion || !pmn->IsEnabled()) continue;
         fExclude = false;
         BOOST_FOREACH(const CTxIn &txinToExclude, vecToExclude) {
@@ -808,7 +808,7 @@ int CZnodeMan::GetZnodeRank(const CTxIn& vin, int nBlockHeight, int nMinProtocol
     LOCK(cs);
 
     // scan for winner
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         if(mn.nProtocolVersion < nMinProtocol) continue;
         if(fOnlyActive) {
             if(!mn.IsEnabled()) continue;
@@ -844,7 +844,7 @@ std::vector<std::pair<int, CZnode> > CZnodeMan::GetZnodeRanks(int nBlockHeight, 
     LOCK(cs);
 
     // scan for winner
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
 
         if(mn.nProtocolVersion < nMinProtocol || !mn.IsEnabled()) continue;
 
@@ -877,7 +877,7 @@ CZnode* CZnodeMan::GetZnodeByRank(int nRank, int nBlockHeight, int nMinProtocol,
     }
 
     // Fill scores
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
 
         if(mn.nProtocolVersion < nMinProtocol) continue;
         if(fOnlyActive && !mn.IsEnabled()) continue;
@@ -967,7 +967,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
             Misbehaving(pfrom->GetId(), nDos);
         }
 
-        if(fZnodesAdded) {
+        if(fIndexnodesAdded) {
             NotifyZnodeUpdates();
         }
     } else if (strCommand == NetMsgType::MNPING) { //Znode Ping
@@ -1044,7 +1044,7 @@ void CZnodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CDataStrea
 
         int nInvCount = 0;
 
-        BOOST_FOREACH(CZnode& mn, vZnodes) {
+        BOOST_FOREACH(CZnode& mn, vIndexnodes) {
             if (vin != CTxIn() && vin != mn.vin) continue; // asked for specific vin but we are not there yet
             if (Params().NetworkIDString() != CBaseChainParams::REGTEST)
                 if (mn.addr.IsRFC1918() || mn.addr.IsLocal()) continue; // do not send local network indexnode
@@ -1140,7 +1140,7 @@ void CZnodeMan::DoFullVerificationStep()
     if(nOffset >= (int)vecZnodeRanks.size()) return;
 
     std::vector<CZnode*> vSortedByAddr;
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         vSortedByAddr.push_back(&mn);
     }
 
@@ -1187,7 +1187,7 @@ void CZnodeMan::DoFullVerificationStep()
 
 void CZnodeMan::CheckSameAddr()
 {
-    if(!indexnodeSync.IsSynced() || vZnodes.empty()) return;
+    if(!indexnodeSync.IsSynced() || vIndexnodes.empty()) return;
 
     std::vector<CZnode*> vBan;
     std::vector<CZnode*> vSortedByAddr;
@@ -1198,7 +1198,7 @@ void CZnodeMan::CheckSameAddr()
         CZnode* pprevZnode = NULL;
         CZnode* pverifiedZnode = NULL;
 
-        BOOST_FOREACH(CZnode& mn, vZnodes) {
+        BOOST_FOREACH(CZnode& mn, vIndexnodes) {
             vSortedByAddr.push_back(&mn);
         }
 
@@ -1379,10 +1379,10 @@ void CZnodeMan::ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv)
         LOCK(cs);
 
         CZnode* prealZnode = NULL;
-        std::vector<CZnode*> vpZnodesToBan;
-        std::vector<CZnode>::iterator it = vZnodes.begin();
+        std::vector<CZnode*> vpIndexnodesToBan;
+        std::vector<CZnode>::iterator it = vIndexnodes.begin();
         std::string strMessage1 = strprintf("%s%d%s", pnode->addr.ToString(), mnv.nonce, blockHash.ToString());
-        while(it != vZnodes.end()) {
+        while(it != vIndexnodes.end()) {
             if(CAddress(it->addr, NODE_NETWORK) == pnode->addr) {
                 if(darkSendSigner.VerifyMessage(it->pubKeyZnode, mnv.vchSig1, strMessage1, strError)) {
                     // found it!
@@ -1417,7 +1417,7 @@ void CZnodeMan::ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv)
                     mnv.Relay();
 
                 } else {
-                    vpZnodesToBan.push_back(&(*it));
+                    vpIndexnodesToBan.push_back(&(*it));
                 }
             }
             ++it;
@@ -1433,13 +1433,13 @@ void CZnodeMan::ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv)
         LogPrintf("CZnodeMan::ProcessVerifyReply -- verified real indexnode %s for addr %s\n",
                     prealZnode->vin.prevout.ToStringShort(), pnode->addr.ToString());
         // increase ban score for everyone else
-        BOOST_FOREACH(CZnode* pmn, vpZnodesToBan) {
+        BOOST_FOREACH(CZnode* pmn, vpIndexnodesToBan) {
             pmn->IncreasePoSeBanScore();
             LogPrint("indexnode", "CZnodeMan::ProcessVerifyBroadcast -- increased PoSe ban score for %s addr %s, new score %d\n",
                         prealZnode->vin.prevout.ToStringShort(), pnode->addr.ToString(), pmn->nPoSeBanScore);
         }
         LogPrintf("CZnodeMan::ProcessVerifyBroadcast -- PoSe score increased for %d fake indexnodes, addr %s\n",
-                    (int)vpZnodesToBan.size(), pnode->addr.ToString());
+                    (int)vpIndexnodesToBan.size(), pnode->addr.ToString());
     }
 }
 
@@ -1534,7 +1534,7 @@ void CZnodeMan::ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& m
 
         // increase ban score for everyone else with the same addr
         int nCount = 0;
-        BOOST_FOREACH(CZnode& mn, vZnodes) {
+        BOOST_FOREACH(CZnode& mn, vIndexnodes) {
             if(mn.addr != mnv.addr || mn.vin.prevout == mnv.vin1.prevout) continue;
             mn.IncreasePoSeBanScore();
             nCount++;
@@ -1550,11 +1550,11 @@ std::string CZnodeMan::ToString() const
 {
     std::ostringstream info;
 
-    info << "Znodes: " << (int)vZnodes.size() <<
+    info << "Indexnodes: " << (int)vIndexnodes.size() <<
             ", peers who asked us for Znode list: " << (int)mAskedUsForZnodeList.size() <<
             ", peers we asked for Znode list: " << (int)mWeAskedForZnodeList.size() <<
             ", entries in Znode list we asked for: " << (int)mWeAskedForZnodeListEntry.size() <<
-            ", indexnode index size: " << indexZnodes.GetSize() <<
+            ", indexnode index size: " << indexIndexnodes.GetSize() <<
             ", nDsqCount: " << (int)nDsqCount;
 
     return info.str();
@@ -1697,7 +1697,7 @@ void CZnodeMan::UpdateLastPaid()
     LogPrint("znpayments", "CZnodeMan::UpdateLastPaid -- nHeight=%d, nMaxBlocksToScanBack=%d, IsFirstRun=%s\n",
                              pCurrentBlockIndex->nHeight, nMaxBlocksToScanBack, IsFirstRun ? "true" : "false");
 
-    BOOST_FOREACH(CZnode& mn, vZnodes) {
+    BOOST_FOREACH(CZnode& mn, vIndexnodes) {
         mn.UpdateLastPaid(pCurrentBlockIndex, nMaxBlocksToScanBack);
     }
 
@@ -1713,18 +1713,18 @@ void CZnodeMan::CheckAndRebuildZnodeIndex()
         return;
     }
 
-    if(indexZnodes.GetSize() <= MAX_EXPECTED_INDEX_SIZE) {
+    if(indexIndexnodes.GetSize() <= MAX_EXPECTED_INDEX_SIZE) {
         return;
     }
 
-    if(indexZnodes.GetSize() <= int(vZnodes.size())) {
+    if(indexIndexnodes.GetSize() <= int(vIndexnodes.size())) {
         return;
     }
 
-    indexZnodesOld = indexZnodes;
-    indexZnodes.Clear();
-    for(size_t i = 0; i < vZnodes.size(); ++i) {
-        indexZnodes.AddZnodeVIN(vZnodes[i].vin);
+    indexIndexnodesOld = indexIndexnodes;
+    indexIndexnodes.Clear();
+    for(size_t i = 0; i < vIndexnodes.size(); ++i) {
+        indexIndexnodes.AddZnodeVIN(vIndexnodes[i].vin);
     }
 
     fIndexRebuilt = true;
@@ -1832,23 +1832,23 @@ void CZnodeMan::UpdatedBlockTip(const CBlockIndex *pindex)
 void CZnodeMan::NotifyZnodeUpdates()
 {
     // Avoid double locking
-    bool fZnodesAddedLocal = false;
-    bool fZnodesRemovedLocal = false;
+    bool fIndexnodesAddedLocal = false;
+    bool fIndexnodesRemovedLocal = false;
     {
         LOCK(cs);
-        fZnodesAddedLocal = fZnodesAdded;
-        fZnodesRemovedLocal = fZnodesRemoved;
+        fIndexnodesAddedLocal = fIndexnodesAdded;
+        fIndexnodesRemovedLocal = fIndexnodesRemoved;
     }
 
-    if(fZnodesAddedLocal) {
+    if(fIndexnodesAddedLocal) {
 //        governance.CheckZnodeOrphanObjects();
 //        governance.CheckZnodeOrphanVotes();
     }
-    if(fZnodesRemovedLocal) {
+    if(fIndexnodesRemovedLocal) {
 //        governance.UpdateCachesAndClean();
     }
 
     LOCK(cs);
-    fZnodesAdded = false;
-    fZnodesRemoved = false;
+    fIndexnodesAdded = false;
+    fIndexnodesRemoved = false;
 }

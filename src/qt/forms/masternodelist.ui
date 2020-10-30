@@ -71,7 +71,7 @@
             <string>Show only indexnodes this wallet has keys for.</string>
            </property>
            <property name="text">
-            <string>My Znodes only</string>
+            <string>My Indexnodes only</string>
            </property>
           </widget>
          </item>

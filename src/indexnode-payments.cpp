@@ -196,12 +196,12 @@ void CZnodePayments::Clear() {
 bool CZnodePayments::CanVote(COutPoint outZnode, int nBlockHeight) {
     LOCK(cs_mapZnodePaymentVotes);
 
-    if (mapZnodesLastVote.count(outZnode) && mapZnodesLastVote[outZnode] == nBlockHeight) {
+    if (mapIndexnodesLastVote.count(outZnode) && mapIndexnodesLastVote[outZnode] == nBlockHeight) {
         return false;
     }
 
     //record this indexnode voted
-    mapZnodesLastVote[outZnode] = nBlockHeight;
+    mapIndexnodesLastVote[outZnode] = nBlockHeight;
     return true;
 }
 

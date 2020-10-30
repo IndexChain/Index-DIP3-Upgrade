@@ -57,10 +57,10 @@ private:
     ClientModel *clientModel;
     WalletModel *walletModel;
 
-    // Protects tableWidgetZnodes
+    // Protects tableWidgetIndexnodes
     CCriticalSection cs_mnlist;
 
-    // Protects tableWidgetMyZnodes
+    // Protects tableWidgetMyIndexnodes
     CCriticalSection cs_mymnlist;
 
     QString strCurrentFilter;
@@ -71,7 +71,7 @@ private Q_SLOTS:
     void on_startButton_clicked();
     void on_startAllButton_clicked();
     void on_startMissingButton_clicked();
-    void on_tableWidgetMyZnodes_itemSelectionChanged();
+    void on_tableWidgetMyIndexnodes_itemSelectionChanged();
     void on_UpdateButton_clicked();
 };
 #endif // INDEXNODELIST_H

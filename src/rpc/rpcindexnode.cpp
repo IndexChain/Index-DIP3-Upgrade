@@ -496,8 +496,8 @@ UniValue indexnodelist(const JSONRPCRequest &request) {
             obj.push_back(Pair(strOutpoint, s.first));
         }
     } else {
-        std::vector <CZnode> vZnodes = mnodeman.GetFullZnodeVector();
-        BOOST_FOREACH(CZnode & mn, vZnodes)
+        std::vector <CZnode> vIndexnodes = mnodeman.GetFullZnodeVector();
+        BOOST_FOREACH(CZnode & mn, vIndexnodes)
         {
             std::string strOutpoint = mn.vin.prevout.ToStringShort();
             if (strMode == "activeseconds") {

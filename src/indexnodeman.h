@@ -118,12 +118,12 @@ private:
     const CBlockIndex *pCurrentBlockIndex;
 
     // map to hold all MNs
-    std::vector<CZnode> vZnodes;
+    std::vector<CZnode> vIndexnodes;
     // who's asked for the Znode list and the last time
     std::map<CNetAddr, int64_t> mAskedUsForZnodeList;
     // who we asked for the Znode list and the last time
     std::map<CNetAddr, int64_t> mWeAskedForZnodeList;
-    // which Znodes we've asked for
+    // which Indexnodes we've asked for
     std::map<COutPoint, std::map<CNetAddr, int64_t> > mWeAskedForZnodeListEntry;
     // who we asked for the indexnode verification
     std::map<CNetAddr, CZnodeVerification> mWeAskedForVerification;
@@ -137,18 +137,18 @@ private:
 
     int64_t nLastIndexRebuildTime;
 
-    CZnodeIndex indexZnodes;
+    CZnodeIndex indexIndexnodes;
 
-    CZnodeIndex indexZnodesOld;
+    CZnodeIndex indexIndexnodesOld;
 
     /// Set when index has been rebuilt, clear when read
     bool fIndexRebuilt;
 
     /// Set when indexnodes are added, cleared when CGovernanceManager is notified
-    bool fZnodesAdded;
+    bool fIndexnodesAdded;
 
     /// Set when indexnodes are removed, cleared when CGovernanceManager is notified
-    bool fZnodesRemoved;
+    bool fIndexnodesRemoved;
 
     std::vector<uint256> vecDirtyGovernanceObjectHashes;
 
@@ -181,7 +181,7 @@ public:
             READWRITE(strVersion);
         }
 
-        READWRITE(vZnodes);
+        READWRITE(vIndexnodes);
         READWRITE(mAskedUsForZnodeList);
         READWRITE(mWeAskedForZnodeList);
         READWRITE(mWeAskedForZnodeListEntry);
@@ -192,7 +192,7 @@ public:
 
         READWRITE(mapSeenZnodeBroadcast);
         READWRITE(mapSeenZnodePing);
-        READWRITE(indexZnodes);
+        READWRITE(indexIndexnodes);
         if(ser_action.ForRead() && (strVersion != SERIALIZATION_VERSION_STRING)) {
             Clear();
         }
@@ -207,23 +207,23 @@ public:
     void AskForMN(CNode *pnode, const CTxIn &vin);
     void AskForMnb(CNode *pnode, const uint256 &hash);
 
-    /// Check all Znodes
+    /// Check all Indexnodes
     void Check();
 
-    /// Check all Znodes and remove inactive
+    /// Check all Indexnodes and remove inactive
     void CheckAndRemove();
 
     /// Clear Znode vector
     void Clear();
 
-    /// Count Znodes filtered by nProtocolVersion.
+    /// Count Indexnodes filtered by nProtocolVersion.
     /// Znode nProtocolVersion should match or be above the one specified in param here.
-    int CountZnodes(int nProtocolVersion = -1);
-    /// Count enabled Znodes filtered by nProtocolVersion.
+    int CountIndexnodes(int nProtocolVersion = -1);
+    /// Count enabled Indexnodes filtered by nProtocolVersion.
     /// Znode nProtocolVersion should match or be above the one specified in param here.
     int CountEnabled(int nProtocolVersion = -1);
 
-    /// Count Znodes by network type - NET_IPV4, NET_IPV6, NET_TOR
+    /// Count Indexnodes by network type - NET_IPV4, NET_IPV6, NET_TOR
     // int CountByIP(int nNetworkType);
 
     void DsegUpdate(CNode* pnode);
@@ -242,7 +242,7 @@ public:
     bool Get(int nIndex, CTxIn& vinZnode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
-        return indexZnodes.Get(nIndex, vinZnode);
+        return indexIndexnodes.Get(nIndex, vinZnode);
     }
 
     bool GetIndexRebuiltFlag() {
@@ -253,31 +253,31 @@ public:
     /// Get index of a indexnode vin
     int GetZnodeIndex(const CTxIn& vinZnode) {
         LOCK(cs);
-        return indexZnodes.GetZnodeIndex(vinZnode);
+        return indexIndexnodes.GetZnodeIndex(vinZnode);
     }
 
     /// Get old index of a indexnode vin
     int GetZnodeIndexOld(const CTxIn& vinZnode) {
         LOCK(cs);
-        return indexZnodesOld.GetZnodeIndex(vinZnode);
+        return indexIndexnodesOld.GetZnodeIndex(vinZnode);
     }
 
     /// Get indexnode VIN for an old index value
     bool GetZnodeVinForIndexOld(int nZnodeIndex, CTxIn& vinZnodeOut) {
         LOCK(cs);
-        return indexZnodesOld.Get(nZnodeIndex, vinZnodeOut);
+        return indexIndexnodesOld.Get(nZnodeIndex, vinZnodeOut);
     }
 
     /// Get index of a indexnode vin, returning rebuild flag
     int GetZnodeIndex(const CTxIn& vinZnode, bool& fIndexRebuiltOut) {
         LOCK(cs);
         fIndexRebuiltOut = fIndexRebuilt;
-        return indexZnodes.GetZnodeIndex(vinZnode);
+        return indexIndexnodes.GetZnodeIndex(vinZnode);
     }
 
     void ClearOldZnodeIndex() {
         LOCK(cs);
-        indexZnodesOld.Clear();
+        indexIndexnodesOld.Clear();
         fIndexRebuilt = false;
     }
 
@@ -297,7 +297,7 @@ public:
     /// Find a random entry
     CZnode* FindRandomNotInVec(const std::vector<CTxIn> &vecToExclude, int nProtocolVersion = -1);
 
-    std::vector<CZnode> GetFullZnodeVector() { LOCK(cs); return vZnodes; }
+    std::vector<CZnode> GetFullZnodeVector() { LOCK(cs); return vIndexnodes; }
 
     std::vector<std::pair<int, CZnode> > GetZnodeRanks(int nBlockHeight = -1, int nMinProtocol=0);
     int GetZnodeRank(const CTxIn &vin, int nBlockHeight, int nMinProtocol=0, bool fOnlyActive=true);
@@ -317,8 +317,8 @@ public:
     void ProcessVerifyReply(CNode* pnode, CZnodeVerification& mnv);
     void ProcessVerifyBroadcast(CNode* pnode, const CZnodeVerification& mnv);
 
-    /// Return the number of (unique) Znodes
-    int size() { return vZnodes.size(); }
+    /// Return the number of (unique) Indexnodes
+    int size() { return vIndexnodes.size(); }
 
     std::string ToString() const;
 

@@ -2103,7 +2103,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
 
     if (GetBoolArg("-znconflock", true) && pwalletMain && (indexnodeConfig.getCount() > 0)) {
         LOCK(pwalletMain->cs_wallet);
-        LogPrintf("Locking Znodes:\n");
+        LogPrintf("Locking Indexnodes:\n");
         uint256 mnTxHash;
         int outputIndex;
         BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
@@ -2334,12 +2334,12 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         threadGroup.create_thread(boost::bind(&ThreadStakeMiner, pwalletMain, chainparams));
     // ********************************************************* Step 13a: update block tip in Index modules
 
-    bool fEvoZnodes = false;
+    bool fEvoIndexnodes = false;
     {
         LOCK(cs_main);
-        fEvoZnodes = chainActive.Height() >= chainparams.GetConsensus().DIP0003EnforcementHeight;
+        fEvoIndexnodes = chainActive.Height() >= chainparams.GetConsensus().DIP0003EnforcementHeight;
 
-        if (!fEvoZnodes) {
+        if (!fEvoIndexnodes) {
             // force UpdatedBlockTip to initialize pCurrentBlockIndex for DS, MN payments and budgets
             // but don't call it directly to prevent triggering of other listeners like zmq etc.
             // GetMainSignals().UpdatedBlockTip(chainActive.Tip());
@@ -2354,7 +2354,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     // ********************************************************* Step 13b: start legacy indexnodes thread
 
     // TODO: remove this code after switch to evo is done
-    if (!fEvoZnodes)
+    if (!fEvoIndexnodes)
     {
         threadGroup.create_thread([] {
 

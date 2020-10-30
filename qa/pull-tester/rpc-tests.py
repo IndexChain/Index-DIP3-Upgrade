@@ -198,7 +198,7 @@ testScripts = [
     'hdmint_mempool_zap.py',
     'sigma_zapwalletmints_unconf_trans.py',
 
-    # Evo Znodes
+    # Evo Indexnodes
     'dip3-deterministicmns.py'
 
     # Unstable tests

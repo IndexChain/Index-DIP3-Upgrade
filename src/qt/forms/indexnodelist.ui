@@ -49,9 +49,9 @@
        <property name="currentIndex">
         <number>1</number>
        </property>
-       <widget class="QWidget" name="tabMyZnodes">
+       <widget class="QWidget" name="tabMyIndexnodes">
         <attribute name="title">
-         <string>My Znodes</string>
+         <string>My Indexnodes</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_2">
          <item row="0" column="0">
@@ -74,7 +74,7 @@
             </layout>
            </item>
            <item>
-            <widget class="QTableWidget" name="tableWidgetMyZnodes">
+            <widget class="QTableWidget" name="tableWidgetMyIndexnodes">
              <property name="minimumSize">
               <size>
                <width>695</width>
@@ -202,13 +202,13 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tabAllZnodes">
+       <widget class="QWidget" name="tabAllIndexnodes">
         <attribute name="title">
-         <string>All Znodes</string>
+         <string>All Indexnodes</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
-          <widget class="QTableWidget" name="tableWidgetZnodes">
+          <widget class="QTableWidget" name="tableWidgetIndexnodes">
            <property name="editTriggers">
             <set>QAbstractItemView::NoEditTriggers</set>
            </property>

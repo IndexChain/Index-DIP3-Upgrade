@@ -11,10 +11,10 @@
 class CZnodeSyncInterface {
 private:
     // is it evo mode?
-    bool fEvoZnodes;
+    bool fEvoIndexnodes;
 
 public:
-    CZnodeSyncInterface() : fEvoZnodes(false) {}
+    CZnodeSyncInterface() : fEvoIndexnodes(false) {}
 
     bool IsFailed() { return GetAssetID() == MASTERNODE_SYNC_FAILED; }
     bool IsBlockchainSynced();

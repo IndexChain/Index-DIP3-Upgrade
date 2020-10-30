@@ -43,25 +43,25 @@ ZnodeList::ZnodeList(const PlatformStyle *platformStyle, QWidget *parent) :
     int columnActiveWidth = 130;
     int columnLastSeenWidth = 130;
 
-    ui->tableWidgetMyZnodes->setColumnWidth(0, columnAliasWidth);
-    ui->tableWidgetMyZnodes->setColumnWidth(1, columnAddressWidth);
-    ui->tableWidgetMyZnodes->setColumnWidth(2, columnProtocolWidth);
-    ui->tableWidgetMyZnodes->setColumnWidth(3, columnStatusWidth);
-    ui->tableWidgetMyZnodes->setColumnWidth(4, columnActiveWidth);
-    ui->tableWidgetMyZnodes->setColumnWidth(5, columnLastSeenWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(0, columnAliasWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(1, columnAddressWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(2, columnProtocolWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(3, columnStatusWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(4, columnActiveWidth);
+    ui->tableWidgetMyIndexnodes->setColumnWidth(5, columnLastSeenWidth);
 
-    ui->tableWidgetZnodes->setColumnWidth(0, columnAddressWidth);
-    ui->tableWidgetZnodes->setColumnWidth(1, columnProtocolWidth);
-    ui->tableWidgetZnodes->setColumnWidth(2, columnStatusWidth);
-    ui->tableWidgetZnodes->setColumnWidth(3, columnActiveWidth);
-    ui->tableWidgetZnodes->setColumnWidth(4, columnLastSeenWidth);
+    ui->tableWidgetIndexnodes->setColumnWidth(0, columnAddressWidth);
+    ui->tableWidgetIndexnodes->setColumnWidth(1, columnProtocolWidth);
+    ui->tableWidgetIndexnodes->setColumnWidth(2, columnStatusWidth);
+    ui->tableWidgetIndexnodes->setColumnWidth(3, columnActiveWidth);
+    ui->tableWidgetIndexnodes->setColumnWidth(4, columnLastSeenWidth);
 
-    ui->tableWidgetMyZnodes->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->tableWidgetMyIndexnodes->setContextMenuPolicy(Qt::CustomContextMenu);
 
     QAction *startAliasAction = new QAction(tr("Start alias"), this);
     contextMenu = new QMenu();
     contextMenu->addAction(startAliasAction);
-    connect(ui->tableWidgetMyZnodes, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
+    connect(ui->tableWidgetMyIndexnodes, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(showContextMenu(const QPoint&)));
     connect(startAliasAction, SIGNAL(triggered()), this, SLOT(on_startButton_clicked()));
 
     timer = new QTimer(this);
@@ -91,7 +91,7 @@ void ZnodeList::setWalletModel(WalletModel *model)
 
 void ZnodeList::showContextMenu(const QPoint &point)
 {
-    QTableWidgetItem *item = ui->tableWidgetMyZnodes->itemAt(point);
+    QTableWidgetItem *item = ui->tableWidgetMyIndexnodes->itemAt(point);
     if(item) contextMenu->exec(QCursor::pos());
 }
 
@@ -178,8 +178,8 @@ void ZnodeList::updateMyZnodeInfo(QString strAlias, QString strAddr, const COutP
     bool fOldRowFound = false;
     int nNewRow = 0;
 
-    for(int i = 0; i < ui->tableWidgetMyZnodes->rowCount(); i++) {
-        if(ui->tableWidgetMyZnodes->item(i, 0)->text() == strAlias) {
+    for(int i = 0; i < ui->tableWidgetMyIndexnodes->rowCount(); i++) {
+        if(ui->tableWidgetMyIndexnodes->item(i, 0)->text() == strAlias) {
             fOldRowFound = true;
             nNewRow = i;
             break;
@@ -187,8 +187,8 @@ void ZnodeList::updateMyZnodeInfo(QString strAlias, QString strAddr, const COutP
     }
 
     if(nNewRow == 0 && !fOldRowFound) {
-        nNewRow = ui->tableWidgetMyZnodes->rowCount();
-        ui->tableWidgetMyZnodes->insertRow(nNewRow);
+        nNewRow = ui->tableWidgetMyIndexnodes->rowCount();
+        ui->tableWidgetMyIndexnodes->insertRow(nNewRow);
     }
 
     indexnode_info_t infoMn = mnodeman.GetZnodeInfo(CTxIn(outpoint));
@@ -203,13 +203,13 @@ void ZnodeList::updateMyZnodeInfo(QString strAlias, QString strAddr, const COutP
                                                                                                    fFound ? infoMn.nTimeLastPing + GetOffsetFromUtc() : 0)));
     QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(fFound ? CBitcoinAddress(infoMn.pubKeyCollateralAddress.GetID()).ToString() : ""));
 
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 0, aliasItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 1, addrItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 2, protocolItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 3, statusItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 4, activeSecondsItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 5, lastSeenItem);
-    ui->tableWidgetMyZnodes->setItem(nNewRow, 6, pubkeyItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 0, aliasItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 1, addrItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 2, protocolItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 3, statusItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 4, activeSecondsItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 5, lastSeenItem);
+    ui->tableWidgetMyIndexnodes->setItem(nNewRow, 6, pubkeyItem);
 }
 
 void ZnodeList::updateMyNodeList(bool fForce)
@@ -228,7 +228,7 @@ void ZnodeList::updateMyNodeList(bool fForce)
     if(nSecondsTillUpdate > 0 && !fForce) return;
     nTimeMyListUpdated = GetTime();
 
-    ui->tableWidgetZnodes->setSortingEnabled(false);
+    ui->tableWidgetIndexnodes->setSortingEnabled(false);
     BOOST_FOREACH(CZnodeConfig::CZnodeEntry mne, indexnodeConfig.getEntries()) {
         int32_t nOutputIndex = 0;
         if(!ParseInt32(mne.getOutputIndex(), &nOutputIndex)) {
@@ -237,7 +237,7 @@ void ZnodeList::updateMyNodeList(bool fForce)
 
         updateMyZnodeInfo(QString::fromStdString(mne.getAlias()), QString::fromStdString(mne.getIp()), COutPoint(uint256S(mne.getTxHash()), nOutputIndex));
     }
-    ui->tableWidgetZnodes->setSortingEnabled(true);
+    ui->tableWidgetIndexnodes->setSortingEnabled(true);
 
     // reset "timer"
     ui->secondsLabel->setText("0");
@@ -266,14 +266,14 @@ void ZnodeList::updateNodeList()
 
     QString strToFilter;
     ui->countLabel->setText("Updating...");
-    ui->tableWidgetZnodes->setSortingEnabled(false);
-    ui->tableWidgetZnodes->clearContents();
-    ui->tableWidgetZnodes->setRowCount(0);
-//    std::map<COutPoint, CZnode> mapZnodes = mnodeman.GetFullZnodeMap();
-    std::vector<CZnode> vZnodes = mnodeman.GetFullZnodeVector();
+    ui->tableWidgetIndexnodes->setSortingEnabled(false);
+    ui->tableWidgetIndexnodes->clearContents();
+    ui->tableWidgetIndexnodes->setRowCount(0);
+//    std::map<COutPoint, CZnode> mapIndexnodes = mnodeman.GetFullZnodeMap();
+    std::vector<CZnode> vIndexnodes = mnodeman.GetFullZnodeVector();
     int offsetFromUtc = GetOffsetFromUtc();
 
-    BOOST_FOREACH(CZnode & mn, vZnodes)
+    BOOST_FOREACH(CZnode & mn, vIndexnodes)
     {
 //        CZnode mn = mnpair.second;
         // populate list
@@ -296,17 +296,17 @@ void ZnodeList::updateNodeList()
             if (!strToFilter.contains(strCurrentFilter)) continue;
         }
 
-        ui->tableWidgetZnodes->insertRow(0);
-        ui->tableWidgetZnodes->setItem(0, 0, addressItem);
-        ui->tableWidgetZnodes->setItem(0, 1, protocolItem);
-        ui->tableWidgetZnodes->setItem(0, 2, statusItem);
-        ui->tableWidgetZnodes->setItem(0, 3, activeSecondsItem);
-        ui->tableWidgetZnodes->setItem(0, 4, lastSeenItem);
-        ui->tableWidgetZnodes->setItem(0, 5, pubkeyItem);
+        ui->tableWidgetIndexnodes->insertRow(0);
+        ui->tableWidgetIndexnodes->setItem(0, 0, addressItem);
+        ui->tableWidgetIndexnodes->setItem(0, 1, protocolItem);
+        ui->tableWidgetIndexnodes->setItem(0, 2, statusItem);
+        ui->tableWidgetIndexnodes->setItem(0, 3, activeSecondsItem);
+        ui->tableWidgetIndexnodes->setItem(0, 4, lastSeenItem);
+        ui->tableWidgetIndexnodes->setItem(0, 5, pubkeyItem);
     }
 
-    ui->countLabel->setText(QString::number(ui->tableWidgetZnodes->rowCount()));
-    ui->tableWidgetZnodes->setSortingEnabled(true);
+    ui->countLabel->setText(QString::number(ui->tableWidgetIndexnodes->rowCount()));
+    ui->tableWidgetIndexnodes->setSortingEnabled(true);
 }
 
 void ZnodeList::on_filterLineEdit_textChanged(const QString &strFilterIn)
@@ -323,14 +323,14 @@ void ZnodeList::on_startButton_clicked()
     {
         LOCK(cs_mymnlist);
         // Find selected node alias
-        QItemSelectionModel* selectionModel = ui->tableWidgetMyZnodes->selectionModel();
+        QItemSelectionModel* selectionModel = ui->tableWidgetMyIndexnodes->selectionModel();
         QModelIndexList selected = selectionModel->selectedRows();
 
         if(selected.count() == 0) return;
 
         QModelIndex index = selected.at(0);
         int nSelectedRow = index.row();
-        strAlias = ui->tableWidgetMyZnodes->item(nSelectedRow, 0)->text().toStdString();
+        strAlias = ui->tableWidgetMyIndexnodes->item(nSelectedRow, 0)->text().toStdString();
     }
 
     // Display message box
@@ -411,9 +411,9 @@ void ZnodeList::on_startMissingButton_clicked()
     StartAll("start-missing");
 }
 
-void ZnodeList::on_tableWidgetMyZnodes_itemSelectionChanged()
+void ZnodeList::on_tableWidgetMyIndexnodes_itemSelectionChanged()
 {
-    if(ui->tableWidgetMyZnodes->selectedItems().count() > 0) {
+    if(ui->tableWidgetMyIndexnodes->selectedItems().count() > 0) {
         ui->startButton->setEnabled(true);
     }
 }
