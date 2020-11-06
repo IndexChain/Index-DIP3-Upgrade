@@ -446,7 +446,7 @@ bool CHDMintWallet::SetMintSeedSeen(CWalletDB& walletdb, std::pair<uint256,MintP
 /**
  * Convert a 512-bit mint seed into a mint.
  *
- * See https://github.com/indexofficial/index/pull/392 for specification on mint generation.
+ * See https://github.com/IndexChain/Index/pull/392 for specification on mint generation.
  *
  * @param mintSeed uint512 object of seed for mint
  * @param commit reference to public coin. Is set in this function
@@ -485,7 +485,7 @@ bool CHDMintWallet::SeedToMint(const uint512& mintSeed, GroupElement& commit, si
 /**
  * Get seed ID for the key used in mint generation.
  *
- * See https://github.com/indexofficial/index/pull/392 for specification on mint generation.
+ * See https://github.com/IndexChain/Index/pull/392 for specification on mint generation.
  * Looks to the mintpool first - if mint doesn't exist, generates new mints in the mintpool.
  *
  * @param nCount count in the HD Chain of the mint to use.
@@ -511,7 +511,7 @@ CKeyID CHDMintWallet::GetMintSeedID(CWalletDB& walletdb, int32_t nCount){
 /**
  * Create the mint seed for the count passed.
  *
- * See https://github.com/indexofficial/index/pull/392 for specification on mint generation.
+ * See https://github.com/IndexChain/Index/pull/392 for specification on mint generation.
  * We check if the key for the count passed exists. if so retrieve it's seed ID. if not, generate a new key.
  * If seedId is passed, use that seedId and ignore key generation section.
  * Following that, get the key, and use it to generate the mint seed according to the specification.

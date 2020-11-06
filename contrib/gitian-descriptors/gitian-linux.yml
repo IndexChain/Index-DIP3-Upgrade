@@ -33,7 +33,7 @@ packages:
 - "python"
 - "cmake"
 remotes:
-- "url": "https://github.com/indexofficial/index"
+- "url": "https://github.com/IndexChain/Index"
   "dir": "index"
 files: []
 script: |
