@@ -18,7 +18,6 @@ enum DeploymentPos
     DEPLOYMENT_CSV, // Deployment of BIP68, BIP112, and BIP113.
     DEPLOYMENT_SEGWIT, // Deployment of BIP141, BIP143, and BIP147.
 
-    DEPLOYMENT_MTP, // Deployment of MTP
 
     // NOTE: Also add new deployments to VersionBitsDeploymentInfo in versionbits.cpp
     MAX_VERSION_BITS_DEPLOYMENTS
@@ -138,11 +137,8 @@ struct Params {
     std::string stage2DevelopmentFundAddress;
     /** percentage of block subsidy going to developer fund */
     int stage2DevelopmentFundShare;
-    /** percentage of block subsidy going to znode */
+    /** percentage of block subsidy going to indexnode */
     int stage2ZnodeShare;
-
-    int nStartDuplicationCheck;
-    int nStartBlacklist;
 
     /** Used to check majorities for block version upgrade */
     int nMajorityEnforceBlockUpgrade;
@@ -169,6 +165,7 @@ struct Params {
     bool fPowNoRetargeting;
     int64_t nPowTargetSpacing;
     int64_t nPowTargetTimespan;
+    int nDgwPastBlocks;
     int64_t nChainStartTime;
     unsigned char nMinNFactor;
     unsigned char nMaxNFactor;
@@ -210,7 +207,7 @@ struct Params {
 
     // Maximum number of outbound peers designated as Dandelion destinations.
     uint32_t nDandelionMaxDestinations;
-    
+
     // Expected time between Dandelion routing shuffles (in seconds).
     uint32_t nDandelionShuffleInterval;
 
@@ -226,13 +223,10 @@ struct Params {
 
     int nDisableUnpaddedSigmaBlock;
 
-    int nStartSigmaBlacklist;
-    int nRestartSigmaWithBlacklistCheck;
-
     // The block number after which old sigma clients are banned.
     int nOldSigmaBanBlock;
 
-    // The block number when Bip39 was implemented in Zcoin
+    // The block number when Bip39 was implemented in Index
     int nMnemonicBlock;
 
     // Number of blocks after nSigmaMintStartBlock during which we still accept zerocoin V2 mints into mempool.
@@ -286,10 +280,10 @@ struct Params {
     /** block number to disable zerocoin on consensus level */
     int nDisableZerocoinStartBlock;
 
-    /** block to start accepting pro reg txs for evo znodes */
+    /** block to start accepting pro reg txs for evo indexnodes */
     int DIP0003Height;
 
-    /** block to switch to evo znode payments */
+    /** block to switch to evo indexnode payments */
     int DIP0003EnforcementHeight;
 
     /** block to start using chainlocks */
@@ -303,11 +297,13 @@ struct Params {
 
     /** Time between blocks for LLMQ random time purposes. Can be less than actual average distance between blocks */
     int nLLMQPowTargetSpacing;
-	
-    int64_t DifficultyAdjustmentInterval(bool fMTP = false) const { return nPowTargetTimespan / (fMTP ? nPowTargetSpacingMTP : nPowTargetSpacing); }
+
+    int64_t DifficultyAdjustmentInterval() const { return nPowTargetTimespan / nPowTargetSpacing ; }
     uint256 nMinimumChainWork;
     uint256 defaultAssumeValid;
-
+    // proof-of-stake
+    int nFirstPOSBlock;
+    int nStakeTimestampMask;
     bool IsMain() const { return chainType == chainMain; }
     bool IsTestnet() const { return chainType == chainTestnet; }
     bool IsRegtest() const { return chainType == chainRegtest; }

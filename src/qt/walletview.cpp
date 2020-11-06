@@ -19,6 +19,8 @@
 #include "sendcoinsdialog.h"
 #include "metadexcanceldialog.h"
 #include "metadexdialog.h"
+#include <qt/stakepage.h>
+
 #include "signverifymessagedialog.h"
 #include "tradehistorydialog.h"
 #include "transactiontablemodel.h"
@@ -63,7 +65,7 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
     sigmaView(0),
     blankSigmaView(0),
     zc2SigmaPage(0),
-    zcoinTransactionsView(0),
+    indexTransactionsView(0),
     platformStyle(_platformStyle)
 {
     overviewPage = new OverviewPage(platformStyle);
@@ -81,8 +83,9 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #ifdef ENABLE_ELYSIUM
     toolboxPage = new QWidget(this);
 #endif
-    znodeListPage = new ZnodeList(platformStyle);
+    indexnodeListPage = new ZnodeList(platformStyle);
     masternodeListPage = new MasternodeList(platformStyle);
+    stakePage = new StakePage(platformStyle);
 
     setupTransactionPage();
     setupSendCoinPage();
@@ -104,8 +107,9 @@ WalletView::WalletView(const PlatformStyle *_platformStyle, QWidget *parent):
 #ifdef ENABLE_ELYSIUM
     addWidget(toolboxPage);
 #endif
-    addWidget(znodeListPage);
+    addWidget(indexnodeListPage);
     addWidget(masternodeListPage);
+    addWidget(stakePage);
 
     // Clicking on a transaction on the overview pre-selects the transaction on the transaction history page
     connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), this, SLOT(focusBitcoinHistoryTab(QModelIndex)));
@@ -120,13 +124,13 @@ WalletView::~WalletView()
 
 void WalletView::setupTransactionPage()
 {
-    // Create Zcoin transactions list
-    zcoinTransactionList = new TransactionView(platformStyle);
+    // Create Index transactions list
+    indexTransactionList = new TransactionView(platformStyle);
 
-    connect(zcoinTransactionList, SIGNAL(doubleClicked(QModelIndex)), zcoinTransactionList, SLOT(showDetails()));
-    connect(zcoinTransactionList, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    connect(indexTransactionList, SIGNAL(doubleClicked(QModelIndex)), indexTransactionList, SLOT(showDetails()));
+    connect(indexTransactionList, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
-    // Create export panel for Zcoin transactions
+    // Create export panel for Index transactions
     auto exportButton = new QPushButton(tr("&Export"));
 
     exportButton->setToolTip(tr("Export the data in the current tab to a file"));
@@ -135,22 +139,22 @@ void WalletView::setupTransactionPage()
         exportButton->setIcon(platformStyle->SingleColorIcon(":/icons/export"));
     }
 
-    connect(exportButton, SIGNAL(clicked()), zcoinTransactionList, SLOT(exportClicked()));
+    connect(exportButton, SIGNAL(clicked()), indexTransactionList, SLOT(exportClicked()));
 
     auto exportLayout = new QHBoxLayout();
     exportLayout->addStretch();
     exportLayout->addWidget(exportButton);
 
     // Compose transaction list and export panel together
-    auto zcoinLayout = new QVBoxLayout();
-    zcoinLayout->addWidget(zcoinTransactionList);
-    zcoinLayout->addLayout(exportLayout);
+    auto indexLayout = new QVBoxLayout();
+    indexLayout->addWidget(indexTransactionList);
+    indexLayout->addLayout(exportLayout);
     // TODO: fix this
     //connect(overviewPage, SIGNAL(transactionClicked(QModelIndex)), transactionView, SLOT(focusTransaction(QModelIndex)));
     connect(overviewPage, SIGNAL(outOfSyncWarningClicked()), this, SLOT(requestedSyncWarningInfo()));
 
-    zcoinTransactionsView = new QWidget();
-    zcoinTransactionsView->setLayout(zcoinLayout);
+    indexTransactionsView = new QWidget();
+    indexTransactionsView->setLayout(indexLayout);
 
 #ifdef ENABLE_ELYSIUM
     // Create tabs for transaction categories
@@ -158,7 +162,7 @@ void WalletView::setupTransactionPage()
         elysiumTransactionsView = new TXHistoryDialog();
 
         transactionTabs = new QTabWidget();
-        transactionTabs->addTab(zcoinTransactionsView, tr("Zcoin"));
+        transactionTabs->addTab(indexTransactionsView, tr("Index"));
         transactionTabs->addTab(elysiumTransactionsView, tr("Elysium"));
     }
 #endif
@@ -171,16 +175,16 @@ void WalletView::setupTransactionPage()
         pageLayout->addWidget(transactionTabs);
     } else
 #endif
-        pageLayout->addWidget(zcoinTransactionsView);
+        pageLayout->addWidget(indexTransactionsView);
 
     transactionsPage->setLayout(pageLayout);
 }
 
 void WalletView::setupSendCoinPage()
 {
-    sendZcoinView = new SendCoinsDialog(platformStyle);
+    sendIndexView = new SendCoinsDialog(platformStyle);
 
-    connect(sendZcoinView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
+    connect(sendIndexView, SIGNAL(message(QString, QString, unsigned int)), this, SIGNAL(message(QString, QString, unsigned int)));
 
 #ifdef ENABLE_ELYSIUM
     // Create tab for coin type
@@ -188,7 +192,7 @@ void WalletView::setupSendCoinPage()
         sendElysiumView = new SendMPDialog(platformStyle);
 
         sendCoinsTabs = new QTabWidget();
-        sendCoinsTabs->addTab(sendZcoinView, tr("Zcoin"));
+        sendCoinsTabs->addTab(sendIndexView, tr("Index"));
         sendCoinsTabs->addTab(sendElysiumView, tr("Elysium"));
     }
 #endif
@@ -201,7 +205,7 @@ void WalletView::setupSendCoinPage()
         pageLayout->addWidget(sendCoinsTabs);
     } else
 #endif
-        pageLayout->addWidget(sendZcoinView);
+        pageLayout->addWidget(sendIndexView);
 
     sendCoinsPage->setLayout(pageLayout);
 }
@@ -260,6 +264,7 @@ void WalletView::setBitcoinGUI(BitcoinGUI *gui)
 
         // Pass through encryption status changed signals
         connect(this, SIGNAL(encryptionStatusChanged(int)), gui, SLOT(setEncryptionStatus(int)));
+        // connect(this, SIGNAL(encryptionStatusChanged(int)), stakePage, &StakePage::updateEncryptionStatus);
 
         // Pass through transaction notifications
         connect(this, SIGNAL(incomingTransaction(QString,int,CAmount,QString,QString,QString)), gui, SLOT(incomingTransaction(QString,int,CAmount,QString,QString,QString)));
@@ -274,9 +279,11 @@ void WalletView::setClientModel(ClientModel *_clientModel)
     this->clientModel = _clientModel;
 
     overviewPage->setClientModel(clientModel);
-    sendZcoinView->setClientModel(clientModel);
-    znodeListPage->setClientModel(clientModel);
+    sendIndexView->setClientModel(clientModel);
+    indexnodeListPage->setClientModel(clientModel);
     masternodeListPage->setClientModel(clientModel);
+    stakePage->setClientModel(_clientModel);
+
 #ifdef ENABLE_ELYSIUM
     elyAssetsPage->setClientModel(clientModel);
 #endif
@@ -301,7 +308,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     this->walletModel = _walletModel;
 
     // Put transaction list in tabs
-    zcoinTransactionList->setModel(_walletModel);
+    indexTransactionList->setModel(_walletModel);
     overviewPage->setWalletModel(_walletModel);
     receiveCoinsPage->setModel(_walletModel);
     // TODO: fix this
@@ -313,9 +320,10 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
     zc2SigmaPage->createModel();
     usedReceivingAddressesPage->setModel(_walletModel->getAddressTableModel());
     usedSendingAddressesPage->setModel(_walletModel->getAddressTableModel());
-    znodeListPage->setWalletModel(_walletModel);
+    indexnodeListPage->setWalletModel(_walletModel);
     masternodeListPage->setWalletModel(_walletModel);
-    sendZcoinView->setModel(_walletModel);
+    stakePage->setWalletModel(_walletModel);
+    sendIndexView->setModel(_walletModel);
     zc2SigmaPage->setWalletModel(_walletModel);
 #ifdef ENABLE_ELYSIUM
     elyAssetsPage->setWalletModel(walletModel);
@@ -347,6 +355,7 @@ void WalletView::setWalletModel(WalletModel *_walletModel)
 
         // Ask for passphrase if needed
         connect(_walletModel, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
+        connect(stakePage, SIGNAL(requireUnlock()), this, SLOT(unlockWallet()));
 
         // Show progress dialog
         connect(_walletModel, SIGNAL(showProgress(QString,int)), this, SLOT(showProgress(QString,int)));
@@ -428,17 +437,22 @@ void WalletView::focusElysiumTransaction(const uint256& txid)
 void WalletView::focusBitcoinHistoryTab(const QModelIndex &idx)
 {
     gotoBitcoinHistoryTab();
-    zcoinTransactionList->focusTransaction(idx);
+    indexTransactionList->focusTransaction(idx);
 }
 
 void WalletView::gotoZnodePage()
 {
-    setCurrentWidget(znodeListPage);
+    setCurrentWidget(indexnodeListPage);
 }
 
 void WalletView::gotoMasternodePage()
 {
     setCurrentWidget(masternodeListPage);
+}
+
+void WalletView::gotoStakePage()
+{
+    setCurrentWidget(stakePage);
 }
 
 void WalletView::gotoReceiveCoinsPage()
@@ -477,7 +491,7 @@ void WalletView::gotoSendCoinsPage(QString addr)
     setCurrentWidget(sendCoinsPage);
 
     if (!addr.isEmpty()){
-        sendZcoinView->setAddress(addr);
+        sendIndexView->setAddress(addr);
     }
 }
 
@@ -513,7 +527,7 @@ bool WalletView::handlePaymentRequest(const SendCoinsRecipient& recipient)
     }
 #endif
 
-    return sendZcoinView->handlePaymentRequest(recipient);
+    return sendIndexView->handlePaymentRequest(recipient);
 }
 
 void WalletView::showOutOfSyncWarning(bool fShow)
@@ -563,17 +577,29 @@ void WalletView::changePassphrase()
     dlg.exec();
 }
 
-void WalletView::unlockWallet()
+void WalletView::unlockWallet(bool fromMenu)
 {
     if(!walletModel)
         return;
     // Unlock wallet when requested by wallet model
     if (walletModel->getEncryptionStatus() == WalletModel::Locked)
     {
-        AskPassphraseDialog dlg(AskPassphraseDialog::Unlock, this);
+        AskPassphraseDialog::Mode mode = fromMenu ?
+            AskPassphraseDialog::UnlockStaking : AskPassphraseDialog::Unlock;
+        AskPassphraseDialog dlg(mode, this);
         dlg.setModel(walletModel);
         dlg.exec();
+        if(sender() == stakePage)
+            stakePage->updateEncryptionStatus();
     }
+}
+
+void WalletView::lockWallet()
+{
+    if(!walletModel)
+        return;
+
+    walletModel->setWalletLocked(true);
 }
 
 void WalletView::usedSendingAddresses()

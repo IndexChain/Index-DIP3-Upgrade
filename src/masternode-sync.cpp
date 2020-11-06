@@ -400,7 +400,7 @@ void CMasternodeSync::UpdatedBlockTip(const CBlockIndex *pindexNew, bool fInitia
             }
 
             if (verifiedProRegTxHash.IsNull() && pendingMNVerification) {
-                LogPrint("mnsync", "CMasternodeSync::UpdatedBlockTip -- reverifying znode connection to node id=%d\n", pnode->id);
+                LogPrint("mnsync", "CMasternodeSync::UpdatedBlockTip -- reverifying indexnode connection to node id=%d\n", pnode->id);
                 CMNAuth::ProcessMNAUTH(pnode, *pendingMNVerification, *g_connman);
             }
 

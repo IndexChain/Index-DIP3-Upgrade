@@ -13,7 +13,6 @@
 #include "serialize.h"
 #include "uint256.h"
 #include "definition.h"
-#include "crypto/MerkleTreeProof/mtp.h"
 #include "zerocoin_params.h"
 
 // Can't include sigma.h
@@ -22,7 +21,6 @@ class CSigmaTxInfo;
 
 } // namespace sigma.
 
-unsigned char GetNfactor(int64_t nTimestamp);
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
  * and scan through nonce values to make the block's hash satisfy proof-of-work
@@ -37,57 +35,6 @@ inline int GetZerocoinChainID()
     return 0x0001; // We are the first :)
 }
 
-// Zcoin - MTP
-class CMTPHashData {
-public:
-    uint8_t hashRootMTP[16]; // 16 is 128 bit of blake2b
-    uint64_t nBlockMTP[mtp::MTP_L*2][128]; // 128 is ARGON2_QWORDS_IN_BLOCK
-    std::deque<std::vector<uint8_t>> nProofMTP[mtp::MTP_L*3];
-
-    CMTPHashData() {
-        memset(nBlockMTP, 0, sizeof(nBlockMTP));
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    /**
-     * Custom serialization scheme is in place because of speed reasons
-     */
-
-    // Function for write/getting size
-    template <typename Stream, typename Operation, typename = typename std::enable_if<!std::is_base_of<CSerActionUnserialize, Operation>::value>::type>
-    inline void SerializationOp(Stream &s, Operation ser_action) {
-        READWRITE(hashRootMTP);
-        READWRITE(nBlockMTP);
-        for (int i = 0; i < mtp::MTP_L*3; i++) {
-            assert(nProofMTP[i].size() < 256);
-            uint8_t numberOfProofBlocks = (uint8_t)nProofMTP[i].size();
-            READWRITE(numberOfProofBlocks);
-            for (const std::vector<uint8_t> &mtpData: nProofMTP[i]) {
-                // data size should be 16 for each block
-                assert(mtpData.size() == 16);
-                s.write((const char *)mtpData.data(), 16);
-            }
-        }
-    }
-
-    // Function for reading
-    template <typename Stream>
-    inline void SerializationOp(Stream &s, CSerActionUnserialize ser_action) {
-        READWRITE(hashRootMTP);
-        READWRITE(nBlockMTP);
-        for (int i = 0; i < mtp::MTP_L*3; i++) {
-            uint8_t numberOfProofBlocks;
-            READWRITE(numberOfProofBlocks);
-            for (uint8_t j=0; j<numberOfProofBlocks; j++) {
-                vector<uint8_t> mtpData(16, 0);
-                s.read((char *)mtpData.data(), 16);
-                nProofMTP[i].emplace_back(std::move(mtpData));
-            }
-        }
-    }
-};
-
 class CBlockHeader
 {
 public:
@@ -98,16 +45,8 @@ public:
     uint32_t nTime;
     uint32_t nBits;
     uint32_t nNonce;
+    std::vector<unsigned char> vchBlockSig;//Proof Of Stake Block signature
 
-    // Zcoin - MTP
-    int32_t nVersionMTP = 0x1000;
-    uint256 mtpHashValue;
-
-    // Reserved fields
-    uint256 reserved[2];
-
-    // Store this only when absolutely needed for verification
-    std::shared_ptr<CMTPHashData> mtpHashData;
 
     static const int CURRENT_VERSION = 2;
 
@@ -132,22 +71,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-        // Zcoin - MTP
-        // On read: allocate and read. On write: write only if already allocated
-        if (IsMTP()) {
-            READWRITE(nVersionMTP);
-            READWRITE(mtpHashValue);
-            READWRITE(reserved[0]);
-            READWRITE(reserved[1]);
-            if (ser_action.ForRead()) {
-                mtpHashData = make_shared<CMTPHashData>();
-                READWRITE(*mtpHashData);
-            }
-            else {
-                if (mtpHashData && !(s.GetType() & SER_GETHASH))
-                    READWRITE(*mtpHashData);
-            }
-        }
+        if(nNonce == 0)
+            READWRITE(vchBlockSig);
     }
 
     template <typename Stream>
@@ -158,12 +83,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-        if (IsMTP()) {
-            READWRITE(nVersionMTP);
-            READWRITE(mtpHashValue);
-            READWRITE(reserved[0]);
-            READWRITE(reserved[1]);
-        }
+        if(nNonce == 0)
+            READWRITE(vchBlockSig);
     }
 
     void SetNull()
@@ -175,12 +96,6 @@ public:
         nBits = 0;
         nNonce = 0;
         cachedPoWHash.SetNull();
-
-        // Zcoin - MTP
-        mtpHashData.reset();
-        mtpHashValue.SetNull();
-        reserved[0].SetNull();
-        reserved[1].SetNull();
     }
 
     int GetChainID() const
@@ -193,7 +108,7 @@ public:
         return (nBits == 0);
     }
 
-    uint256 GetPoWHash(int nHeight) const;
+    uint256 GetPoWHash() const;
 
     uint256 GetHash() const;
 
@@ -202,8 +117,7 @@ public:
         return (int64_t)nTime;
     }
     void InvalidateCachedPoWHash(int nHeight) const;
-
-    bool IsMTP() const;
+    bool IsProofOfStake() const {return (nNonce == 0);}
 };
 
 class CZerocoinTxInfo;
@@ -215,7 +129,7 @@ public:
     std::vector<CTransactionRef> vtx;
 
     // memory only
-    mutable CTxOut txoutZnode; // znode payment
+    mutable CTxOut txoutZnode; // indexnode payment
     mutable std::vector<CTxOut> voutSuperblock; // superblock payment
     mutable bool fChecked;
 
@@ -274,13 +188,20 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-        if (block.IsMTP()) {
-            block.nVersionMTP = nVersionMTP;
-            block.mtpHashData = mtpHashData;
-            block.reserved[0] = reserved[0];
-            block.reserved[1] = reserved[1];
-        }
+        if(nNonce == 0)
+            block.vchBlockSig    = vchBlockSig;
         return block;
+    }
+
+	// two types of block: proof-of-work or proof-of-stake
+    bool IsProofOfStake() const
+    {
+        return (vtx.size() > 1 && vtx[1]->IsCoinStake());
+    }
+
+    bool IsProofOfWork() const
+    {
+        return !IsProofOfStake();
     }
 
     std::string ToString() const;

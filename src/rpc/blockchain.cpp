@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "amount.h"
+#include <blockinfo/blockinfo.h>
 #include "chain.h"
 #include "chainparams.h"
 #include "checkpoints.h"
@@ -20,7 +21,7 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "hash.h"
-
+#include "base58.h"
 #include "evo/specialtx.h"
 #include "evo/providertx.h"
 #include "evo/deterministicmns.h"
@@ -49,35 +50,79 @@ static CUpdatedBlock latestblock;
 extern void TxToJSON(const CTransaction& tx, const uint256 hashBlock, UniValue& entry);
 void ScriptPubKeyToJSON(const CScript& scriptPubKey, UniValue& out, bool fIncludeHex);
 
-double GetDifficulty(const CBlockIndex* blockindex)
+double GetDifficulty(const CChain& chain, const CBlockIndex* blockindex)
 {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (blockindex == NULL)
+    if (blockindex == nullptr)
     {
-        if (chainActive.Tip() == NULL)
+        if (chain.Tip() == nullptr)
             return 1.0;
         else
-            blockindex = chainActive.Tip();
+            blockindex = GetLastBlockIndex(chain.Tip(), false);
     }
 
-    int nShift = (blockindex->nBits >> 24) & 0xff;
+    return blockindex->GetBlockDifficulty();
+}
 
-    double dDiff =
-        (double)0x0000ffff / (double)(blockindex->nBits & 0x00ffffff);
+double GetDifficulty(const CBlockIndex* blockindex)
+{
+    return GetDifficulty(chainActive, blockindex);
+}
 
-    while (nShift < 29)
+double GetPoSKernelPS()
+{
+    int nPoSInterval = 100;
+    double dStakeKernelsTriedAvg = 0;
+    int nStakesHandled = 0, nStakesTime = 0;
+
+    CBlockIndex* pindex = chainActive.Tip();;
+    CBlockIndex* pindexPrevStake = NULL;
+
+    while (pindex && nStakesHandled < nPoSInterval)
     {
-        dDiff *= 256.0;
-        nShift++;
-    }
-    while (nShift > 29)
-    {
-        dDiff /= 256.0;
-        nShift--;
+        if (pindex->IsProofOfStake())
+        {
+            if (pindexPrevStake)
+            {
+                dStakeKernelsTriedAvg += GetDifficulty(pindexPrevStake) * 4294967296.0;
+                nStakesTime += pindexPrevStake->nTime - pindex->nTime;
+                nStakesHandled++;
+            }
+            pindexPrevStake = pindex;
+        }
+
+        pindex = pindex->pprev;
     }
 
-    return dDiff;
+    double result = 0;
+
+    if (nStakesTime)
+        result = dStakeKernelsTriedAvg / nStakesTime;
+
+    result *= 16;
+
+    return result;
+}
+
+double GetEstimatedAnnualROI()
+{
+    double result = 0;
+    double networkWeight = GetPoSKernelPS();
+    CBlockIndex* pindex = pindexBestHeader == 0 ? chainActive.Tip() : pindexBestHeader;
+    int nHeight = pindex ? pindex->nHeight : 0;
+    const Consensus::Params& consensusParams = Params().GetConsensus();
+    double subsidy = GetBlockSubsidy(nHeight, consensusParams) - GetZnodePayment(consensusParams,nHeight);
+    int blocksInDay = 525600 / consensusParams.nPowTargetSpacing / 2;
+    if(networkWeight > 0)
+    {
+        // Formula: 100 * 675 blocks/day * 365 days * subsidy) / Network Weight
+        int roiform = 100 * blocksInDay * 365;
+        result = roiform * subsidy / networkWeight;
+    }
+    //Handle ultra high roi on regtest
+    if(result > 100000000)
+        result = 100;
+
+    return result;
 }
 
 UniValue blockheaderToJSON(const CBlockIndex* blockindex)
@@ -106,6 +151,22 @@ UniValue blockheaderToJSON(const CBlockIndex* blockindex)
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
+}
+
+UniValue getextrablockdata(const CBlock& block,const CBlockIndex* blockindex){
+    UniValue blockdata(UniValue::VOBJ);
+    float blockInput = 0.0;
+    blockdata.push_back(Pair("type",block.IsProofOfStake() ? "PoS":"PoW"));
+    if (block.IsProofOfStake()){
+        blockInput = GetBlockInput(block);
+        blockdata.push_back(Pair("modifier", blockindex->nStakeModifier.GetHex()));
+        blockdata.push_back(Pair("signature", HexStr(blockindex->vchBlockSig.begin(), blockindex->vchBlockSig.end())));
+    }
+    if(blockInput > 0)
+        blockdata.push_back(Pair("inputamount",blockInput));
+    blockdata.push_back(Pair("rewardadress",GetBlockRewardWinner(block)));
+    blockdata.push_back(Pair("blockreward",ValueFromAmount(GetCoinbaseReward(block))));
+    return blockdata;
 }
 
 UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool txDetails = false)
@@ -140,6 +201,8 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if (!block.vtx[0]->vExtraPayload.empty()) {
         CbtxToJson(*block.vtx[0], result);
     }
+    //Add extra blockdata
+    result.push_back(Pair("blockinfo",getextrablockdata(block,blockindex)));
     result.push_back(Pair("time", block.GetBlockTime()));
     result.push_back(Pair("mediantime", (int64_t)blockindex->GetMedianTimePast()));
     result.push_back(Pair("nonce", (uint64_t)block.nNonce));
@@ -153,6 +216,12 @@ UniValue blockToJSON(const CBlock& block, const CBlockIndex* blockindex, bool tx
     if (pnext)
         result.push_back(Pair("nextblockhash", pnext->GetBlockHash().GetHex()));
     return result;
+}
+
+static UniValue getestimatedannualroi(const JSONRPCRequest& request)
+{
+    LOCK(cs_main);
+    return GetEstimatedAnnualROI();
 }
 
 UniValue getblockcount(const JSONRPCRequest& request)
@@ -335,7 +404,10 @@ UniValue getdifficulty(const JSONRPCRequest& request)
         );
 
     LOCK(cs_main);
-    return GetDifficulty();
+    UniValue obj(UniValue::VOBJ);
+    obj.push_back(Pair("proof-of-work",  GetDifficulty()));
+    obj.push_back(Pair("proof-of-stake", GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    return obj;
 }
 
 std::string EntryDescriptionString()
@@ -788,7 +860,7 @@ UniValue getblock(const JSONRPCRequest& request)
             "  \"cbTx\" : {             (json object) The coinbase special transaction \n"
             "     \"version\"           (numeric) The coinbase special transaction version\n"
             "     \"height\"            (numeric) The block height\n"
-            "     \"merkleRootMNList\" : \"xxxx\", (string) The merkle root of the znode list\n"
+            "     \"merkleRootMNList\" : \"xxxx\", (string) The merkle root of the indexnode list\n"
             "  },\n"
             "  \"time\" : ttt,          (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"mediantime\" : ttt,    (numeric) The median block time in seconds since epoch (Jan 1 1970 GMT)\n"
@@ -1019,8 +1091,8 @@ UniValue gettxout(const JSONRPCRequest& request)
             "     \"hex\" : \"hex\",        (string) \n"
             "     \"reqSigs\" : n,          (numeric) Number of required signatures\n"
             "     \"type\" : \"pubkeyhash\", (string) The type, eg pubkeyhash\n"
-            "     \"addresses\" : [          (array of string) array of Zcoin addresses\n"
-            "        \"zcoinaddress\"     (string) Zcoin address\n"
+            "     \"addresses\" : [          (array of string) array of Index addresses\n"
+            "        \"indexaddress\"     (string) Index address\n"
             "        ,...\n"
             "     ]\n"
             "  },\n"
@@ -1177,6 +1249,10 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
             "{\n"
             "  \"chain\": \"xxxx\",        (string) current network name as defined in BIP70 (main, test, regtest)\n"
             "  \"blocks\": xxxxxx,         (numeric) the current number of blocks processed in the server\n"
+            "  \"lastpowblock\": xxxxxx,   (numeric) The last PoW Block in Block index\n"
+            "  \"lastpowdiff\": xxxxxx,    (numeric) The last PoW Block difficulty in Block index\n"
+            "  \"lastposblock\": xxxxxx,   (numeric) The last PoS Block in Block index\n"
+            "  \"lastposdiff\": xxxxxx,    (numeric) The last PoS Block difficulty in Block index\n"
             "  \"headers\": xxxxxx,        (numeric) the current number of headers we have validated\n"
             "  \"bestblockhash\": \"...\", (string) the hash of the currently best block\n"
             "  \"difficulty\": xxxxxx,     (numeric) the current difficulty\n"
@@ -1214,6 +1290,10 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     UniValue obj(UniValue::VOBJ);
     obj.push_back(Pair("chain",                 Params().NetworkIDString()));
     obj.push_back(Pair("blocks",                (int)chainActive.Height()));
+    obj.push_back(Pair("lastpowblock",          GetLastBlockIndex(chainActive.Tip(), false)->nHeight));
+    obj.push_back(Pair("lastpowdiff",           GetDifficulty(GetLastBlockIndex(chainActive.Tip(), false))));
+    obj.push_back(Pair("lastposblock",          GetLastBlockIndex(chainActive.Tip(), true)->nHeight));
+    obj.push_back(Pair("lastposdiff",           GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
     obj.push_back(Pair("headers",               pindexBestHeader ? pindexBestHeader->nHeight : -1));
     obj.push_back(Pair("bestblockhash",         chainActive.Tip()->GetBlockHash().GetHex()));
     obj.push_back(Pair("difficulty",            (double)GetDifficulty()));
@@ -1643,6 +1723,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "verifychain",            &verifychain,            true,  {"checklevel","nblocks"} },
 
     { "blockchain",         "preciousblock",          &preciousblock,          true,  {"blockhash"} },
+    { "blockchain",         "getestimatedannualroi",  &getestimatedannualroi,  true,  {} },
 
     /* Not shown in help */
     { "hidden",             "invalidateblock",        &invalidateblock,        true,  {"blockhash"} },

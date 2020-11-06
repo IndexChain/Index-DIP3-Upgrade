@@ -19,7 +19,7 @@
 #include "rpc/server.h"
 #include "txmempool.h"
 #include "util.h"
-#include "znodesync-interface.h"
+#include "indexnodesync-interface.h"
 #include "utilstrencodings.h"
 #include "validationinterface.h"
 
@@ -42,41 +42,10 @@ extern CTxPoolAggregate txpools;
  * or from the last difficulty change if 'lookup' is nonpositive.
  * If 'height' is nonnegative, compute the estimate at the time when a given block was found.
  */
-UniValue GetNetworkHashPS(int lookup, int height) {
-    CBlockIndex *pb = chainActive.Tip();
-
-    if (height >= 0 && height < chainActive.Height())
-        pb = chainActive[height];
-
-    if (pb == NULL || !pb->nHeight)
-        return 0;
-
-    // If lookup is -1, then use blocks since last difficulty change.
-    if (lookup <= 0)
-        lookup = pb->nHeight % Params().GetConsensus().DifficultyAdjustmentInterval() + 1;
-
-    // If lookup is larger than chain, then set it to chain length.
-    if (lookup > pb->nHeight)
-        lookup = pb->nHeight;
-
-    CBlockIndex *pb0 = pb;
-    int64_t minTime = pb0->GetBlockTime();
-    int64_t maxTime = minTime;
-    for (int i = 0; i < lookup; i++) {
-        pb0 = pb0->pprev;
-        int64_t time = pb0->GetBlockTime();
-        minTime = std::min(time, minTime);
-        maxTime = std::max(time, maxTime);
-    }
-
-    // In case there's a situation where minTime == maxTime, we don't want a divide by zero exception.
-    if (minTime == maxTime)
-        return 0;
-
-    arith_uint256 workDiff = pb->nChainWork - pb0->nChainWork;
-    int64_t timeDiff = maxTime - minTime;
-
-    return workDiff.getdouble() / timeDiff;
+static UniValue GetNetworkHashPS(int lookup, int height) {
+    double currentDiffPoW  = GetDifficulty();
+    double netHashPS = currentDiffPoW * std::pow(2,32)  / Params().GetConsensus().nPowTargetSpacing;
+    return netHashPS;
 }
 
 UniValue getnetworkhashps(const JSONRPCRequest& request)
@@ -126,21 +95,10 @@ UniValue generateBlocks(boost::shared_ptr<CReserveScript> coinbaseScript, int nG
             LOCK(cs_main);
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
-        if (pblock->IsMTP()) {
-            while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount) {
-                pblock->mtpHashValue = mtp::hash(*pblock, Params().GetConsensus().powLimit);
-                if (CheckProofOfWork(pblock->mtpHashValue, pblock->nBits, Params().GetConsensus()))
-                    break;
-                ++pblock->nNonce;
-                --nMaxTries;
-            }
-        }
-        else {
-            while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetPoWHash(nHeight+1), pblock->nBits, Params().GetConsensus())) {
-                ++pblock->nNonce;
-                --nMaxTries;
-                pblock->cachedPoWHash.SetNull();
-            }
+        while (nMaxTries > 0 && pblock->nNonce < nInnerLoopCount && !CheckProofOfWork(pblock->GetPoWHash(), pblock->nBits, Params().GetConsensus())) {
+            ++pblock->nNonce;
+            --nMaxTries;
+            pblock->cachedPoWHash.SetNull();
         }
         if (nMaxTries == 0) {
             break;
@@ -446,15 +404,15 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
             "  \"curtime\" : ttt,                  (numeric) current timestamp in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"bits\" : \"xxxxxxxx\",              (string) compressed target of next block\n"
             "  \"height\" : n                      (numeric) The height of the next block\n"
-            "  \"znode\" : [                       (array) required znode payments that must be included in the next block\n"
+            "  \"indexnode\" : [                       (array) required indexnode payments that must be included in the next block\n"
             "      {\n"
             "         \"payee\" : \"xxxx\",          (string) payee address\n"
             "         \"script\" : \"xxxx\",         (string) payee scriptPubKey\n"
             "         \"amount\": n                (numeric) required amount to pay\n"
             "      }\n"
             "  },\n"
-            "  \"znode_payments_started\" :  true|false, (boolean) true, if znode payments started\n"
-            "  \"znode_payments_enforced\" : true|false, (boolean) true, if znode payments are enforced\n"
+            "  \"indexnode_payments_started\" :  true|false, (boolean) true, if indexnode payments started\n"
+            "  \"indexnode_payments_enforced\" : true|false, (boolean) true, if indexnode payments are enforced\n"
             "  \"coinbase_payload\" : \"xxxxxxxx\"    (string) coinbase transaction payload data encoded in hexadecimal\n"
             "}\n"
 
@@ -535,13 +493,13 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_CLIENT_P2P_DISABLED, "Error: Peer-to-peer functionality missing or disabled");
 
     if (g_connman->GetNodeCount(CConnman::CONNECTIONS_ALL) == 0)
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Zcoin is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Index is not connected!");
 
     if (IsInitialBlockDownload())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Zcoin is downloading blocks...");
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Index is downloading blocks...");
 
-    if (Params().GetConsensus().IsMain() && !znodeSyncInterface.IsSynced())
-        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Zcoin Core is syncing with network...");
+    if (Params().GetConsensus().IsMain() && !indexnodeSyncInterface.IsSynced())
+        throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Index Core is syncing with network...");
 
     static unsigned int nTransactionsUpdatedLast;
     if (!lpval.isNull())
@@ -693,9 +651,6 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
     UniValue aRules(UniValue::VARR);
     UniValue vbavailable(UniValue::VOBJ);
     for (int j = 0; j < (int)Consensus::MAX_VERSION_BITS_DEPLOYMENTS; ++j) {
-        // MTP deployment has different set of rules
-        if (j == Consensus::DEPLOYMENT_MTP)
-            continue;
 
         Consensus::DeploymentPos pos = Consensus::DeploymentPos(j);
         ThresholdState state = VersionBitsState(pindexPrev, consensusParams, pos, versionbitscache);
@@ -727,7 +682,7 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
                 aRules.push_back(gbt_vb_name(pos));
                 if (setClientRules.find(vbinfo.name) == setClientRules.end()) {
                     // Not supported by the client; make sure it's safe to proceed
-                    if (!vbinfo.gbt_force) {
+                    if (!vbinfo.gbt_force && j != Consensus::DEPLOYMENT_SEGWIT) {
                         // If we do anything other than throw an exception here, be sure version/force isn't sent to old clients
                         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Support for '%s' rule requires explicit client support", vbinfo.name));
                     }
@@ -793,22 +748,22 @@ UniValue getblocktemplate(const JSONRPCRequest& request)
             masternodeObj.push_back(obj);
         }
 
-        result.push_back(Pair("znode", masternodeObj));
-        result.push_back(Pair("znode_payments_started", true));
-        result.push_back(Pair("znode_payments_enforced", true));
+        result.push_back(Pair("indexnode", masternodeObj));
+        result.push_back(Pair("indexnode_payments_started", true));
+        result.push_back(Pair("indexnode_payments_enforced", true));
     }
     else {
-        UniValue znodeObj(UniValue::VOBJ);
+        UniValue indexnodeObj(UniValue::VOBJ);
         if(pblock->txoutZnode != CTxOut()) {
             CTxDestination address1;
             ExtractDestination(pblock->txoutZnode.scriptPubKey, address1);
             CBitcoinAddress address2(address1);
-            znodeObj.push_back(Pair("payee", address2.ToString().c_str()));
-            znodeObj.push_back(Pair("script", HexStr(pblock->txoutZnode.scriptPubKey.begin(), pblock->txoutZnode.scriptPubKey.end())));
-            znodeObj.push_back(Pair("amount", pblock->txoutZnode.nValue));
+            indexnodeObj.push_back(Pair("payee", address2.ToString().c_str()));
+            indexnodeObj.push_back(Pair("script", HexStr(pblock->txoutZnode.scriptPubKey.begin(), pblock->txoutZnode.scriptPubKey.end())));
+            indexnodeObj.push_back(Pair("amount", pblock->txoutZnode.nValue));
         }
-        result.push_back(Pair("znode", znodeObj));
-        result.push_back(Pair("znode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nZnodePaymentsStartBlock));
+        result.push_back(Pair("indexnode", indexnodeObj));
+        result.push_back(Pair("indexnode_payments_started", pindexPrev->nHeight + 1 > Params().GetConsensus().nZnodePaymentsStartBlock));
     }
 
     if (pindexPrev->nHeight+1 >= Params().GetConsensus().DIP0003Height) {
@@ -907,6 +862,42 @@ UniValue submitblock(const JSONRPCRequest& request)
     if (!sc.found)
         return "inconclusive";
     return BIP22ValidationResult(sc.state);
+}
+
+UniValue getstakinginfo(const JSONRPCRequest& request)
+{
+    if (request.fHelp || request.params.size() != 0)
+        throw runtime_error(
+            "getstakinginfo\n"
+            "Returns an object containing staking-related information.");
+
+    uint64_t nWeight = 0;
+    if (pwalletMain)
+        nWeight = pwalletMain->GetStakeWeight();
+
+    uint64_t nNetworkWeight = GetPoSKernelPS();
+    bool staking = nLastCoinStakeSearchInterval && nWeight;
+    uint64_t nExpectedTime = staking ? (Params().GetConsensus().nPowTargetSpacing * nNetworkWeight / nWeight) : 0;
+
+    UniValue obj(UniValue::VOBJ);
+
+    obj.push_back(Pair("enabled", GetBoolArg("-staking", true)));
+    obj.push_back(Pair("staking", staking));
+    obj.push_back(Pair("errors", GetWarnings("statusbar")));
+
+    obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
+    obj.push_back(Pair("currentblocktx", (uint64_t)nLastBlockTx));
+    obj.push_back(Pair("pooledtx", (uint64_t)mempool.size()));
+
+    obj.push_back(Pair("difficulty", GetDifficulty(GetLastBlockIndex(chainActive.Tip(), true))));
+    obj.push_back(Pair("search-interval", (int)nLastCoinStakeSearchInterval));
+
+    obj.push_back(Pair("weight", (uint64_t)nWeight));
+    obj.push_back(Pair("netstakeweight", (uint64_t)nNetworkWeight));
+
+    obj.push_back(Pair("expectedtime", nExpectedTime));
+
+    return obj;
 }
 
 UniValue estimatefee(const JSONRPCRequest& request)
@@ -1051,6 +1042,7 @@ static const CRPCCommand commands[] =
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  true,  {"txid","priority_delta","fee_delta"} },
     { "mining",             "getblocktemplate",       &getblocktemplate,       true,  {"template_request"} },
     { "mining",             "submitblock",            &submitblock,            true,  {"hexdata","parameters"} },
+    { "mining",             "getstakinginfo",         &getstakinginfo,         true,  {} },
 
     { "generating",         "setgenerate",            &setgenerate,            true  },
     { "generating",         "generate",               &generate,               true,  {"nblocks","maxtries"} },

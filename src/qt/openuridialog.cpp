@@ -4,6 +4,7 @@
 
 #include "openuridialog.h"
 #include "ui_openuridialog.h"
+#include "hybridui/styleSheet.h"
 
 #include "guiutil.h"
 #include "walletmodel.h"
@@ -15,8 +16,11 @@ OpenURIDialog::OpenURIDialog(QWidget *parent) :
     ui(new Ui::OpenURIDialog)
 {
     ui->setupUi(this);
+    SetObjectStyleSheet(ui->buttonBox->button(QDialogButtonBox::Cancel), StyleSheetNames::ButtonLight);
+    SetObjectStyleSheet(ui->buttonBox->button(QDialogButtonBox::Ok), StyleSheetNames::ButtonGray);
+
 #if QT_VERSION >= 0x040700
-    ui->uriEdit->setPlaceholderText("zcoin:");
+    ui->uriEdit->setPlaceholderText("index:");
 #endif
 }
 
@@ -48,5 +52,5 @@ void OpenURIDialog::on_selectFileButton_clicked()
     if(filename.isEmpty())
         return;
     QUrl fileUri = QUrl::fromLocalFile(filename);
-    ui->uriEdit->setText("zcoin:?r=" + QUrl::toPercentEncoding(fileUri.toString()));
+    ui->uriEdit->setText("index:?r=" + QUrl::toPercentEncoding(fileUri.toString()));
 }

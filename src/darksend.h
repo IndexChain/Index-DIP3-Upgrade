@@ -5,7 +5,7 @@
 #ifndef DARKSEND_H
 #define DARKSEND_H
 
-#include "znode.h"
+#include "indexnode.h"
 #include "wallet/wallet.h"
 
 class CDarksendPool;
@@ -38,7 +38,7 @@ static const int PRIVATESEND_KEYS_THRESHOLD_STOP    = 50;
 
 // The main object for accessing mixing
 extern CDarksendPool darkSendPool;
-// A helper object for signing messages from Znodes
+// A helper object for signing messages from Indexnodes
 extern CDarkSendSigner darkSendSigner;
 
 extern int nPrivateSendRounds;
@@ -186,7 +186,7 @@ public:
 
     std::string ToString()
     {
-        return strprintf("nDenom=%d, nTime=%lld, fReady=%s, fTried=%s, znode=%s",
+        return strprintf("nDenom=%d, nTime=%lld, fReady=%s, fTried=%s, indexnode=%s",
                         nDenom, nTime, fReady ? "true" : "false", fTried ? "true" : "false", vin.prevout.ToStringShort());
     }
 
@@ -239,7 +239,7 @@ public:
 class CDarkSendSigner
 {
 public:
-    /// Is the input associated with this public key? (and there is 1000 XZC - checking if valid znode)
+    /// Is the input associated with this public key? (and there is 1000 IDX - checking if valid indexnode)
     bool IsVinAssociatedWithPubkey(const CTxIn& vin, const CPubKey& pubkey);
     /// Set the private/public key values, returns true if successful
     bool GetKeysFromSecret(std::string strSecret, CKey& keyRet, CPubKey& pubkeyRet);
@@ -305,8 +305,8 @@ private:
 
     // The current mixing sessions in progress on the network
     std::vector<CDarksendQueue> vecDarksendQueue;
-    // Keep track of the used Znodes
-    std::vector<CTxIn> vecZnodesUsed;
+    // Keep track of the used Indexnodes
+    std::vector<CTxIn> vecIndexnodesUsed;
 
     std::vector<CAmount> vecDenominationsSkipped;
     std::vector<COutPoint> vecOutPointLocked;

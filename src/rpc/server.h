@@ -198,6 +198,8 @@ extern bool ParseBoolV(const UniValue& v, const std::string &strName);
 extern CAmount AmountFromValue(const UniValue& value);
 extern UniValue ValueFromAmount(const CAmount& amount);
 extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
+extern double GetPoSKernelPS();
+extern double GetEstimatedAnnualROI();
 extern std::string HelpExampleCli(const std::string& methodname, const std::string& args);
 extern std::string HelpExampleRpc(const std::string& methodname, const std::string& args);
 
@@ -214,9 +216,9 @@ extern UniValue getlatestcoinids(const JSONRPCRequest& params);
 
 extern UniValue getpoolinfo(const JSONRPCRequest &request);
 extern UniValue spork(const JSONRPCRequest &request);
-extern UniValue znode(const JSONRPCRequest &request);
-extern UniValue znodelist(const JSONRPCRequest &request);
-extern UniValue znodebroadcast(const JSONRPCRequest &request);
+extern UniValue indexnode(const JSONRPCRequest &request);
+extern UniValue indexnodelist(const JSONRPCRequest &request);
+extern UniValue indexnodebroadcast(const JSONRPCRequest &request);
 extern UniValue znsync(const JSONRPCRequest &request);
 
 bool StartRPC();

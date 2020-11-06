@@ -109,6 +109,12 @@ bool error(const char* fmt, const Args&... args)
     LogPrintStr("ERROR: " + tfm::format(fmt, args...) + "\n");
     return false;
 }
+template<typename... Args>
+bool success(const char* fmt, const Args&... args)
+{
+    LogPrintStr("SUCCESS: " + tfm::format(fmt, args...) + "\n");
+    return true;
+}
 
 void PrintExceptionContinue(const std::exception_ptr pex, const char* pszThread);
 void ParseParameters(int argc, const char*const argv[]);

@@ -3,6 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "activemasternode.h"
+#include "blockinfo/blockinfo.h"
 #include "consensus/validation.h"
 //#include "governance-classes.h"
 #include "base58.h"
@@ -82,8 +83,8 @@ bool IsOldBudgetBlockValueValid(const CBlock& block, int nBlockHeight, CAmount b
 
 bool IsBlockValueValid(const CBlock& block, int nBlockHeight, CAmount blockReward, std::string& strErrorRet)
 {
-    const Consensus::Params& consensusParams = Params().GetConsensus();
-    bool isBlockRewardValueMet = (block.vtx[0]->GetValueOut() <= blockReward);
+    CAmount nMint = GetCoinbaseReward(block);
+    bool isBlockRewardValueMet = (nMint <= blockReward);
 
     /*
     strErrorRet = "";
@@ -180,7 +181,6 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
     // we are still using budgets, but we have no data about them anymore,
     // we can only check masternode payments
 
-    const Consensus::Params& consensusParams = Params().GetConsensus();
 
     /*
     if(nBlockHeight < consensusParams.nSuperblockStartBlock) {
@@ -215,15 +215,15 @@ bool IsBlockPayeeValid(const CTransaction& txNew, int nBlockHeight, CAmount bloc
 
     // Check for correct masternode payment
     if(mnpayments.IsTransactionValid(txNew, nBlockHeight, blockReward)) {
-        LogPrint("mnpayments", "%s -- Valid znode payment at height %d: %s", __func__, nBlockHeight, txNew.ToString());
+        LogPrint("mnpayments", "%s -- Valid indexnode payment at height %d: %s", __func__, nBlockHeight, txNew.ToString());
         return true;
     }
 
-    LogPrintf("%s -- ERROR: Invalid znode payment detected at height %d: %s", __func__, nBlockHeight, txNew.ToString());
+    LogPrintf("%s -- ERROR: Invalid indexnode payment detected at height %d: %s", __func__, nBlockHeight, txNew.ToString());
     return false;
 }
 
-void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& voutMasternodePaymentsRet, std::vector<CTxOut>& /*voutSuperblockPaymentsRet*/)
+void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blockReward, std::vector<CTxOut>& voutMasternodePaymentsRet, bool fProofOfStake)
 {
     /*
     // only create superblocks if spork is enabled AND if superblock is actually triggered
@@ -236,7 +236,7 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
     */
 
     if (!mnpayments.GetMasternodeTxOuts(nBlockHeight, blockReward, voutMasternodePaymentsRet)) {
-        LogPrint("mnpayments", "%s -- no znode to pay (MN list probably empty)\n", __func__);
+        LogPrint("mnpayments", "%s -- no indexnode to pay (MN list probably empty)\n", __func__);
     }
 
     txNew.vout.insert(txNew.vout.end(), voutMasternodePaymentsRet.begin(), voutMasternodePaymentsRet.end());
@@ -244,8 +244,8 @@ void FillBlockPayments(CMutableTransaction& txNew, int nBlockHeight, CAmount blo
 
     std::string voutMasternodeStr;
     for (const auto& txout : voutMasternodePaymentsRet) {
-        // subtract MN payment from miner reward
-        txNew.vout[0].nValue -= txout.nValue;
+        // subtract MN payment from miner /staker reward
+        txNew.vout[fProofOfStake].nValue -= txout.nValue;
         if (!voutMasternodeStr.empty())
             voutMasternodeStr += ",";
         voutMasternodeStr += txout.ToString();
@@ -317,7 +317,7 @@ bool CMasternodePayments::GetMasternodeTxOuts(int nBlockHeight, CAmount blockRew
     voutMasternodePaymentsRet.clear();
 
     if(!GetBlockTxOuts(nBlockHeight, blockReward, voutMasternodePaymentsRet)) {
-        LogPrintf("CMasternodePayments::%s -- no payee (deterministic znode list empty)\n", __func__);
+        LogPrintf("CMasternodePayments::%s -- no payee (deterministic indexnode list empty)\n", __func__);
         return false;
     }
 

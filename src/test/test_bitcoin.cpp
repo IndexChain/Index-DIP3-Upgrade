@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#define BOOST_TEST_MODULE Zcoin Test Suite
+#define BOOST_TEST_MODULE Index Test Suite
 
 #if defined(HAVE_CONFIG_H)
 #include "../config/bitcoin-config.h"
@@ -89,7 +89,7 @@ TestingSetup::TestingSetup(const std::string& chainName, std::string suf) : Basi
         CZerocoinState::GetZerocoinState()->Reset();
         RegisterAllCoreRPCCommands(tableRPC);
         ClearDatadirCache();
-        pathTemp = GetTempPath() / strprintf("test_zcoin_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
+        pathTemp = GetTempPath() / strprintf("test_index_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
         boost::filesystem::create_directories(pathTemp);
         ForceSetArg("-datadir", pathTemp.string());
         mempool.setSanityCheck(1.0);
@@ -289,7 +289,7 @@ size_t FindZnodeOutput(CTransaction const & tx) {
     for(size_t i = 0; i < tx.vout.size(); ++i) {
         CTxOut const & out = tx.vout[i];
          if(std::find(founders.begin(), founders.end(), out.scriptPubKey) == founders.end()) {
-            if(out.nValue == GetZnodePayment(Params().GetConsensus(), false))
+            if(out.nValue == GetZnodePayment(Params().GetConsensus()))
                 return i;
         }
     }

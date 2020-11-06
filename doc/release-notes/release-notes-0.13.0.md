@@ -734,7 +734,7 @@ git merge commit are mentioned.
 - #8029 `58725ba` Simplify OS X build notes (fanquake)
 - #8143 `d46b8b5` comment nit: miners don't vote (instagibbs)
 - #8136 `22e0b35` Log/report in 10% steps during VerifyDB (jonasschnelli)
-- #8168 `d366185` util: Add ParseUInt32 and ParseUInt64 (laanwj)
+- #7082 `d366185` util: Add ParseUInt32 and ParseUInt64 (laanwj)
 - #8178 `f7b1bfc` Add git and github tips and tricks to developer notes (sipa)
 - #8177 `67db011` developer notes: updates for C++11 (kazcw)
 - #8229 `8ccdac1` [Doc] Update OS X build notes for 10.11 SDK (fanquake)

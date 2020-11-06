@@ -13,6 +13,7 @@
 #include "guiconstants.h"
 #include "guiutil.h"
 #include "intro.h"
+#include "net.h"
 #include "recover.h"
 #include "notifymnemonic.h"
 #include "networkstyle.h"
@@ -21,7 +22,8 @@
 #include "splashscreen.h"
 #include "utilitydialog.h"
 #include "winshutdownmonitor.h"
-#include "znodeconfig.h"
+#include "indexnodeconfig.h"
+#include <hybridui/styleSheet.h>
 
 #ifdef ENABLE_WALLET
 #include "paymentserver.h"
@@ -50,6 +52,7 @@
 #include <QLibraryInfo>
 #include <QLocale>
 #include <QMessageBox>
+#include <QProcess>
 #include <QSettings>
 #include <QThread>
 #include <QTimer>
@@ -98,7 +101,7 @@ static void InitMessage(const std::string &message)
  */
 static std::string Translate(const char* psz)
 {
-    return QCoreApplication::translate("zcoin-core", psz).toStdString();
+    return QCoreApplication::translate("index-core", psz).toStdString();
 }
 
 static QString GetLangTerritory()
@@ -182,6 +185,7 @@ public:
 public Q_SLOTS:
     void initialize();
     void shutdown();
+    void restart(QStringList args);
 
 Q_SIGNALS:
     void initializeResult(int retval);
@@ -221,7 +225,6 @@ public:
     void requestInitialize();
     /// Request core shutdown
     void requestShutdown();
-
     /// Get process return value
     int getReturnValue() { return returnValue; }
 
@@ -236,6 +239,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void requestedInitialize();
+    void requestedRestart(QStringList args);
     void requestedShutdown();
     void stopThread();
     void splashFinished(QWidget *window);
@@ -295,6 +299,33 @@ void BitcoinCore::initialize()
     }
     catch (...) {
         handleRunawayException(std::current_exception());
+    }
+}
+
+void BitcoinCore::restart(QStringList args)
+{
+    static bool executing_restart{false};
+    // Show a simple window indicating shutdown status
+    // Do this first as some of the steps may take some time below,
+    // for example the RPC console may still be executing a command.
+    if(!executing_restart) { // Only restart 1x, no matter how often a user clicks on a restart-button
+        executing_restart = true;
+        try
+        {
+
+            qDebug() << __func__ << ": Running Restart in thread";
+            Interrupt(threadGroup);
+            StartRestart();
+            PrepareShutdown();
+            qDebug() << __func__ << ": Shutdown finished";
+            Q_EMIT shutdownResult(1);
+            CExplicitNetCleanup::callCleanup();
+            QProcess::startDetached(QApplication::applicationFilePath(), args);
+            qDebug() << __func__ << ": Restart initiated...";
+            QApplication::quit();
+        } catch (...)  {
+            handleRunawayException(std::current_exception());
+        }
     }
 }
 
@@ -407,6 +438,7 @@ void BitcoinApplication::startThread()
     connect(executor, SIGNAL(runawayException(QString)), this, SLOT(handleRunawayException(QString)));
     connect(this, SIGNAL(requestedInitialize()), executor, SLOT(initialize()));
     connect(this, SIGNAL(requestedShutdown()), executor, SLOT(shutdown()));
+    connect(window, SIGNAL(requestedRestart(QStringList)), executor, SLOT(restart(QStringList)));
     /*  make sure executor object is deleted in its own thread */
     connect(this, SIGNAL(stopThread()), executor, SLOT(deleteLater()));
     connect(this, SIGNAL(stopThread()), coreThread, SLOT(quit()));
@@ -501,7 +533,7 @@ void BitcoinApplication::initializeResult(int retval)
         }
         
         // Now that initialization/startup is done, process any command-line
-        // zcoin: URIs or payment requests:
+        // index: URIs or payment requests:
         connect(paymentServer, SIGNAL(receivedPaymentRequest(SendCoinsRecipient)),
                          window, SLOT(handlePaymentRequest(SendCoinsRecipient)));
         connect(window, SIGNAL(receivedURI(QString)),
@@ -523,7 +555,7 @@ void BitcoinApplication::shutdownResult(int retval)
 
 void BitcoinApplication::handleRunawayException(const QString &message)
 {
-    QMessageBox::critical(0, "Runaway exception", BitcoinGUI::tr("A fatal error occurred. Zcoin can no longer continue safely and will quit.") + QString("\n\n") + message);
+    QMessageBox::critical(0, "Runaway exception", BitcoinGUI::tr("A fatal error occurred. Index can no longer continue safely and will quit.") + QString("\n\n") + message);
     ::exit(EXIT_FAILURE);
 }
 
@@ -615,7 +647,7 @@ int main(int argc, char *argv[])
     if (!Intro::pickDataDirectory())
         return EXIT_SUCCESS;
 
-    /// 6. Determine availability of data directory and parse zcoin.conf
+    /// 6. Determine availability of data directory and parse index.conf
     /// - Do not call GetDataDir(true) before this step finishes
     if (!boost::filesystem::is_directory(GetDataDir(false)))
     {
@@ -670,11 +702,11 @@ int main(int argc, char *argv[])
     initTranslations(qtTranslatorBase, qtTranslator, translatorBase, translator);
 
 #ifdef ENABLE_WALLET
-    /// 7a. parse znode.conf
+    /// 7a. parse indexnode.conf
     std::string strErr;
-    if(!znodeConfig.read(strErr)) {
-        QMessageBox::critical(0, QObject::tr("Zcoin Core"),
-                              QObject::tr("Error reading znode configuration file: %1").arg(strErr.c_str()));
+    if(!indexnodeConfig.read(strErr)) {
+        QMessageBox::critical(0, QObject::tr("Index Core"),
+                              QObject::tr("Error reading indexnode configuration file: %1").arg(strErr.c_str()));
         return EXIT_FAILURE;
     }
 
@@ -688,7 +720,7 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
 
     // Start up the payment server early, too, so impatient users that click on
-    // zcoin: links repeatedly have their payment requests routed to this process:
+    // index: links repeatedly have their payment requests routed to this process:
     app.createPaymentServer();
 #endif
     /// 9. Main GUI initialization
@@ -718,6 +750,7 @@ int main(int argc, char *argv[])
 
     try
     {
+        SetObjectStyleSheet(&app, StyleSheetNames::App);
         app.createWindow(networkStyle.data());
         app.requestInitialize();
 #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000

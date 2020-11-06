@@ -76,9 +76,9 @@ for arg in sys.argv[1:]:
 
 #Set env vars
 if "ZCOIND" not in os.environ:
-    os.environ["ZCOIND"] = BUILDDIR + '/src/zcoind' + EXEEXT
+    os.environ["ZCOIND"] = BUILDDIR + '/src/indexd' + EXEEXT
 if "ZCOINCLI" not in os.environ:
-    os.environ["ZCOINCLI"] = BUILDDIR + '/src/zcoin-cli' + EXEEXT
+    os.environ["ZCOINCLI"] = BUILDDIR + '/src/index-cli' + EXEEXT
 
 if EXEEXT == ".exe" and "-win" not in opts:
     # https://github.com/bitcoin/bitcoin/commit/d52802551752140cf41f0d9a225a43e84404d3e9
@@ -122,13 +122,14 @@ testScripts = [
     # 'p2p-compactblocks.py',
     # 'segwit.py',
     # vv Tests less than 2m vv
-    # 'wallet.py',
-     'wallet-hd.py',
-     'wallet-dump.py',
-     'walletbackup.py',
+    'wallet.py',
+    'wallet-encryption.py',
+    'wallet-hd.py',
+    'wallet-dump.py',
+    'walletbackup.py',
     # 'wallet-accounts.py',
     # 'p2p-segwit.py',
-    # 'listtransactions.py',
+    'listtransactions.py',
     # vv Tests less than 60s vv
     # 'sendheaders.py',
     # 'importmulti.py',
@@ -139,38 +140,39 @@ testScripts = [
     # 'bip68-112-113-p2p.py',
     # 'rawtransactions.py',
     # vv Tests less than 30s vv
-    # 'mempool_resurrect_test.py',
-    # 'txn_doublespend.py --mineblock',
-    # 'txn_clone.py',
-    # 'getchaintips.py',
+    'mempool_resurrect_test.py',
+    'txn_doublespend.py --mineblock',
+    'txn_clone.py',
+    'getchaintips.py',
     'rest.py',
     'httpbasics.py',
     'reindex.py',
     'multi_rpc.py',
     'zapwallettxes.py',
     'proxy_test.py',
-    # 'signrawtransactions.py',
+    'signrawtransactions.py',
     'nodehandling.py',
     'decodescript.py',
     # 'blockchain.py',
     'disablewallet.py',
     'keypool.py',
-    # 'p2p-mempool.py',
+    'p2p-mempool.py',
     # 'prioritise_transaction.py',
-    # 'invalidblockrequest.py',
+    'invalidblockrequest.py',
     # 'invalidtxrequest.py',
     # 'p2p-versionbits-warning.py',
-    # 'preciousblock.py',
+    'preciousblock.py',
     'importprunedfunds.py',
-    # 'signmessages.py',
+    'signmessages.py',
     # 'nulldummy.py',
     # 'import-rescan.py',
     # 'bumpfee.py',
     # 'rpcnamedargs.py',
-    # 'listsinceblock.py',
-    # 'p2p-leaktests.py',
+    'listsinceblock.py',
+    'p2p-leaktests.py',
+    'notifications.py',
 
-    # Zcoin-specific tests
+    # Index-specific tests
     'wallet_dumpnonhd.py',
     'wallet_dumpsigma.py',
     'wallet_dumpzerocoin.py',
@@ -196,7 +198,7 @@ testScripts = [
     'hdmint_mempool_zap.py',
     'sigma_zapwalletmints_unconf_trans.py',
 
-    # Evo Znodes
+    # Evo Indexnodes
     'dip3-deterministicmns.py'
 
     # Unstable tests
@@ -211,14 +213,14 @@ testScriptsExt = [
     # 'smartfees.py',
     # vv Tests less than 5m vv
     # 'maxuploadtarget.py',
-    # 'mempool_packages.py',
+    'mempool_packages.py',
     # vv Tests less than 2m vv
     # 'bip68-sequence.py',
-    # 'getblocktemplate_longpoll.py',
-    # 'p2p-timeouts.py',
+    'getblocktemplate_longpoll.py',
+    'p2p-timeouts.py',
     # vv Tests less than 60s vv
     # 'bip9-softforks.py',
-    # 'p2p-feefilter.py',
+    'p2p-feefilter.py',
     # 'rpcbind_test.py',
     # vv Tests less than 30s vv
     # 'bip65-cltv.py',
@@ -228,10 +230,10 @@ testScriptsExt = [
     # 'getblocktemplate_proposals.py',
     # 'txn_doublespend.py',
     # 'txn_clone.py --mineblock',
-    # 'forknotify.py',
-    # 'invalidateblock.py',
-    # 'maxblocksinflight.py',
-    # 'p2p-acceptblock.py',
+    'forknotify.py',
+    'invalidateblock.py',
+    'maxblocksinflight.py',
+    'p2p-acceptblock.py',
     # 'replace-by-fee.py',
 ]
 

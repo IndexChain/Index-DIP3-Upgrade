@@ -173,7 +173,7 @@ def sync_blocks(rpc_connections, *, wait=1, timeout=60):
     raise AssertionError("Block sync to height {} timed out:{}".format(
                          maxheight, "".join("\n  {!r}".format(tip) for tip in tips)))
 
-def sync_znodes(rpc_connections, *, timeout=60):
+def sync_indexnodes(rpc_connections, *, timeout=60):
     """
     Waits until every node has their znsync status is synced.
     """
@@ -214,7 +214,7 @@ def sync_mempools(rpc_connections, *, wait=1, timeout=60):
         timeout -= wait
     raise AssertionError("Mempool sync failed")
 
-def sync_znodes(rpc_connections, fast_mnsync=False):
+def sync_indexnodes(rpc_connections, fast_mnsync=False):
     for node in rpc_connections:
         wait_to_sync(node, fast_mnsync)
 
@@ -225,7 +225,7 @@ def initialize_datadir(dirname, n):
     if not os.path.isdir(datadir):
         os.makedirs(datadir)
     rpc_u, rpc_p = rpc_auth_pair(n)
-    with open(os.path.join(datadir, "zcoin.conf"), 'w', encoding='utf8') as f:
+    with open(os.path.join(datadir, "index.conf"), 'w', encoding='utf8') as f:
         f.write("regtest=1\n")
         f.write("rpcuser=" + rpc_u + "\n")
         f.write("rpcpassword=" + rpc_p + "\n")
@@ -251,12 +251,12 @@ def rpc_url(i, rpchost=None):
 
 def wait_for_bitcoind_start(process, url, i):
     '''
-    Wait for zcoind to start. This means that RPC is accessible and fully initialized.
-    Raise an exception if zcoind exits during initialization.
+    Wait for indexd to start. This means that RPC is accessible and fully initialized.
+    Raise an exception if indexd exits during initialization.
     '''
     while True:
         if process.poll() is not None:
-            raise Exception('zcoind exited with status %i during initialization' % process.returncode)
+            raise Exception('indexd exited with status %i during initialization' % process.returncode)
         try:
             rpc = get_rpc_proxy(url, i)
             blocks = rpc.getblockcount()
@@ -292,7 +292,7 @@ def initialize_chain(test_dir, num_nodes, cachedir):
         # Create cache directories, run bitcoinds:
         for i in range(MAX_NODES):
             datadir=initialize_datadir(cachedir, i)
-            args = [ os.getenv("ZCOIND", "zcoind"), "-server", "-keypool=1", "-datadir="+datadir, "-discover=0" ]
+            args = [ os.getenv("ZCOIND", "indexd"), "-server", "-keypool=1", "-datadir="+datadir, "-discover=0" ]
             if i > 0:
                 args.append("-connect=127.0.0.1:"+str(p2p_port(0)))
             bitcoind_processes[i] = subprocess.Popen(args)
@@ -382,7 +382,7 @@ def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=
     """
     datadir = os.path.join(dirname, "node"+str(i))
     if binary is None:
-        binary = os.getenv("ZCOIND", "zcoind")
+        binary = os.getenv("ZCOIND", "indexd")
     args = [ binary, "-datadir="+datadir, "-server", "-keypool=1", "-discover=0", "-rest", "-dandelion=0", "-usemnemonic=0", "-mocktime="+str(get_mocktime()) ]
     # Don't try auto backups (they fail a lot when running tests)
     args += [ "-createwalletbackups=0" ]
@@ -392,7 +392,7 @@ def start_node(i, dirname, extra_args=None, rpchost=None, timewait=None, binary=
     if redirect_stderr:
         stderr = sys.stdout
     bitcoind_processes[i] = subprocess.Popen(args, stderr=stderr)
-    logger.debug("start_node: zcoind started, waiting for RPC to come up")
+    logger.debug("start_node: indexd started, waiting for RPC to come up")
     url = rpc_url(i, rpchost)
     wait_for_bitcoind_start(bitcoind_processes[i], url, i)
     logger.debug("start_node: RPC successfully started")
@@ -822,7 +822,7 @@ def get_znsync_status(node):
     result = node.znsync("status")
     return result['IsSynced']
 
-def wait_to_sync_znodes(node, fast_znsync=False):
+def wait_to_sync_indexnodes(node, fast_znsync=False):
     while True:
         synced = get_znsync_status(node)
         if synced:

@@ -442,7 +442,7 @@ private:
     CNode* FindNode(const CService& addr);
 
     bool AttemptToEvictConnection();
-    // fAllowLocal flag is for legacy znodes only, remove it when network moves to evo znodes
+    // fAllowLocal flag is for legacy indexnodes only, remove it when network moves to evo indexnodes
     CNode* ConnectNode(CAddress addrConnect, const char *pszDest, bool fCountFailure, bool fAllowLocal=false);
     bool IsWhitelistedRange(const CNetAddr &addr);
 
@@ -769,7 +769,7 @@ public:
 
     bool fSupportsDandelion = false;
     NodeId id;
-    // znode from dash
+    // indexnode from dash
     bool fZnode;
 
     const uint64_t nKeyedNetGroup;
@@ -1033,7 +1033,11 @@ public:
 };
 
 
-
+class CExplicitNetCleanup
+{
+public:
+    static void callCleanup();
+};
 
 
 /** Return a timestamp in the future (in microseconds) for exponentially distributed events. */

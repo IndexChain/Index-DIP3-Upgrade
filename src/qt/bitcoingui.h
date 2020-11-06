@@ -31,6 +31,8 @@ class WalletModel;
 class HelpMessageDialog;
 class ModalOverlay;
 
+class NavigationBar;
+class QDockWidget;
 class CWallet;
 
 QT_BEGIN_NAMESPACE
@@ -61,7 +63,7 @@ public:
 
 #ifdef ENABLE_WALLET
     /** Set the wallet model.
-        The wallet model represents a Zcoin wallet, and offers access to the list of transactions, address book and sending
+        The wallet model represents a Index wallet, and offers access to the list of transactions, address book and sending
         functionality.
     */
     bool addWallet(const QString& name, WalletModel *walletModel);
@@ -94,6 +96,7 @@ private:
     QProgressDialog *progressDialog;
 
     QMenuBar *appMenuBar;
+    NavigationBar *appNavigationBar = nullptr;
     QAction *overviewAction;
 #ifdef ENABLE_ELYSIUM
     QAction *elyAssetsAction;
@@ -115,14 +118,18 @@ private:
     QAction *encryptWalletAction;
     QAction *backupWalletAction;
     QAction *changePassphraseAction;
+    QAction *unlockWalletAction;
+    QAction *lockWalletAction;
     QAction *aboutQtAction;
+    QAction *openRepairAction;
     QAction *openRPCConsoleAction;
     QAction *openAction;
     QAction *showHelpMessageAction;
     QAction *sigmaAction;
     QAction *zc2SigmaAction;
-    QAction *znodeAction;
+    QAction *indexnodeAction;
     QAction *masternodeAction;
+    QAction *stakepageAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
@@ -147,6 +154,7 @@ private:
     void createTrayIcon(const NetworkStyle *networkStyle);
     /** Create system tray menu (or setup the dock menu) */
     void createTrayIconMenu();
+    void addDockWindows(Qt::DockWidgetArea area, QWidget* widget);
 
     /** Enable or disable all wallet-related actions */
     void setWalletActionsEnabled(bool enabled);
@@ -168,7 +176,8 @@ private:
 Q_SIGNALS:
     /** Signal raised when a URI was entered or dragged to the GUI */
     void receivedURI(const QString &uri);
-
+    /** Restart handling */
+    void requestedRestart(QStringList args);
 public Q_SLOTS:
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
@@ -176,6 +185,8 @@ public Q_SLOTS:
     void setNetworkActive(bool networkActive);
     /** Set number of blocks and last block date shown in the UI */
     void setNumBlocks(int count, const QDateTime& blockDate, double nVerificationProgress, bool headers);
+    /** Get restart command-line parameters and request restart */
+    void handleRestart(QStringList args);
     /** Set additional data sync status shown in the UI */
     void setAdditionalDataSyncProgress(double nSyncProgress);
 
@@ -223,12 +234,14 @@ private Q_SLOTS:
 #endif
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
-    /** Switch directly to Zcoin history tab */
+    /** Switch directly to Index history tab */
     void gotoBitcoinHistoryTab();
-    /** Switch to znode page */
+    /** Switch to indexnode page */
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();
+    /** Switch to stake page */
+    void gotoStakePage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */

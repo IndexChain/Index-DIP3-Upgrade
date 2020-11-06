@@ -18,7 +18,7 @@
 #include "netbase.h"
 #include "txdb.h" // for -dbcache defaults
 #include "intro.h" 
-
+#include "hybridui/styleSheet.h"
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
@@ -161,8 +161,12 @@ void OptionsModel::Init(bool resetSettings)
         settings.setValue("language", "");
     if (!SoftSetArg("-lang", settings.value("language").toString().toStdString()))
         addOverriddenOption("-lang");
-
     language = settings.value("language").toString();
+
+    if (!settings.contains("Theme"))
+        settings.setValue("Theme", "");
+
+    theme = settings.value("Theme").toString();
 }
 
 void OptionsModel::Reset()
@@ -267,6 +271,8 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
             return settings.value("nThreadsScriptVerif");
         case Listen:
             return settings.value("fListen");
+        case Theme:
+            return settings.value("Theme");
         default:
             return QVariant();
         }
@@ -422,6 +428,13 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 setRestartRequired(true);
             }
             break;
+        case Theme:{
+            if (settings.value("Theme") != value) {
+                settings.setValue("Theme", value);
+                    setRestartRequired(true);
+            }
+            break;
+        }
         default:
             break;
         }

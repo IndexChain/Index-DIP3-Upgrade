@@ -1,6 +1,6 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2009-2016 The Bitcoin Core developers
-// Copyright (c) 2016-2017 The Zcoin developers
+// Copyright (c) 2016-2017 The Index developers
 
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -11,17 +11,11 @@
 #include <stdint.h>
 
 // HF constants
-static const int HF_LYRA2VAR_HEIGHT = 500;
-static const int HF_LYRA2_HEIGHT = 8192;
-static const int HF_LYRA2Z_HEIGHT = 20500;
-static const int HF_ZNODE_HEIGHT = 66550;
-static const int HF_ZNODE_PAYMENT_START = HF_ZNODE_HEIGHT + 150; // 66700 - about 25h after HF
+static const int HF_INDEXNODE_HEIGHT = 66550;
+static const int HF_INDEXNODE_PAYMENT_START = HF_INDEXNODE_HEIGHT + 150; // 66700 - about 25h after HF
 static const int HF_MTP_HEIGHT = 88888;
 
-static const int HF_LYRA2VAR_HEIGHT_TESTNET = 10;
-static const int HF_LYRA2_HEIGHT_TESTNET = 25; // for consistent purpose since the algo hash is so low
-static const int HF_LYRA2Z_HEIGHT_TESTNET = 30;
-static const int HF_ZNODE_HEIGHT_TESTNET = 500;
+static const int HF_INDEXNODE_HEIGHT_TESTNET = 500;
 static const int HF_MTP_HEIGHT_TESTNET = 9999;
 
 static const int HF_ZEROSPEND_FIX = 22000;

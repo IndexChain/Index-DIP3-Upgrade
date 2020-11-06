@@ -33,7 +33,7 @@ CTransaction TxFromStr(std::string const & str)
 void AddTxToView(CTransaction const & tx, int height, CCoinsViewCache & viewCache)
 {
     for (size_t i=0; i<tx.vout.size(); i++)
-        viewCache.AddCoin(COutPoint(tx.GetHash(), i), Coin(tx.vout[i], height, tx.IsCoinBase()), false);
+        viewCache.AddCoin(COutPoint(tx.GetHash(), i), Coin(tx.vout[i], height, tx.IsCoinBase(),tx.IsCoinStake()), false);
 }
 }
 
@@ -188,7 +188,7 @@ BOOST_AUTO_TEST_CASE(dbindexhelper_zeromint)
     size_t const inNum = 1;
     std::vector<size_t> const prevout_idx {0};
     std::vector<std::string> const prevout_txids {"a15122ff0a2d2962b28b43e16ef6b581f9f50e64760ecc08bb5a44909f79db32"};
-    std::vector<CBitcoinAddress> const in_addrs {"TUMBV6mfYExRrFPf4iFHnH9uXZCAR2QGCL"};
+    std::vector<CBitcoinAddress> const in_addrs {"TUMBV6mfYExRrFPf4iFHnH9uIDXAR2QGCL"};
     std::vector<CAmount> const in_amounts {-in0prevtx.vout[0].nValue};
 
     size_t const outNum = 2;

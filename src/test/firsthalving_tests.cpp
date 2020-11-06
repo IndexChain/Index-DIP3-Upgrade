@@ -20,9 +20,9 @@ static SimpleUTXOMap BuildSimpleUtxoMap(const std::vector<CTransaction>& txs)
     CAmount balance = 0;
     for (size_t i = 0; i < txs.size(); i++) {
         auto& tx = txs[i];
-        size_t const znode_output = tx.vout.size() > 6 ? FindZnodeOutput(tx) : 0;
+        size_t const indexnode_output = tx.vout.size() > 6 ? FindZnodeOutput(tx) : 0;
         for (size_t j = 0; j < tx.vout.size(); j++) {
-            if(j == 0 || j == znode_output) {
+            if(j == 0 || j == indexnode_output) {
                 balance += tx.vout[j].nValue;
                 utxos.emplace(COutPoint(tx.GetHash(), j), std::make_pair((int)i + 1, tx.vout[j].nValue));
             }
@@ -96,7 +96,7 @@ static CMutableTransaction CreateProRegTx(SimpleUTXOMap& utxos, int port, const 
     operatorKeyRet.MakeNewKey();
 
     CAmount change;
-    auto inputs = SelectUTXOs(utxos, 1000 * COIN, change);
+    auto inputs = SelectUTXOs(utxos, 5000 * COIN, change);
 
     CProRegTx proTx;
     proTx.collateralOutpoint.n = 0;
@@ -109,7 +109,7 @@ static CMutableTransaction CreateProRegTx(SimpleUTXOMap& utxos, int port, const 
     CMutableTransaction tx;
     tx.nVersion = 3;
     tx.nType = TRANSACTION_PROVIDER_REGISTER;
-    FundTransaction(tx, utxos, scriptPayout, 1000 * COIN, coinbaseKey);
+    FundTransaction(tx, utxos, scriptPayout, 5000 * COIN, coinbaseKey);
     proTx.inputsHash = CalcTxInputsHash(tx);
     SetTxPayload(tx, proTx);
     SignTransaction(tx, coinbaseKey);
@@ -169,9 +169,9 @@ BOOST_FIXTURE_TEST_CASE(devpayout, TestChainDIP3BeforeActivationSetup)
 
     CKey ownerKey;
     CBLSSecretKey operatorSecretKey;
-    CScript znodePayoutScript = GenerateRandomAddress();
+    CScript indexnodePayoutScript = GenerateRandomAddress();
 
-    auto tx = CreateProRegTx(utxos, 4444, znodePayoutScript, coinbaseKey, ownerKey, operatorSecretKey);
+    auto tx = CreateProRegTx(utxos, 4444, indexnodePayoutScript, coinbaseKey, ownerKey, operatorSecretKey);
     CreateAndProcessBlock({tx}, coinbaseKey);
     deterministicMNManager->UpdatedBlockTip(chainActive.Tip());
 
@@ -194,9 +194,9 @@ BOOST_FIXTURE_TEST_CASE(devpayout, TestChainDIP3BeforeActivationSetup)
         BOOST_CHECK_EQUAL(dmnPayout->proTxHash.ToString(), dmnExpectedPayee->proTxHash.ToString());
 
         CValidationState state;
-        BOOST_ASSERT(CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, chainActive.Height(), false));
+        BOOST_ASSERT(CheckZerocoinFoundersInputs(*block.vtx[0], state, consensusParams, chainActive.Height()));
 
-        BOOST_ASSERT(nValue == 15*COIN);    // znode reward before the first halving
+        BOOST_ASSERT(nValue == 15*COIN);    // indexnode reward before the first halving
     }
 
     // halving occurs at block 600
@@ -240,7 +240,7 @@ BOOST_FIXTURE_TEST_CASE(devpayout, TestChainDIP3BeforeActivationSetup)
 
     consensusParams = consensusParamsBackup;
 }
-
+/* No Devfee on IDX
 BOOST_FIXTURE_TEST_CASE(devpayoutverification, TestChainDIP3BeforeActivationSetup)
 {
     Consensus::Params   &consensusParams = const_cast<Consensus::Params &>(Params().GetConsensus());
@@ -287,6 +287,6 @@ BOOST_FIXTURE_TEST_CASE(devpayoutverification, TestChainDIP3BeforeActivationSetu
 
     consensusParams = consensusParamsBackup;
 }
-
+*/
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -58,12 +58,12 @@ void RPCServer::OnStopped(boost::function<void ()> slot)
 
 void RPCServer::OnPreCommand(boost::function<void (const CRPCCommand&)> slot)
 {
-    g_rpcSignals.PreCommand.connect(boost::bind(slot, _1));
+    g_rpcSignals.PreCommand.connect(boost::bind(slot, boost::placeholders::_1));
 }
 
 void RPCServer::OnPostCommand(boost::function<void (const CRPCCommand&)> slot)
 {
-    g_rpcSignals.PostCommand.connect(boost::bind(slot, _1));
+    g_rpcSignals.PostCommand.connect(boost::bind(slot, boost::placeholders::_1));
 }
 
 void RPCTypeCheck(const UniValue& params,
@@ -310,11 +310,11 @@ UniValue stop(const JSONRPCRequest& jsonRequest)
     if (jsonRequest.fHelp || jsonRequest.params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Zcoin server.");
+            "\nStop Index server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "Zcoin server stopping";
+    return "Index server stopping";
 }
 
 /**
@@ -332,12 +332,12 @@ static const CRPCCommand vRPCCommands[] =
     { "addressindex",       "getaddressdeltas",       &getaddressdeltas,       false },
     { "addressindex",       "getaddresstxids",        &getaddresstxids,        false },
     { "addressindex",       "getaddressbalance",      &getaddressbalance,      false },
-        /* Zcoin features */
-    { "zcoin",               "znode",                 &znode,                  true  },
-    { "zcoin",               "znsync",                &znsync,                 true  },
-    { "zcoin",               "znodelist",             &znodelist,              true  },
-    { "zcoin",               "znodebroadcast",        &znodebroadcast,         true  },
-    { "zcoin",               "getpoolinfo",           &getpoolinfo,            true  },
+        /* Index features */
+    { "index",               "indexnode",                 &indexnode,                  true  },
+    { "index",               "znsync",                &znsync,                 true  },
+    { "index",               "indexnodelist",             &indexnodelist,              true  },
+    { "index",               "indexnodebroadcast",        &indexnodebroadcast,         true  },
+    { "index",               "getpoolinfo",           &getpoolinfo,            true  },
         /* Mobile related */
     { "mobile",             "getanonymityset",        &getanonymityset,        true  },
     { "mobile",             "getmintmetadata",        &getmintmetadata,        true  },
@@ -574,13 +574,13 @@ std::vector<std::string> CRPCTable::listCommands() const
 
     std::transform( mapCommands.begin(), mapCommands.end(),
                    std::back_inserter(commandList),
-                   boost::bind(&commandMap::value_type::first,_1) );
+                   boost::bind(&commandMap::value_type::first, boost::placeholders::_1) );
     return commandList;
 }
 
 std::string HelpExampleCli(const std::string& methodname, const std::string& args)
 {
-    return "> zcoin-cli " + methodname + " " + args + "\n";
+    return "> index-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)

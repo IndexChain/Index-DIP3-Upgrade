@@ -170,6 +170,13 @@ void WalletFrame::gotoMasternodePage()
         i.value()->gotoMasternodePage();
 }
 
+void WalletFrame::gotoStakePage()
+{
+    QMap<QString, WalletView*>::const_iterator i;
+    for (i = mapWalletViews.constBegin(); i != mapWalletViews.constEnd(); ++i)
+        i.value()->gotoStakePage();
+}
+
 void WalletFrame::gotoReceiveCoinsPage()
 {
     QMap<QString, WalletView*>::const_iterator i;
@@ -212,6 +219,7 @@ void WalletFrame::gotoZc2SigmaPage()
         i.value()->gotoZc2SigmaPage();
 }
 
+
 void WalletFrame::gotoVerifyMessageTab(QString addr)
 {
     WalletView *walletView = currentWalletView();
@@ -242,11 +250,23 @@ void WalletFrame::changePassphrase()
 
 void WalletFrame::unlockWallet()
 {
+    QObject* object = sender();
+    QString objectName = object ? object->objectName() : "";
+    bool fromMenu = objectName == "unlockWalletAction";
     WalletView *walletView = currentWalletView();
     if (walletView)
-        walletView->unlockWallet();
+        walletView->unlockWallet(fromMenu);
 }
 
+void WalletFrame::lockWallet()
+{
+    WalletView *walletView = currentWalletView();
+    if (walletView)
+    {
+        walletView->lockWallet();
+        fWalletUnlockStakingOnly = false;
+    }
+}
 void WalletFrame::usedSendingAddresses()
 {
     WalletView *walletView = currentWalletView();

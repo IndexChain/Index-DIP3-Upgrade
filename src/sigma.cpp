@@ -13,11 +13,10 @@
 #include "sigma/coinspend.h"
 #include "sigma/coin.h"
 #include "sigma/remint.h"
-#include "znode-payments.h"
-#include "znode-sync.h"
+#include "indexnode-payments.h"
+#include "indexnode-sync.h"
 #include "primitives/zerocoin.h"
 
-#include "blacklists.h"
 
 #include <atomic>
 #include <sstream>
@@ -279,13 +278,7 @@ bool CheckSigmaSpendTransaction(
             if (index->sigmaMintedPubCoins.count(denominationAndId) > 0) {
                 BOOST_FOREACH(const sigma::PublicCoin& pubCoinValue,
                         index->sigmaMintedPubCoins[denominationAndId]) {
-                    if (nHeight >= params.nStartSigmaBlacklist) {
-                        std::vector<unsigned char> vch = pubCoinValue.getValue().getvch();
-                        if(sigma_blacklist.count(HexStr(vch.begin(), vch.end())) > 0) {
-                            continue;
-                        }
-                    }
-                    anonymity_set.push_back(pubCoinValue);
+                        anonymity_set.push_back(pubCoinValue);
                 }
             }
             if (index == coinGroup.firstBlock)
@@ -295,8 +288,7 @@ bool CheckSigmaSpendTransaction(
 
         bool fPadding = spend->getVersion() >= ZEROCOIN_TX_VERSION_3_1;
         if (!isVerifyDB) {
-            bool fShouldPad = (nHeight != INT_MAX && nHeight >= params.nSigmaPaddingBlock) ||
-                        (nHeight == INT_MAX && chainActive.Height() >= params.nSigmaPaddingBlock);
+            bool fShouldPad = nHeight >= params.nSigmaPaddingBlock;
             if (fPadding != fShouldPad)
                 return state.DoS(1, error("Incorrect sigma spend transaction version"));
         }
@@ -1059,14 +1051,8 @@ int CSigmaState::GetCoinSetForSpend(
                 }
                 BOOST_FOREACH(const sigma::PublicCoin& pubCoinValue,
                         block->sigmaMintedPubCoins[denomAndId]) {
-                    if (chainActive.Height() >= ::Params().GetConsensus().nStartSigmaBlacklist) {
-                        std::vector<unsigned char> vch = pubCoinValue.getValue().getvch();
-                        if(sigma_blacklist.count(HexStr(vch.begin(), vch.end())) > 0) {
-                            continue;
-                        }
-                    }
-                    coins_out.push_back(pubCoinValue);
-                    numberOfCoins++;
+                        coins_out.push_back(pubCoinValue);
+                        numberOfCoins++;
                 }
             }
         }

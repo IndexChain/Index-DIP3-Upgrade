@@ -135,6 +135,8 @@ public:
     TransactionTableModel *getTransactionTableModel();
     RecentRequestsTableModel *getRecentRequestsTableModel();
 
+    CWallet *getWallet() const { return wallet; }
+
     CAmount getBalance(const CCoinControl *coinControl = NULL, bool fExcludeLocked = false) const;
     CAmount getUnconfirmedBalance() const;
     CAmount getImmatureBalance() const;
@@ -189,6 +191,7 @@ public:
         WalletModel *wallet;
         bool valid;
         mutable bool relock; // mutable, as it can be set to false by copying
+        bool stakingOnly;
 
         void CopyFrom(const UnlockContext& rhs);
     };
@@ -220,6 +223,8 @@ public:
     bool abandonTransaction(uint256 hash) const;
 
     static bool isWalletEnabled();
+    bool getEnabledStaking() const;
+    bool setEnabledStaking(bool enabled) const;
 
     bool hdEnabled() const;
 

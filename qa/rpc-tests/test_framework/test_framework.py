@@ -25,7 +25,7 @@ from .util import (
     connect_nodes,
     sync_blocks,
     sync_mempools,
-    sync_znodes,
+    sync_indexnodes,
     stop_nodes,
     stop_node,
     start_node,
@@ -34,7 +34,7 @@ from .util import (
     initialize_chain_clean,
     PortSeed,
     p2p_port,
-    wait_to_sync_znodes,
+    wait_to_sync_indexnodes,
     satoshi_round,
     wait_to_sync,
     copy_datadir,
@@ -119,10 +119,10 @@ class BitcoinTestFramework(object):
 
     def znsync_all(self):
         if self.is_network_split:
-            sync_znodes(self.nodes[:2])
-            sync_znodes(self.nodes[2:])
+            sync_indexnodes(self.nodes[:2])
+            sync_indexnodes(self.nodes[2:])
         else:
-            sync_znodes(self.nodes)
+            sync_indexnodes(self.nodes)
 
     def join_network(self):
         """
@@ -271,10 +271,10 @@ class ComparisonTestFramework(BitcoinTestFramework):
 
     def add_options(self, parser):
         parser.add_option("--testbinary", dest="testbinary",
-                          default=os.getenv("ZCOIND", "zcoind"),
+                          default=os.getenv("ZCOIND", "indexd"),
                           help="bitcoind binary to test")
         parser.add_option("--refbinary", dest="refbinary",
-                          default=os.getenv("ZCOIND", "zcoind"),
+                          default=os.getenv("ZCOIND", "indexd"),
                           help="bitcoind binary to use for reference nodes (if any)")
 
     def setup_network(self):
@@ -345,7 +345,7 @@ class ElysiumTestFramework(BitcoinTestFramework):
 # Znode tests support
 #
 
-ZNODE_COLLATERAL = 1000
+INDEXNODE_COLLATERAL = 1000
 
 class ZnodeCollateral(object):
     def __init__(self):
@@ -357,7 +357,7 @@ class ZnodeCollateral(object):
 
     def parse_collateral_output(self, target_address, tx_text, tx_id):
         for vout in tx_text["vout"]:
-            if vout["value"] == ZNODE_COLLATERAL and vout["scriptPubKey"]["addresses"] == [target_address]:
+            if vout["value"] == INDEXNODE_COLLATERAL and vout["scriptPubKey"]["addresses"] == [target_address]:
                 self.tx_id = tx_id
                 self.n = vout["n"]
         return self
@@ -365,9 +365,9 @@ class ZnodeCollateral(object):
 class ZnodeTestFramework(BitcoinTestFramework):
     def __init__(self):
         super().__init__()
-        self.znode_priv_keys = dict()
+        self.indexnode_priv_keys = dict()
         self.num_nodes = 4
-        self.num_znodes = 3
+        self.num_indexnodes = 3
 
     def setup_chain(self):
         self.log.info("Initializing test directory "+self.options.tmpdir)
@@ -380,85 +380,85 @@ class ZnodeTestFramework(BitcoinTestFramework):
             for j in range(i, self.num_nodes):
                 connect_nodes_bi(self.nodes, i, j)
 
-    def write_master_znode_conf(self, znode, collateral):
-        znode_service = get_znode_service(znode)
-        znode_conf = " ".join(["zn"+str(znode), znode_service, self.znode_priv_keys[znode], collateral.tx_id, str(collateral.n)])
+    def write_master_indexnode_conf(self, indexnode, collateral):
+        indexnode_service = get_indexnode_service(indexnode)
+        indexnode_conf = " ".join(["zn"+str(indexnode), indexnode_service, self.indexnode_priv_keys[indexnode], collateral.tx_id, str(collateral.n)])
 
-        master_node_conf_filename = os.path.join(self.options.tmpdir, "node" + str(znode), "regtest", "znode.conf")
+        master_node_conf_filename = os.path.join(self.options.tmpdir, "node" + str(indexnode), "regtest", "indexnode.conf")
         with open(master_node_conf_filename, "a") as master_node_conf:
-            master_node_conf.write(znode_conf)
+            master_node_conf.write(indexnode_conf)
             master_node_conf.write("\n")
             master_node_conf.close()
 
-    def generate_znode_collateral(self, generator_node=None):
+    def generate_indexnode_collateral(self, generator_node=None):
         if generator_node is None:
             generator_node = self.num_nodes - 1
         curr_balance = self.nodes[generator_node].getbalance()
-        while curr_balance < ZNODE_COLLATERAL:
-            self.nodes[generator_node].generate(int((ZNODE_COLLATERAL - curr_balance) / 25))
+        while curr_balance < INDEXNODE_COLLATERAL:
+            self.nodes[generator_node].generate(int((INDEXNODE_COLLATERAL - curr_balance) / 25))
             curr_balance = self.nodes[generator_node].getbalance()
         return curr_balance
 
-    def send_znode_collateral(self, znode, collateral_provider=None):
+    def send_indexnode_collateral(self, indexnode, collateral_provider=None):
         if collateral_provider is None:
             collateral_provider = self.num_nodes - 1
-        znode_address = self.nodes[znode].getaccountaddress("Znode")
-        tx_id = self.nodes[collateral_provider].sendtoaddress(znode_address, ZNODE_COLLATERAL)
+        indexnode_address = self.nodes[indexnode].getaccountaddress("Znode")
+        tx_id = self.nodes[collateral_provider].sendtoaddress(indexnode_address, INDEXNODE_COLLATERAL)
         tx_text = self.nodes[collateral_provider].getrawtransaction(tx_id, 1)
         collateral = ZnodeCollateral()
-        return collateral.parse_collateral_output(znode_address, tx_text, tx_id)
+        return collateral.parse_collateral_output(indexnode_address, tx_text, tx_id)
 
-    def send_mature_znode_collateral(self, znode, collateral_provider=None):
+    def send_mature_indexnode_collateral(self, indexnode, collateral_provider=None):
         if collateral_provider is None:
             collateral_provider = self.num_nodes - 1
-        result = self.send_znode_collateral(znode, collateral_provider)
+        result = self.send_indexnode_collateral(indexnode, collateral_provider)
         self.nodes[collateral_provider].generate(10)
         sync_blocks(self.nodes)
         time.sleep(3)
         return result
 
-    def configure_znode(self, znode, master_znode=None):
-        if master_znode is None:
-            master_znode = self.num_nodes - 1
-        self.znode_priv_keys[znode] = self.nodes[znode].znode("genkey")
-        stop_node(self.nodes[znode], znode)
-        znode_service = get_znode_service(znode)
-        self.nodes[znode] = start_node(znode, self.options.tmpdir, ["-znode", "-znodeprivkey="+self.znode_priv_keys[znode], "-externalip="+znode_service, "-listen"])
-        connect_nodes(self.nodes[znode], znode)
+    def configure_indexnode(self, indexnode, master_indexnode=None):
+        if master_indexnode is None:
+            master_indexnode = self.num_nodes - 1
+        self.indexnode_priv_keys[indexnode] = self.nodes[indexnode].indexnode("genkey")
+        stop_node(self.nodes[indexnode], indexnode)
+        indexnode_service = get_indexnode_service(indexnode)
+        self.nodes[indexnode] = start_node(indexnode, self.options.tmpdir, ["-indexnode", "-indexnodeprivkey="+self.indexnode_priv_keys[indexnode], "-externalip="+indexnode_service, "-listen"])
+        connect_nodes(self.nodes[indexnode], indexnode)
         for i in range(self.num_nodes):
-            if i != znode:
-                connect_nodes_bi(self.nodes, i, znode)
+            if i != indexnode:
+                connect_nodes_bi(self.nodes, i, indexnode)
 
-    def generate_znode_privkey(self, znode):
-        self.znode_priv_keys[znode] = self.nodes[znode].znode("genkey")
+    def generate_indexnode_privkey(self, indexnode):
+        self.indexnode_priv_keys[indexnode] = self.nodes[indexnode].indexnode("genkey")
 
-    def restart_as_znode(self, znode):
-        stop_node(self.nodes[znode], znode)
-        znode_service = get_znode_service(znode)
-        self.nodes[znode] = start_node(znode, self.options.tmpdir, ["-znode", "-znodeprivkey="+self.znode_priv_keys[znode], "-externalip="+znode_service, "-listen"])
-        connect_nodes(self.nodes[znode], znode)
+    def restart_as_indexnode(self, indexnode):
+        stop_node(self.nodes[indexnode], indexnode)
+        indexnode_service = get_indexnode_service(indexnode)
+        self.nodes[indexnode] = start_node(indexnode, self.options.tmpdir, ["-indexnode", "-indexnodeprivkey="+self.indexnode_priv_keys[indexnode], "-externalip="+indexnode_service, "-listen"])
+        connect_nodes(self.nodes[indexnode], indexnode)
         for i in range(self.num_nodes):
-            if i != znode:
-                connect_nodes_bi(self.nodes, i, znode)
+            if i != indexnode:
+                connect_nodes_bi(self.nodes, i, indexnode)
         for i in range(self.num_nodes):
-            wait_to_sync_znodes(self.nodes[i])
+            wait_to_sync_indexnodes(self.nodes[i])
 
-    def znode_start(self, znode):
-        assert_equal("Znode successfully started", self.nodes[znode].znode("start"))
+    def indexnode_start(self, indexnode):
+        assert_equal("Znode successfully started", self.nodes[indexnode].indexnode("start"))
 
-    def configure_znode(self, znode, master_znode=None ):
-        self.generate_znode_privkey(znode, master_znode)
-        self.restart_as_znode(znode)
+    def configure_indexnode(self, indexnode, master_indexnode=None ):
+        self.generate_indexnode_privkey(indexnode, master_indexnode)
+        self.restart_as_indexnode(indexnode)
 
-    def wait_znode_enabled(self, enabled_znode_number, znode_to_wait_on = None, timeout = 10):
-        if znode_to_wait_on is None:
-            znode_to_wait_on = self.num_nodes - 1
-        wait_to_sync_znodes(self.nodes[znode_to_wait_on])
+    def wait_indexnode_enabled(self, enabled_indexnode_number, indexnode_to_wait_on = None, timeout = 10):
+        if indexnode_to_wait_on is None:
+            indexnode_to_wait_on = self.num_nodes - 1
+        wait_to_sync_indexnodes(self.nodes[indexnode_to_wait_on])
         for j in range (timeout):
-            if self.nodes[znode_to_wait_on].znode("count", "enabled") == enabled_znode_number:
+            if self.nodes[indexnode_to_wait_on].indexnode("count", "enabled") == enabled_indexnode_number:
                 return
             time.sleep(1)
-        raise Exception("Cannot wait until znodes enabled")
+        raise Exception("Cannot wait until indexnodes enabled")
 
     def generate(self, blocks, generator_node=None):
         if generator_node is None:
@@ -469,10 +469,10 @@ class ZnodeTestFramework(BitcoinTestFramework):
             time.sleep(1)
 
 
-def get_znode_service(znode):
-    znode_ip_str = "127.0.1." + str(znode + 1)
-    znode_port_str = str(p2p_port(znode))
-    return znode_ip_str + ":" + znode_port_str
+def get_indexnode_service(indexnode):
+    indexnode_ip_str = "127.0.1." + str(indexnode + 1)
+    indexnode_port_str = str(p2p_port(indexnode))
+    return indexnode_ip_str + ":" + indexnode_port_str
 
 class ZnodeInfo:
     def __init__(self, proTxHash, ownerAddr, votingAddr, pubKeyOperator, keyOperator, collateral_address, collateral_txid, collateral_vout, priv_key):
@@ -514,13 +514,13 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
     def prepare_masternode(self, idx):
         bls = self.nodes[0].bls('generate')
         address = self.nodes[0].getnewaddress()
-        txid = self.nodes[0].sendtoaddress(address, ZNODE_COLLATERAL)
+        txid = self.nodes[0].sendtoaddress(address, INDEXNODE_COLLATERAL)
 
         txraw = self.nodes[0].getrawtransaction(txid, True)
         collateral_vout = 0
         for vout_idx in range(0, len(txraw["vout"])):
             vout = txraw["vout"][vout_idx]
-            if vout["value"] == ZNODE_COLLATERAL:
+            if vout["value"] == INDEXNODE_COLLATERAL:
                 collateral_vout = vout_idx
         self.nodes[0].lockunspent(False, [{'txid': txid, 'vout': collateral_vout}])
 
@@ -540,7 +540,7 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
             proTxHash = self.nodes[0].protx('register', txid, collateral_vout, '127.0.0.1:%d' % port, ownerAddr, bls['public'], votingAddr, 0, rewardsAddr, address)
         self.nodes[0].generate(1)
 
-        self.mninfo.append(ZnodeInfo(proTxHash, ownerAddr, votingAddr, bls['public'], bls['secret'], address, txid, collateral_vout, self.nodes[0].znode("genkey")))
+        self.mninfo.append(ZnodeInfo(proTxHash, ownerAddr, votingAddr, bls['public'], bls['secret'], address, txid, collateral_vout, self.nodes[0].indexnode("genkey")))
         self.sync_all()
 
     def remove_mastermode(self, idx):
@@ -571,9 +571,9 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
         executor = ThreadPoolExecutor(max_workers=20)
 
         def do_start(idx):
-            args = ['-znode=1',
+            args = ['-indexnode=1',
                     '-zblsprivkey=%s' % self.mninfo[idx].keyOperator,
-                    '-znodeprivkey=%s' % self.mninfo[idx].priv_key
+                    '-indexnodeprivkey=%s' % self.mninfo[idx].priv_key
                     ] + self.extra_args[idx + start_idx]
             node = start_node(idx + start_idx, self.options.tmpdir, args)
             self.mninfo[idx].nodeIdx = idx + start_idx
@@ -606,7 +606,7 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
 
         sync_blocks(self.nodes)
         self.nodes[0].generate(1)
-        sync_znodes(self.nodes, True)
+        sync_indexnodes(self.nodes, True)
 
         executor.shutdown()
 
@@ -615,7 +615,7 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
         enable_mocktime()
         # create faucet node for collateral and transactions
         self.nodes.append(start_node(0, self.options.tmpdir, self.extra_args[0]))
-        required_balance = ZNODE_COLLATERAL * self.mn_count + 1
+        required_balance = INDEXNODE_COLLATERAL * self.mn_count + 1
         while self.nodes[0].getbalance() < required_balance:
             set_mocktime(get_mocktime() + 1)
             set_node_times(self.nodes, get_mocktime())
@@ -623,7 +623,7 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
         # create connected simple nodes
         for i in range(0, self.num_nodes - self.mn_count - 1):
             self.create_simple_node()
-        sync_znodes(self.nodes, True)
+        sync_indexnodes(self.nodes, True)
 
         # activate DIP3
         while self.nodes[0].getblockcount() < 550:
@@ -650,7 +650,7 @@ class EvoZnodeTestFramework(BitcoinTestFramework):
         set_mocktime(get_mocktime() + 1)
         set_node_times(self.nodes, get_mocktime())
 
-        mn_info = self.nodes[0].evoznodelist("status")
+        mn_info = self.nodes[0].evoindexnodelist("status")
         assert (len(mn_info) == self.mn_count)
         for status in mn_info.values():
             assert (status == 'ENABLED')

@@ -13,91 +13,21 @@
 #include "crypto/common.h"
 #include "chainparams.h"
 #include "crypto/scrypt.h"
-#include "crypto/Lyra2Z/Lyra2Z.h"
-#include "crypto/Lyra2Z/Lyra2.h"
-#include "crypto/MerkleTreeProof/mtp.h"
 #include "util.h"
 #include <iostream>
 #include <chrono>
 #include <fstream>
 #include <algorithm>
 #include <string>
-#include "precomputed_hash.h"
-
-
-
-unsigned char GetNfactor(int64_t nTimestamp) {
-    int l = 0;
-    if (nTimestamp <= Params().GetConsensus().nChainStartTime)
-        return Params().GetConsensus().nMinNFactor;
-
-    int64_t s = nTimestamp - Params().GetConsensus().nChainStartTime;
-    while ((s >> 1) > 3) {
-        l += 1;
-        s >>= 1;
-    }
-    s &= 3;
-    int n = (l * 158 + s * 28 - 2670) / 100;
-    if (n < 0) n = 0;
-    if (n > 255)
-        LogPrintf("GetNfactor(%d) - something wrong(n == %d)\n", nTimestamp, n);
-
-    unsigned char N = (unsigned char) n;
-
-    return std::min(std::max(N, Params().GetConsensus().nMinNFactor), Params().GetConsensus().nMaxNFactor);
-}
+#include "crypto/x16Rv2/hash_algos.h"
 
 uint256 CBlockHeader::GetHash() const {
-    return SerializeHash(*this);
+    return HashX16RV2(BEGIN(nVersion), END(nNonce), hashPrevBlock);
 }
 
-bool CBlockHeader::IsMTP() const {
-    // In case if nTime == ZC_GENESIS_BLOCK_TIME we're being called from CChainParams() constructor and
-    // it is not possible to get Params()
-    return nTime > ZC_GENESIS_BLOCK_TIME && nTime >= Params().GetConsensus().nMTPSwitchTime;
-}
-
-uint256 CBlockHeader::GetPoWHash(int nHeight) const {
-    if (!cachedPoWHash.IsNull())
-        return cachedPoWHash;
-
-    uint256 powHash;
-    if (IsMTP()) {
-        // MTP processing is the same across all the types on networks
-        powHash = mtpHashValue;
-    }
-    else if (nHeight == 0) {
-        // genesis block
-        scrypt_N_1_1_256(BEGIN(nVersion), BEGIN(powHash), GetNfactor(nTime));
-    }
-    else if (Params().GetConsensus().IsMain()) {
-        if (nHeight >= 20500) {
-            // Lyra2Z
-            lyra2z_hash(BEGIN(nVersion), BEGIN(powHash));
-        }
-        else if (nHeight > 0) {
-            // we take values from precomputed table because calculations of these are horribly slow
-            powHash = GetPrecomputedBlockPoWHash(nHeight);
-
-            /*
-             * This is original code for reference
-             * 
-             * if (nHeight >= HF_LYRA2_HEIGHT) {
-             *   LYRA2(BEGIN(powHash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, 8192, 256);
-             * } else if (nHeight >= HF_LYRA2VAR_HEIGHT) {
-             *    LYRA2(BEGIN(powHash), 32, BEGIN(nVersion), 80, BEGIN(nVersion), 80, 2, nHeight, 256);
-             * }
-             */
-        }
-    }
-    else {
-        // regtest - use simple block hash
-        // current testnet is MTP since block 1, shouldn't get here
-        powHash = GetHash();
-    }
-    
-    cachedPoWHash = powHash;
-    return powHash;
+uint256 CBlockHeader::GetPoWHash() const {
+        //Changed hash algo to X16Rv2
+    return HashX16RV2(BEGIN(nVersion), END(nNonce), hashPrevBlock);
 }
 
 std::string CBlock::ToString() const {

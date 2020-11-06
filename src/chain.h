@@ -158,6 +158,7 @@ enum BlockStatus: uint32_t {
     BLOCK_FAILED_MASK        =   BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD,
 
     BLOCK_OPT_WITNESS       =   128, //!< block data in blk*.data was received with a witness-enforcing client
+    BLOCK_PROOF_OF_STAKE     =   256, //! is proof-of-stake block
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -203,6 +204,8 @@ public:
 
     //! Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
+	//! hash modifier of proof-of-stake
+    uint256 nStakeModifier;
 
     //! block header
     int nVersion;
@@ -210,12 +213,7 @@ public:
     unsigned int nTime;
     unsigned int nBits;
     unsigned int nNonce;
-
-    // Zcoin - MTP
-    int32_t nVersionMTP = 0x1000;
-    uint256 mtpHashValue;
-    // Reserved fields
-    uint256 reserved[2];
+    std::vector<unsigned char> vchBlockSig;
 
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId;
@@ -267,15 +265,15 @@ public:
         nTime          = 0;
         nBits          = 0;
         nNonce         = 0;
+        vchBlockSig.clear();
 
-        nVersionMTP = 0;
-        mtpHashValue = reserved[0] = reserved[1] = uint256();
 
         mintedPubCoins.clear();
         sigmaMintedPubCoins.clear();
         accumulatorChanges.clear();
         spentSerials.clear();
         sigmaSpentSerials.clear();
+        nStakeModifier = uint256();
     }
 
     CBlockIndex()
@@ -292,13 +290,8 @@ public:
         nTime          = block.nTime;
         nBits          = block.nBits;
         nNonce         = block.nNonce;
-
-        if (block.IsMTP()) {
-            nVersionMTP = block.nVersionMTP;
-            mtpHashValue = block.mtpHashValue;
-            reserved[0] = block.reserved[0];
-            reserved[1] = block.reserved[1];
-        }
+        if(nNonce == 0)
+            vchBlockSig    = block.vchBlockSig; // qtum
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -329,14 +322,8 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-
-        // Zcoin - MTP
-        if(block.IsMTP()){
-			block.nVersionMTP = nVersionMTP;
-            block.mtpHashValue = mtpHashValue;
-            block.reserved[0] = reserved[0];
-            block.reserved[1] = reserved[1];
-		}
+        if(nNonce == 0)
+            block.vchBlockSig    = vchBlockSig;
         return block;
     }
 
@@ -347,7 +334,7 @@ public:
 
     uint256 GetBlockPoWHash() const
     {
-        return GetBlockHeader().GetPoWHash(nHeight);
+        return GetBlockHeader().GetPoWHash();
     }
 
     int64_t GetBlockTime() const
@@ -359,9 +346,46 @@ public:
     {
         return (int64_t)nTimeMax;
     }
+    /**
+     * Duplicate from bitcoinrpc that originaly define this method.
+     * May require some cleanup since this method should be available both for rpc
+     * and qt clients.
+     */
+    double GetBlockDifficulty() const
+    {
+        int nShift = (nBits >> 24) & 0xff;
 
+        double dDiff =
+            (double)0x0000ffff / (double)(nBits & 0x00ffffff);
+
+        while (nShift < 29)
+        {
+            dDiff *= 256.0;
+            nShift++;
+        }
+        while (nShift > 29)
+        {
+            dDiff /= 256.0;
+            nShift--;
+        }
+
+        return dDiff;
+    }
     enum { nMedianTimeSpan=11 };
+    int64_t GetPastTimeLimit() const
+    {
+        return GetMedianTimePast();
+    }
 
+    bool IsProofOfWork() const
+    {
+        return !IsProofOfStake();
+    }
+
+    bool IsProofOfStake() const
+    {
+        return nNonce == 0 || nStatus & BLOCK_PROOF_OF_STAKE;
+    }
     int64_t GetMedianTimePast() const
     {
         int64_t pmedian[nMedianTimeSpan];
@@ -462,14 +486,8 @@ public:
         READWRITE(nTime);
         READWRITE(nBits);
         READWRITE(nNonce);
-
-        // Zcoin - MTP
-        if (nTime > ZC_GENESIS_BLOCK_TIME && nTime >= Params().GetConsensus().nMTPSwitchTime) {
-            READWRITE(nVersionMTP);
-            READWRITE(mtpHashValue);
-            READWRITE(reserved[0]);
-            READWRITE(reserved[1]);
-        }
+        if(nNonce == 0)
+            READWRITE(vchBlockSig); // qtum
 
         if (!(s.GetType() & SER_GETHASH) && nVersion >= ZC_ADVANCED_INDEX_VERSION) {
             READWRITE(mintedPubCoins);
@@ -481,7 +499,8 @@ public:
             READWRITE(sigmaMintedPubCoins);
             READWRITE(sigmaSpentSerials);
         }
-
+	    // PoS
+        READWRITE(nStakeModifier);
         nDiskBlockVersion = nVersion;
     }
 
@@ -494,13 +513,6 @@ public:
         block.nTime          = nTime;
         block.nBits          = nBits;
         block.nNonce         = nNonce;
-
-        if (block.IsMTP()) {
-            block.nVersionMTP = nVersionMTP;
-            block.mtpHashValue = mtpHashValue;
-            block.reserved[0] = reserved[0];
-            block.reserved[1] = reserved[1];
-        }
 
         return block.GetHash();
     }
@@ -575,5 +587,6 @@ public:
     /** Find the earliest block with timestamp equal or greater than the given. */
     CBlockIndex* FindEarliestAtLeast(int64_t nTime) const;
 };
+const CBlockIndex* GetLastBlockIndex(const CBlockIndex* pindex, bool fProofOfStake);
 
 #endif // BITCOIN_CHAIN_H

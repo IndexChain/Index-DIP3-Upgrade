@@ -6,14 +6,14 @@
 *.tar.gz
 
 *.exe
-src/zcoin
-src/zcoind
-src/zcoin-cli
-src/zcoin-tx
+src/index
+src/indexd
+src/index-cli
+src/index-tx
 src/test/test_bitcoin_fuzzy
-src/test/test_zcoin
-src/test/test_zcoin_fuzzy
-src/qt/test/test_zcoin-qt
+src/test/test_index
+src/test/test_index_fuzzy
+src/qt/test/test_index-qt
 
 # autoreconf
 Makefile.in
@@ -46,6 +46,7 @@ src/univalue/gen
 
 src/qt/*.moc
 src/qt/moc_*.cpp
+src/qt/hybridui/moc_*.cpp
 src/qt/forms/ui_*.h
 
 src/qt/test/moc*.cpp
@@ -83,12 +84,12 @@ src/tor/src/or
 *.qm
 /Makefile
 /src/Makefile
-zcoin-qt
-Zcoin-Qt.app
+index-qt
+Index-Qt.app
 
 # Unit-tests
 Makefile.test
-zcoin-qt_test
+index-qt_test
 
 # Resources cpp
 qrc_*.cpp
@@ -101,7 +102,7 @@ build
 *.gcno
 *.gcda
 /*.info
-test_zcoin.coverage/
+test_index.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -121,7 +122,7 @@ qa/cache/*
 doc/doxygen/
 doc/man/Makefile
 
-libzcoinconsensus.pc
+libindexconsensus.pc
 contrib/devtools/split-debug.sh
 
 src/test/test_bitcoin
@@ -131,8 +132,8 @@ qa/pull-tester/run-bitcoind-for-test.sh
 qa/pull-tester/tests_config.py
 
 # Qt Creator project files
-zcoin.config
-zcoin.creator
-zcoin.creator.user
-zcoin.files
-zcoin.includes
+index.config
+index.creator
+index.creator.user
+index.files
+index.includes

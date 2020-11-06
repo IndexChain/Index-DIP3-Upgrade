@@ -80,10 +80,12 @@ public Q_SLOTS:
     void gotoHistoryPage();
     /** Switch directory to bitcoin tx history tab */
     void gotoBitcoinHistoryTab();
-    /** Switch to znode page */
+    /** Switch to indexnode page */
     void gotoZnodePage();
     /** Switch to masternode page */
     void gotoMasternodePage();
+    /** Switch to stake page */
+    void gotoStakePage();
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
@@ -108,7 +110,8 @@ public Q_SLOTS:
     void changePassphrase();
     /** Ask for passphrase to unlock wallet temporarily */
     void unlockWallet();
-
+    /** Lock the wallet */
+    void lockWallet();
     /** Show used sending addresses */
     void usedSendingAddresses();
     /** Show used receiving addresses */
