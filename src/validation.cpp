@@ -1531,7 +1531,7 @@ bool ReadBlockFromDisk(CBlock& block, const CDiskBlockPos& pos, int nHeight, con
     }
 
     // Check the header
-    if (block.IsProofOfWork() &&!CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
+    if (block.IsProofOfWork() && !CheckProofOfWork(block.GetPoWHash(), block.nBits, consensusParams))
         return error("ReadBlockFromDisk: CheckProofOfWork: Errors in block header at %s", pos.ToString());
 
     return true;
@@ -4035,20 +4035,20 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-multiple", false, "more than one coinbase");
     }
 	if (block.IsProofOfStake()) {
-            // Coinbase output must be empty if proof-of-stake block
-            if (block.vtx[0]->vout.size() != 1 || !block.vtx[0]->vout[0].IsEmpty())
-                return state.DoS(100, false, REJECT_INVALID, "bad-cb-not-empty", false, "coinbase output not empty for proof-of-stake block");
+        // Coinbase output must be empty if proof-of-stake block
+        if (block.vtx[0]->vout.size() != 1 || !block.vtx[0]->vout[0].IsEmpty())
+            return state.DoS(100, false, REJECT_INVALID, "bad-cb-not-empty", false, "coinbase output not empty for proof-of-stake block");
 
-            // Second transaction must be coinstake, the rest must not be
-            if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinStake())
-                return state.DoS(100, false, REJECT_INVALID, "bad-cs-missing", false, "second tx is not coinstake");
+        // Second transaction must be coinstake, the rest must not be
+        if (block.vtx.size() < 2 || !block.vtx[1]->IsCoinStake())
+            return state.DoS(100, false, REJECT_INVALID, "bad-cs-missing", false, "second tx is not coinstake");
 
-            for (unsigned int i = 2; i < block.vtx.size(); i++)
-                if (block.vtx[i]->IsCoinStake())
-                    return state.DoS(100, false, REJECT_INVALID, "bad-cs-multiple", false, "more than one coinstake");
+        for (unsigned int i = 2; i < block.vtx.size(); i++)
+            if (block.vtx[i]->IsCoinStake())
+                return state.DoS(100, false, REJECT_INVALID, "bad-cs-multiple", false, "more than one coinstake");
     }
 
-        // // Check proof-of-stake block signature
+    // Check proof-of-stake block signature
     if (nHeight > Params().GetConsensus().nFirstPOSBlock)
     {
         if (!CheckBlockSignature(block))
