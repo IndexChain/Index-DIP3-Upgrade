@@ -22,8 +22,8 @@
 
 namespace elysium {
 
-// could not change to "elysium" because of previous exodus transactions
-const std::array<unsigned char, 6> magic = { 0x65, 0x78, 0x6f, 0x64, 0x75, 0x73 }; // "exodus"
+// could not change to "elysium" because of previous elysium transactions
+const std::array<unsigned char, 6> magic = { 0x65, 0x78, 0x6f, 0x64, 0x75, 0x73 }; // "elysium"
 
 // PacketKeyGenerator Implementation.
 

@@ -612,7 +612,7 @@ void BitcoinGUI::createToolBars()
         appNavigationBar->addAction(stakepageAction);
 
 #ifdef ENABLE_ELYSIUM
-        if (isExodusEnabled()) {
+        if (isElysiumEnabled()) {
             appNavigationBar->addAction(elyAssetsAction);
             appNavigationBar->addAction(toolboxAction);
         }

@@ -674,7 +674,7 @@ Returns the token balance for a given address and property.
 **Example:**
 
 ```bash
-$ omnicore-cli "omni_getbalance", "1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P" 1
+$ omnicore-cli "omni_getbalance", "1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P" 1
 ```
 
 ---
@@ -734,7 +734,7 @@ Returns a list of all token balances for a given address.
 **Example:**
 
 ```bash
-$ omnicore-cli "omni_getallbalancesforaddress" "1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P"
+$ omnicore-cli "omni_getallbalancesforaddress" "1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P"
 ```
 
 ---

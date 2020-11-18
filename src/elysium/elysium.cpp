@@ -1985,9 +1985,9 @@ int elysium_init()
             boost::filesystem::path tradePath = GetDataDir() / "MP_tradelist";
             boost::filesystem::path spPath = GetDataDir() / "MP_spinfo";
             boost::filesystem::path stoPath = GetDataDir() / "MP_stolist";
-            boost::filesystem::path elysiumTXDBPath = GetDataDir() / "Exodus_TXDB";
-            boost::filesystem::path feesPath = GetDataDir() / "EXODUS_feecache";
-            boost::filesystem::path feeHistoryPath = GetDataDir() / "EXODUS_feehistory";
+            boost::filesystem::path elysiumTXDBPath = GetDataDir() / "Elysium_TXDB";
+            boost::filesystem::path feesPath = GetDataDir() / "ELYSIUM_feecache";
+            boost::filesystem::path feeHistoryPath = GetDataDir() / "ELYSIUM_feehistory";
             if (boost::filesystem::exists(persistPath)) boost::filesystem::remove_all(persistPath);
             if (boost::filesystem::exists(txlistPath)) boost::filesystem::remove_all(txlistPath);
             if (boost::filesystem::exists(tradePath)) boost::filesystem::remove_all(tradePath);
@@ -2008,9 +2008,9 @@ int elysium_init()
     p_txlistdb = new CMPTxList(GetDataDir() / "MP_txlist", fReindex);
     sigmaDb = new SigmaDatabase(GetDataDir() / "MP_sigma", fReindex);
     _my_sps = new CMPSPInfo(GetDataDir() / "MP_spinfo", fReindex);
-    p_ElysiumTXDB = new CElysiumTransactionDB(GetDataDir() / "Exodus_TXDB", fReindex);
-    p_feecache = new CElysiumFeeCache(GetDataDir() / "EXODUS_feecache", fReindex);
-    p_feehistory = new CElysiumFeeHistory(GetDataDir() / "EXODUS_feehistory", fReindex);
+    p_ElysiumTXDB = new CElysiumTransactionDB(GetDataDir() / "Elysium_TXDB", fReindex);
+    p_feecache = new CElysiumFeeCache(GetDataDir() / "ELYSIUM_feecache", fReindex);
+    p_feehistory = new CElysiumFeeHistory(GetDataDir() / "ELYSIUM_feehistory", fReindex);
 
     MPPersistencePath = GetDataDir() / "MP_persist";
     TryCreateDirectory(MPPersistencePath);
@@ -2196,7 +2196,7 @@ bool elysium_handler_tx(const CTransaction& tx, int nBlock, unsigned int idx, co
  */
 bool elysium::UseEncodingClassC(size_t nDataSize)
 {
-    size_t nTotalSize = nDataSize + magic.size(); // Marker "exodus"
+    size_t nTotalSize = nDataSize + magic.size(); // Marker "elysium"
     bool fDataEnabled = GetBoolArg("-datacarrier", true);
     int nBlockNow = GetHeight();
     if (!IsAllowedOutputType(TX_NULL_DATA, nBlockNow)) {
