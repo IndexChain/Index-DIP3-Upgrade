@@ -1,4 +1,4 @@
-packages:=boost openssl libevent gmp zlib backtrace
+packages:=boost openssl libevent gmp zlib backtrace chia_bls
 darwin_packages:=zeromq
 linux_packages:=zeromq
 native_packages := native_ccache native_comparisontool
