@@ -20,7 +20,22 @@ jobs:
     - name: Install Required Packages
       run: |
         sudo apt-get update
+        sudo apt-get install -y python3-zmq
+        sudo apt-get update
         sudo apt-get install -y libboost-all-dev libdb-dev libdb++-dev libevent-dev
+        sudo apt-get install -y unzip
+        sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils cmake libgmp-dev python3 cmake
+        sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
+        sudo apt-get install software-properties-common
+        sudo add-apt-repository ppa:bitcoin/bitcoin
+        sudo apt-get update
+        sudo apt-get install libdb4.8-dev libdb4.8++-dev
+        sudo wget https://github.com/codablock/bls-signatures/archive/v20181101.zip
+        unzip v20181101.zip
+        cd bls-signatures-20181101
+        sudo cmake .
+        sudo make install
+        cd ..
     - name: Create Distribution Tarball
       run: |
         ./autogen.sh
@@ -45,7 +60,6 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       ARTIFACT_DIR: linux-binaries
-      TEST_LOG_ARTIFACT_DIR: test-logs
     steps:
     - name: Getting Source
       uses: actions/download-artifact@v1
@@ -60,21 +74,27 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y python3-zmq
+        sudo apt-get install -y libboost-all-dev libdb-dev libdb++-dev libevent-dev
+        sudo apt-get install -y unzip
+        sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils cmake libgmp-dev python3 cmake
+        sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
+        sudo apt-get install software-properties-common
+        sudo add-apt-repository ppa:bitcoin/bitcoin
+        sudo apt-get update
+        sudo apt-get install libdb4.8-dev libdb4.8++-dev
+        sudo wget https://github.com/codablock/bls-signatures/archive/v20181101.zip
+        unzip v20181101.zip
+        cd bls-signatures-20181101
+        sudo cmake .
+        sudo make install
+        cd ..
     - name: Build Dependencies
       run: make -C depends -j$(nproc)
       working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Build Index
+    - name: Build index
       run: |
-        ./configure --disable-jni --enable-elysium --enable-tests --with-comparison-tool=no --prefix=$(realpath depends/x86_64-pc-linux-gnu)
+        ./configure --disable-jni --enable-elysium --enable-tests --with-comparison-tool=no --prefix=`pwd`/depends/x86_64-pc-linux-gnu
         make -j$(nproc)
-      working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Run Unit Tests
-      run: make check
-      working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Run RPC Tests
-      env:
-        TIMEOUT: 600
-      run: qa/pull-tester/rpc-tests.py -extended
       working-directory: ${{ env.SOURCE_ARTIFACT }}
     - name: Prepare Files for Artifact
       run: |
@@ -85,27 +105,6 @@ jobs:
       with:
         name: linux-binaries
         path: ${{ env.ARTIFACT_DIR }}
-    - name: Prepare Test Logs for Artifact
-      if: failure()
-      run: |
-        tor_log=$SOURCE_ARTIFACT/src/tor/test-suite.log
-        index_log=$SOURCE_ARTIFACT/src/test-suite.log
-
-        mkdir -p $TEST_LOG_ARTIFACT_DIR
-
-        if test -f $tor_log; then
-          mv $tor_log $TEST_LOG_ARTIFACT_DIR/tor.log
-        fi
-
-        if test -f $index_log; then
-          mv $index_log $TEST_LOG_ARTIFACT_DIR/index.log
-        fi
-    - name: Upload Test Logs Artifact
-      if: failure()
-      uses: actions/upload-artifact@v1
-      with:
-        name: test-logs
-        path: ${{ env.TEST_LOG_ARTIFACT_DIR }}
   build-windows:
     name: Build for Windows
     needs: create-source-distribution
@@ -125,17 +124,32 @@ jobs:
     - name: Install Required Packages
       run: |
         sudo apt-get update
+        sudo apt-get install -y python3-zmq
+        sudo apt-get install -y libboost-all-dev libdb-dev libdb++-dev libevent-dev
+        sudo apt-get install -y unzip
+        sudo apt-get install -y build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils cmake libgmp-dev python3 cmake
+        sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program-options-dev libboost-test-dev libboost-thread-dev
+        sudo apt-get install software-properties-common
+        sudo add-apt-repository ppa:bitcoin/bitcoin
+        sudo apt-get update
+        sudo apt-get install libdb4.8-dev libdb4.8++-dev
         sudo apt-get install -y g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
-    - name: Switch MinGW GCC and G++ to POSIX Threading
+    - name: Switch MinGW GCC and G++ to POSIX Threading and Install BLS
       run: |
         sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
         sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
     - name: Build Dependencies
       run: make -C depends -j$(nproc) HOST=x86_64-w64-mingw32
       working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Build Index
+    - name: Build index
       run: |
-        ./configure --disable-jni --enable-elysium --prefix=$(realpath depends/x86_64-w64-mingw32)
+        sudo wget https://github.com/codablock/bls-signatures/archive/v20181101.zip
+        unzip v20181101.zip
+        cd bls-signatures-20181101
+        sudo cmake .
+        sudo make install
+        cd ..
+        CONFIG_SITE=$PWD/depends/x86_64-w64-mingw32/share/config.site ./configure --disable-jni --enable-elysium --prefix=/
         make -j$(nproc)
       working-directory: ${{ env.SOURCE_ARTIFACT }}
     - name: Prepare Files for Artifact
@@ -170,7 +184,7 @@ jobs:
     - name: Build Dependencies
       run: make -C depends -j$(sysctl -n hw.activecpu)
       working-directory: ${{ env.SOURCE_ARTIFACT }}
-    - name: Build Index
+    - name: Build index
       run: |
         ./configure --disable-jni --enable-elysium --prefix=$(grealpath depends/x86_64-apple-darwin*)
         make -j$(sysctl -n hw.activecpu)

@@ -428,8 +428,8 @@ UniValue elysium_getfeeshare(const JSONRPCRequest& request)
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("elysium_getfeeshare", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("elysium_getfeeshare", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("elysium_getfeeshare", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
         );
 
     std::string address;
@@ -819,8 +819,8 @@ UniValue elysium_getbalance(const JSONRPCRequest& request)
             "  \"reserved\" : \"n.nnnnnnnn\"   (string) the amount reserved by sell offers and accepts\n"
             "}\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("elysium_getbalance", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("elysium_getbalance", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("elysium_getbalance", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
         );
 
     std::string address = ParseAddress(request.params[0]);
@@ -909,8 +909,8 @@ UniValue elysium_getallbalancesforaddress(const JSONRPCRequest& request)
             "  ...\n"
             "]\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
-            + HelpExampleRpc("elysium_getallbalancesforaddress", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+            + HelpExampleCli("elysium_getallbalancesforaddress", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
+            + HelpExampleRpc("elysium_getallbalancesforaddress", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\"")
         );
 
     std::string address = ParseAddress(request.params[0]);

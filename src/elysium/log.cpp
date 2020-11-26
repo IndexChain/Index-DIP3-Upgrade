@@ -16,7 +16,7 @@
 #include <vector>
 
 // Default log files
-const std::string LOG_FILENAME    = "exodus.log";
+const std::string LOG_FILENAME    = "elysium.log";
 
 // Options
 static const long LOG_BUFFERSIZE  =  8000000; //  8 MB
@@ -127,7 +127,7 @@ static int ConsolePrint(const std::string& str)
 /**
  * Returns path for debug log file.
  *
- * The log file can be specified via startup option "--elysiumlogfile=/path/to/exodus.log",
+ * The log file can be specified via startup option "--elysiumlogfile=/path/to/elysium.log",
  * and if none is provided, then the client's datadir is used as default location.
  */
 static boost::filesystem::path GetLogPath()

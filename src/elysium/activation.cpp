@@ -129,7 +129,7 @@ void ClearActivations()
 }
 
 /**
- * Determines whether the sender is an authorized source for Exodus Core feature activation.
+ * Determines whether the sender is an authorized source for Elysium Core feature activation.
  *
  * The option "-elysiumactivationallowsender=source" can be used to whitelist additional sources,
  * and the option "-elysiumactivationignoresender=source" can be used to ignore a source.
@@ -147,11 +147,11 @@ bool CheckActivationAuthorization(const std::string& sender)
     "scriptPubKey": "a91498a2d17e08ac677dc220b92e0b79406f2f441c2487",
     "sigsrequired": 4,
     "addresses": [
-      "1883ZMsRJfzKNozUBJBTCxQ7EaiNioNDWz", // Zathras - zathras@exodus.foundation - Project maintainer, developer
+      "1883ZMsRJfzKNozUBJBTCxQ7EaiNioNDWz", // Zathras - zathras@elysium.foundation - Project maintainer, developer
       "1HHv91gRxqBzQ3gydMob3LU8hqXcWoLfvd", // dexx - dexx@bitwatch.co - Project maintainer, developer
-      "1oyvGmABkeFRUECn2t8DEZPes6F7Gsc9T", // J.R. Willett - jr@exodus.foundation - Founder and Board Member
-      "17xr7sbehYY4YSZX9yuJe6gK9rrdRrZx26", // Craig Sellars - craig@exodus.foundation - Technologist and Board Member
-      "16oDZYCspsczfgKXVj3xyvsxH21NpEj94F" // Adam Chamely - adam@exodus.foundation - Project maintainer, developer
+      "1oyvGmABkeFRUECn2t8DEZPes6F7Gsc9T", // J.R. Willett - jr@elysium.foundation - Founder and Board Member
+      "17xr7sbehYY4YSZX9yuJe6gK9rrdRrZx26", // Craig Sellars - craig@elysium.foundation - Technologist and Board Member
+      "16oDZYCspsczfgKXVj3xyvsxH21NpEj94F" // Adam Chamely - adam@elysium.foundation - Project maintainer, developer
     ],
     */
     whitelisted.insert("48UM25xTXCxPRwnv36YjjJNaAK4whKR8Rd");
@@ -198,11 +198,11 @@ bool CheckDeactivationAuthorization(const std::string& sender)
     "script" : "multisig",
     "sigsrequired" : 3,
     "addresses" : [
-      "1883ZMsRJfzKNozUBJBTCxQ7EaiNioNDWz", // Zathras - zathras@exodus.foundation - Project maintainer, developer
+      "1883ZMsRJfzKNozUBJBTCxQ7EaiNioNDWz", // Zathras - zathras@elysium.foundation - Project maintainer, developer
       "1HHv91gRxqBzQ3gydMob3LU8hqXcWoLfvd", // dexx - dexx@bitwatch.co - Project maintainer, developer
-      "1oyvGmABkeFRUECn2t8DEZPes6F7Gsc9T", // J.R. Willett - jr@exodus.foundation - Founder and Board Member
-      "17xr7sbehYY4YSZX9yuJe6gK9rrdRrZx26", // Craig Sellars - craig@exodus.foundation - Technologist and Board Member
-      "16oDZYCspsczfgKXVj3xyvsxH21NpEj94F" // Adam Chamely - adam@exodus.foundation - Project maintainer, developer
+      "1oyvGmABkeFRUECn2t8DEZPes6F7Gsc9T", // J.R. Willett - jr@elysium.foundation - Founder and Board Member
+      "17xr7sbehYY4YSZX9yuJe6gK9rrdRrZx26", // Craig Sellars - craig@elysium.foundation - Technologist and Board Member
+      "16oDZYCspsczfgKXVj3xyvsxH21NpEj94F" // Adam Chamely - adam@elysium.foundation - Project maintainer, developer
     ],
     */
     whitelisted.insert("48UM25xTXCxPRwnv36YjjJNaAK4whKR8Rd");

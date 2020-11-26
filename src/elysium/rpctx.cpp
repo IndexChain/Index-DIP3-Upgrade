@@ -1291,8 +1291,8 @@ UniValue elysium_sendfreeze(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_sendfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
-            + HelpExampleRpc("elysium_sendfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
+            + HelpExampleCli("elysium_sendfreeze", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
+            + HelpExampleRpc("elysium_sendfreeze", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
         );
 
     // obtain parameters & info
@@ -1343,8 +1343,8 @@ UniValue elysium_sendunfreeze(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_sendunfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
-            + HelpExampleRpc("elysium_sendunfreeze", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
+            + HelpExampleCli("elysium_sendunfreeze", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\" 1 0")
+            + HelpExampleRpc("elysium_sendunfreeze", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", \"3HTHRxu3aSDV4deakjC7VmsiUp7c6dfbvs\", 1, 0")
         );
 
     // obtain parameters & info
@@ -1395,8 +1395,8 @@ UniValue elysium_sendactivation(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_sendactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1 370000 999")
-            + HelpExampleRpc("elysium_sendactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1, 370000, 999")
+            + HelpExampleCli("elysium_sendactivation", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1 370000 999")
+            + HelpExampleRpc("elysium_sendactivation", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1, 370000, 999")
         );
 
     // obtain parameters & info
@@ -1439,8 +1439,8 @@ UniValue elysium_senddeactivation(const JSONRPCRequest& request)
             "\nResult:\n"
             "\"hash\"                  (string) the hex-encoded transaction hash\n"
             "\nExamples:\n"
-            + HelpExampleCli("elysium_senddeactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
-            + HelpExampleRpc("elysium_senddeactivation", "\"1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
+            + HelpExampleCli("elysium_senddeactivation", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\" 1")
+            + HelpExampleRpc("elysium_senddeactivation", "\"1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P\", 1")
         );
 
     // obtain parameters & info

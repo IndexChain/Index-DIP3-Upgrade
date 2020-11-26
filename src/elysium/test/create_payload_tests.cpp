@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE(payload_freeze_tokens)
     std::vector<unsigned char> vch = CreatePayload_FreezeTokens(
         static_cast<uint32_t>(4),                                   // property: SP #4
         static_cast<int64_t>(1000),                                 // amount to freeze (unused)
-        std::string("1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P"));         // reference address
+        std::string("1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P"));         // reference address
 
     BOOST_CHECK_EQUAL(HexStr(vch),
         "000000b90000000400000000000003e800946cb2e08075bcbaf157e47bcb67eb2b2339d242");
@@ -423,7 +423,7 @@ BOOST_AUTO_TEST_CASE(payload_unfreeze_tokens)
     std::vector<unsigned char> vch = CreatePayload_UnfreezeTokens(
         static_cast<uint32_t>(4),                                   // property: SP #4
         static_cast<int64_t>(1000),                                 // amount to freeze (unused)
-        std::string("1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P"));         // reference address
+        std::string("1ELYSIUMjGwvnjZUyKkxZ4UHEf77z6A5S4P"));         // reference address
 
     BOOST_CHECK_EQUAL(HexStr(vch),
         "000000ba0000000400000000000003e800946cb2e08075bcbaf157e47bcb67eb2b2339d242");

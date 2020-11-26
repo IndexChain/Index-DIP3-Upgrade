@@ -59,7 +59,7 @@ QT_TRANSLATE_NOOP("index-core", ""
 QT_TRANSLATE_NOOP("index-core", ""
 "Disabled transaction index detected.\n"
 "\n"
-"Exodus requires an enabled transaction index. To enable transaction "
+"Elysium requires an enabled transaction index. To enable transaction "
 "indexing, please use the \"-txindex\" option as command line argument or add "
 "\"txindex=1\" to your client configuration file within your data directory.\n"
 "\n"
@@ -162,7 +162,7 @@ QT_TRANSLATE_NOOP("index-core", ""
 QT_TRANSLATE_NOOP("index-core", ""
 "Please add txindex=1 to your configuration file manually.\n"
 "\n"
-"Exodus will now shutdown."),
+"Elysium will now shutdown."),
 QT_TRANSLATE_NOOP("index-core", ""
 "Please add txindex=1 to your configuration file manually.\n"
 "\n"
@@ -305,7 +305,7 @@ QT_TRANSLATE_NOOP("index-core", ""
 "Whitelisted peers cannot be DoS banned and their transactions are always "
 "relayed, even if they are already in the mempool, useful e.g. for a gateway"),
 QT_TRANSLATE_NOOP("index-core", ""
-"Would you like Exodus to attempt to update your configuration file "
+"Would you like Elysium to attempt to update your configuration file "
 "accordingly?"),
 QT_TRANSLATE_NOOP("index-core", ""
 "You must specify a indexnodeprivkey in the configuration. Please see "
@@ -318,7 +318,7 @@ QT_TRANSLATE_NOOP("index-core", ""
 QT_TRANSLATE_NOOP("index-core", ""
 "Your configuration file has been updated.\n"
 "\n"
-"Exodus will now shutdown - please restart the client for your new "
+"Elysium will now shutdown - please restart the client for your new "
 "configuration to take effect."),
 QT_TRANSLATE_NOOP("index-core", ""
 "it has to have at least two mint coins with at least 6 confirmation in order "
@@ -484,7 +484,7 @@ QT_TRANSLATE_NOOP("index-core", "One of minted coin does not found in the chain"
 QT_TRANSLATE_NOOP("index-core", "One of the minted coin is invalid"),
 QT_TRANSLATE_NOOP("index-core", "Only connect to nodes in network <net> (ipv4, ipv6 or onion)"),
 QT_TRANSLATE_NOOP("index-core", "Options:"),
-QT_TRANSLATE_NOOP("index-core", "Parsing Exodus transactions..."),
+QT_TRANSLATE_NOOP("index-core", "Parsing Elysium transactions..."),
 QT_TRANSLATE_NOOP("index-core", "Pass named instead of positional arguments (default: %s)"),
 QT_TRANSLATE_NOOP("index-core", "Password for JSON-RPC connections"),
 QT_TRANSLATE_NOOP("index-core", "Port: %d"),
