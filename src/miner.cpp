@@ -1090,6 +1090,8 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
     {
         CBlockIndex* pindexPrev = chainActive.Tip();
         const int nHeight = pindexPrev->nHeight + 1;
+        //Update it each run,to check
+        fvNodesEmpty = nodecount == 0;
         if (nHeight >= Params().GetConsensus().nFirstPOSBlock)
         {
             while (pwallet->IsLocked())
@@ -1097,7 +1099,7 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
                 nLastCoinStakeSearchInterval = 0;
                 MilliSleep(10000);
             }
-            while (fvNodesEmpty || IsInitialBlockDownload() || !indexnodeSync.IsSynced())
+            while (fvNodesEmpty || !indexnodeSync.IsSynced())
             {
                 nLastCoinStakeSearchInterval = 0;
                 fTryToSync = true;

@@ -311,7 +311,7 @@ public:
         //Initial seeders for use
         vSeeds.push_back(CDNSSeedData("mineit.io", "mineit.io", false));
         vSeeds.push_back(CDNSSeedData("202.182.107.84", "202.182.107.84", false));
-        vSeeds.push_back(CDNSSeedData("idxseeder.mineit.io", "idxseeder.ineit.io", false));
+        vSeeds.push_back(CDNSSeedData("idxseeder.mineit.io", "idxseeder.mineit.io", true));
         vSeeds.push_back(CDNSSeedData("45.76.196.198", "45.76.196.198", false));
         vSeeds.push_back(CDNSSeedData("198.13.41.221", "198.13.41.221", false));
         vSeeds.push_back(CDNSSeedData("202.182.101.157", "202.182.101.157", false));
