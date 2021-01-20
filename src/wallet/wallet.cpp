@@ -67,7 +67,6 @@ const char * DEFAULT_WALLET_DAT = "wallet.dat";
 static int64_t GetStakeCombineThreshold() { return 800 * COIN; }
 unsigned int GetStakeSplitOutputs() { return 4; }
 int64_t GetStakeSplitThreshold() { return GetStakeSplitOutputs() * GetStakeCombineThreshold(); }
-CAmount nReserveBalance = 0;
 
 /**
  * Fees smaller than this (in satoshi) are considered zero fee (for transaction creation)
@@ -775,15 +774,12 @@ uint64_t CWallet::GetStakeWeight() const
     // Choose coins to use
     CAmount nBalance = GetBalance();
 
-    if (nBalance <= nReserveBalance)
-        return 0;
-
     vector<const CWalletTx*> vwtxPrev;
 
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     CAmount nValueIn = 0;
 
-    CAmount nTargetValue = nBalance - nReserveBalance;
+    CAmount nTargetValue = nBalance;
     if (!SelectCoinsForStaking(nTargetValue, setCoins, nValueIn))
         return 0;
 
@@ -865,6 +861,7 @@ bool CWallet::SelectCoinsForStaking(CAmount& nTargetValue, std::set<std::pair<co
          //We dont allow sigma inputs to stake yet
         if(pcoin->tx->IsSigmaMint())
             continue;
+        //Skip collateral amounts
         if (n == INDEXNODE_COIN_REQUIRED * COIN)
             continue;
 
@@ -906,16 +903,13 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
     // Choose coins to use
     CAmount nBalance = GetBalance();
 
-    if (nBalance <= nReserveBalance)
-        return false;
-
     vector<const CWalletTx*> vwtxPrev;
 
     set<pair<const CWalletTx*,unsigned int> > setCoins;
     CAmount nValueIn = 0;
 
     // Select coins with suitable depth
-    CAmount nTargetValue = nBalance - nReserveBalance;
+    CAmount nTargetValue = nBalance;
     if (!SelectCoinsForStaking(nTargetValue, setCoins, nValueIn))
         return false;
 
@@ -1016,7 +1010,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             break; // if kernel is found stop searching
     }
 
-    if (nCredit == 0 || nCredit > nBalance - nReserveBalance)
+    if (nCredit == 0 || nCredit > nBalance)
         return false;
 
     BOOST_FOREACH(const PAIRTYPE(const CWalletTx*, unsigned int)& pcoin, setCoins)
@@ -1030,7 +1024,7 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
             if (txNew.vin.size() >= 10)
                 break;
             // Stop adding inputs if reached reserve limit
-            if (nCredit + pcoin.first->tx->vout[pcoin.second].nValue > nBalance - nReserveBalance)
+            if (nCredit + pcoin.first->tx->vout[pcoin.second].nValue > nBalance)
                 break;
             // Do not add additional significant input
             if (pcoin.first->tx->vout[pcoin.second].nValue >= GetStakeCombineThreshold())
@@ -1056,29 +1050,17 @@ bool CWallet::CreateCoinStake(const CKeyStore& keystore, unsigned int nBits, int
         bool fPayIDXNode = nHeight >= Params().GetConsensus().nZnodePaymentsStartBlock;
         bool IDXNodePaid = false;
         CAmount indexnodePayment = 0;
-    if (Dip3Active) {
-        FillBlockPayments(txNew, nHeight, nReward, pblocktemplate->voutMasternodePayments, true);
-    }
-    else if (fPayIDXNode) {
-        const Consensus::Params &params = Params().GetConsensus();
-        indexnodePayment = GetZnodePayment(Params().GetConsensus(),nHeight);
-        FillZnodeBlockPayments(txNew, nHeight, indexnodePayment, pblock->txoutZnode, pblock->voutSuperblock);
-        if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0){
-            nReward -= indexnodePayment;
-            IDXNodePaid = true;
-        }
-    }
-        /*
-        CAmount indexnodePayment = 0;
-        // indexnode payments
-        if (nHeight >= Params().GetConsensus().nZnodePaymentsStartBlock) {
-            const CChainParams &chainparams = Params();
-            const Consensus::Params &params = chainparams.GetConsensus();
-             indexnodePayment = GetZnodePayment(chainparams.GetConsensus(),nHeight);
+        if (Dip3Active)
+            FillBlockPayments(txNew, nHeight, nReward, pblocktemplate->voutMasternodePayments, true);
+        else if (fPayIDXNode) {
+            const Consensus::Params &params = Params().GetConsensus();
+            indexnodePayment = GetZnodePayment(Params().GetConsensus(),nHeight);
             FillZnodeBlockPayments(txNew, nHeight, indexnodePayment, pblock->txoutZnode, pblock->voutSuperblock);
+            if(pblock->txoutZnode != CTxOut() && indexnodePayment != 0){
+                nReward -= indexnodePayment;
+                IDXNodePaid = true;
+            }
         }
-
-        */
         nCredit += nReward;
     }
 
