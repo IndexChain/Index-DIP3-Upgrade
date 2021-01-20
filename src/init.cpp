@@ -273,9 +273,9 @@ void PrepareShutdown()
         pwalletMain->Flush(false);
 #endif
     GenerateBitcoins(false, 0, Params());
-    CFlatDB<CZnodeMan> flatdb1("zncache.dat", "magicZnodeCache");
+    CFlatDB<CZnodeMan> flatdb1("incache.dat", "magicZnodeCache");
     flatdb1.Dump(mnodeman);
-    CFlatDB<CZnodePayments> flatdb2("znpayments.dat", "magicZnodePaymentsCache");
+    CFlatDB<CZnodePayments> flatdb2("inpayments.dat", "magicZnodePaymentsCache");
     flatdb2.Dump(znpayments);
     
     MapPort(false);
@@ -285,7 +285,7 @@ void PrepareShutdown()
 
    if (!fLiteMode) {
         // STORE DATA CACHES INTO SERIALIZED DAT FILES
-        CFlatDB<CMasternodeMetaMan> flatdb1("evozncache.dat", "magicMasternodeCache");
+        CFlatDB<CMasternodeMetaMan> flatdb1("evoincache.dat", "magicMasternodeCache");
         flatdb1.Dump(mmetaman);
 /*        CFlatDB<CGovernanceManager> flatdb3("governance.dat", "magicGovernanceCache");
         flatdb3.Dump(governance); */
@@ -2184,16 +2184,16 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
     if (!fIgnoreCacheFiles) {
         // Legacy indexnodes cache
         uiInterface.InitMessage(_("Loading indexnode cache..."));
-        CFlatDB<CZnodeMan> flatdb1("zncache.dat", "magicZnodeCache");
+        CFlatDB<CZnodeMan> flatdb1("incache.dat", "magicZnodeCache");
         if (!flatdb1.Load(mnodeman)) {
-            return InitError("Failed to load indexnode cache from zncache.dat");
+            return InitError("Failed to load indexnode cache from incache.dat");
         }
 
         if (mnodeman.size()) {
             uiInterface.InitMessage(_("Loading Znode payment cache..."));
-            CFlatDB<CZnodePayments> flatdb2("znpayments.dat", "magicZnodePaymentsCache");
+            CFlatDB<CZnodePayments> flatdb2("inpayments.dat", "magicZnodePaymentsCache");
             if (!flatdb2.Load(znpayments)) {
-                return InitError("Failed to load indexnode payments cache from znpayments.dat");
+                return InitError("Failed to load indexnode payments cache from inpayments.dat");
             }
         } else {
             uiInterface.InitMessage(_("Znode cache is empty, skipping payments cache..."));
@@ -2205,7 +2205,7 @@ bool AppInitMain(boost::thread_group& threadGroup, CScheduler& scheduler)
         boost::filesystem::path pathDB = GetDataDir();
         std::string strDBName;
 
-        strDBName = "evozncache.dat";
+        strDBName = "evoincache.dat";
         uiInterface.InitMessage(_("Loading indexnode cache..."));
         CFlatDB<CMasternodeMetaMan> flatdb1(strDBName, "magicMasternodeCache");
         if(!flatdb1.Load(mmetaman)) {
