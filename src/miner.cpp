@@ -67,7 +67,7 @@ uint64_t nLastBlockTx = 0;
 uint64_t nLastBlockSize = 0;
 uint64_t nLastBlockWeight = 0;
 int64_t nLastCoinStakeSearchInterval = 0;
-unsigned int nMinerSleep = 4000;
+unsigned int nMinerSleep = 2500;
 class ScoreCompare
 {
 public:
@@ -1098,25 +1098,25 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
             while (pwallet->IsLocked() && !fWalletUnlockStakingOnly)
             {
                 nLastCoinStakeSearchInterval = 0;
-                MilliSleep(10000);
+                MilliSleep(nMinerSleep);
             }
             while (fvNodesEmpty || !indexnodeSync.IsSynced())
             {
                 nLastCoinStakeSearchInterval = 0;
                 fTryToSync = true;
-                MilliSleep(1000);
+                MilliSleep(nMinerSleep);
             }
             if (fTryToSync)
             {
                 fTryToSync = false;
                 if (nodecount < 2 || pindexBestHeader->GetBlockTime() < GetTime() - 10 * 60)
                 {
-                    MilliSleep(6000);
+                    MilliSleep(nMinerSleep);
                     continue;
                 }
             }
             if(!pwallet->getEnabledStaking()){
-                MilliSleep(3000);
+                MilliSleep(nMinerSleep);
                 continue;
             }
             //
@@ -1142,13 +1142,13 @@ void ThreadStakeMiner(CWallet *pwallet, const CChainParams& chainparams)
                         BroadcastPoSBlock(pblock, *pwallet, chainparams);
                         // return back to low priority
                         SetThreadPriority(THREAD_PRIORITY_LOWEST);
-                        MilliSleep(5000);
+                        MilliSleep(nMinerSleep);
                     }
                 }
             }
             MilliSleep(nMinerSleep);
         }
-        MilliSleep(10000);
+        MilliSleep(nMinerSleep);
     }
 }
 
