@@ -2427,7 +2427,7 @@ bool ConnectBlock(const CBlock& block, CValidationState& state, CBlockIndex* pin
         Coin coinPrev;
         if(!view.GetCoin(prevout, coinPrev)){
             if(!GetSpentCoinFromMainChain(pindex->pprev, prevout, &coinPrev)) {
-                return error("ConnectBlock(): Could not find coin and it was not at the tip");
+                return state.DoS(100,error("ConnectBlock(): Could not find coin and it was not at the tip"),REJECT_INVALID,"spentcoin-mainchain");
             }
         }
          // Check proof-of-stake min confirmations

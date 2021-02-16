@@ -246,9 +246,9 @@ public:
         // consensus.nBudgetPaymentsWindowBlocks = 100;
 
         // evo indexnodes
-        consensus.DIP0003Height = 999999999; // TODO akshaynexus change this on mainnet fork
-        consensus.DIP0003EnforcementHeight = 999999999; // This aswell
-        consensus.DIP0008Height = INT_MAX;
+        consensus.DIP0003Height = 145000; // TODO akshaynexus change this on mainnet fork
+        consensus.DIP0003EnforcementHeight = 145000; // This aswell
+        consensus.DIP0008Height = 145000;
         consensus.nEvoZnodeMinimumConfirmations = 15;
 
         // long living quorum params
